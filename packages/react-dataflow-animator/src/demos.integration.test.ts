@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Action, DataFlowSpec } from './types';
-import { compile } from '@react-dataflow-animator/core/engine/compiler';
+import { compile } from '@dataflow-animator/core/engine/compiler';
 import { clientServer } from '../../../apps/docs/src/site-content/demos/clientServer';
 import { microservices } from '../../../apps/docs/src/site-content/demos/microservices';
 import { signalr } from '../../../apps/docs/src/site-content/demos/signalr';

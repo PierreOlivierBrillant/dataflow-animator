@@ -10,6 +10,44 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
      from the source tree. None of it was exported, so there is no change for
      consumers and no version bump. -->
 
+## `@dataflow-animator/core` 0.1.0
+
+The framework-agnostic core becomes a package of its own — the direct entry
+point for a consumer with no framework, and the common dependency every wrapper
+will be built on. Until now it was a private, source-only workspace that
+`react-dataflow-animator` inlined at build time.
+
+### Added
+
+- **A public API** (`packages/core/src/index.ts`): `mountPlayer` / `mountStage`
+  and their option and handle types, `createPlayerClock`, `renderNodeVisual`,
+  the icon registries (`registerNodeIcon`, `registerSubIcon`, the `render*`
+  getters returning an `SVGElement`, `IconSource`), `highlightCode` /
+  `escapeHtml`, the engine (`compile`, `evaluate`, `stepIndexAt`, `nextStop`,
+  `prevStop`, `computeLayout`, `Timeline` and the whole `Clip` union),
+  `serializeSpec`, every specification type, and `dataFlowSchema`. The
+  renderer's plumbing stays private.
+- **A build**: ESM bundle, a flattened self-contained `dist/index.d.ts`,
+  `dist/styles.css` and `dist/schema.json`, exported as
+  `@dataflow-animator/core`, `@dataflow-animator/core/styles.css` and
+  `@dataflow-animator/core/schema.json`. `prismjs` stays external.
+- **The renderer's stylesheet** moved here from the React package, next to the
+  markup it styles.
+
+### Changed
+
+- `mountVanillaPlayer` → `mountPlayer`, `mountVanillaStage` → `mountStage`, and
+  their `Vanilla*` option/handle types lose the prefix. None of these names was
+  public, so no consumer is affected: this package **is** the
+  framework-agnostic one, and the name should not have said "vanilla".
+
+### Note for `react-dataflow-animator` consumers
+
+Nothing changes in this release. The React package still inlines the core's
+source, so it ships its own copy of the engine and of the stylesheet. Making it
+depend on the published core — one engine, one stylesheet, and a different CSS
+import path — is a breaking change, and lands as its own major version.
+
 ## [3.0.0]
 
 `DataFlowPlayer` no longer renders a React tree. It mounts a framework-agnostic

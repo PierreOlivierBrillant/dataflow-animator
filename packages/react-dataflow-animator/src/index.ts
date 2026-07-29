@@ -53,12 +53,12 @@ export type { DataFlowSchema } from './schema';
 export {
   registerNodeIcon,
   renderNodeIcon as getNodeIcon,
-} from '@react-dataflow-animator/core/dom/icons/nodeIcons';
+} from '@dataflow-animator/core/dom/icons/nodeIcons';
 export {
   registerSubIcon,
   renderSubIcon as getSubIcon,
-} from '@react-dataflow-animator/core/dom/icons/subIcons';
-export type { IconSource } from '@react-dataflow-animator/core/dom/icons/registry';
+} from '@dataflow-animator/core/dom/icons/subIcons';
+export type { IconSource } from '@dataflow-animator/core/dom/icons/registry';
 
 // Isolated rendering of the visual core of a node (pictogram or panel), outside Stage —
 // used by the doc for the types gallery, reusable by the consumer.
@@ -69,18 +69,18 @@ export type { NodeViewProps } from './components/nodes/NodeView';
 export {
   highlightCode,
   escapeHtml,
-} from '@react-dataflow-animator/core/highlight/highlight';
+} from '@dataflow-animator/core/highlight/highlight';
 
 // Engine (advanced API: timeline compilation and evaluation).
-export { compile } from '@react-dataflow-animator/core/engine/compiler';
-export type { CompileResult } from '@react-dataflow-animator/core/engine/compiler';
+export { compile } from '@dataflow-animator/core/engine/compiler';
+export type { CompileResult } from '@dataflow-animator/core/engine/compiler';
 export {
   evaluate,
   stepIndexAt,
   nextStop,
   prevStop,
   EMPTY_TIMELINE,
-} from '@react-dataflow-animator/core/engine/timeline';
+} from '@dataflow-animator/core/engine/timeline';
 export type {
   Timeline,
   Clip,
@@ -96,15 +96,15 @@ export type {
   SetVisibleClip,
   SetColorClip,
   ReflowClip,
-} from '@react-dataflow-animator/core/engine/timeline';
-export { computeLayout } from '@react-dataflow-animator/core/engine/layout';
+} from '@dataflow-animator/core/engine/timeline';
+export { computeLayout } from '@dataflow-animator/core/engine/layout';
 export type {
   LayoutMap,
   NodePlacement,
-} from '@react-dataflow-animator/core/engine/layout';
+} from '@dataflow-animator/core/engine/layout';
 export type {
   GeometryMap,
   NodeGeom,
-} from '@react-dataflow-animator/core/engine/geometry';
+} from '@dataflow-animator/core/engine/geometry';
 // `useClock` was removed in v3: the player's clock lives in the core and is no
 // longer a React hook.

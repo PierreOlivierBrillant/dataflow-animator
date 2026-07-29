@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { mountVanillaStage, type VanillaStageOptions } from './mount';
+import { mountStage, type StageOptions } from './mount';
 import type { Density } from '../engine/scale';
 import { compile } from '../engine/compiler';
 import type { DataFlowSpec } from '../types';
@@ -29,14 +29,10 @@ afterEach(() => {
   document.body.innerHTML = '';
 });
 
-function mount(
-  over?: Partial<DataFlowSpec>,
-  t = 0,
-  options?: VanillaStageOptions
-) {
+function mount(over?: Partial<DataFlowSpec>, t = 0, options?: StageOptions) {
   const container = document.createElement('div');
   document.body.appendChild(container);
-  const handle = mountVanillaStage(container, { ...spec, ...over }, t, options);
+  const handle = mountStage(container, { ...spec, ...over }, t, options);
   return { container, handle };
 }
 
@@ -54,7 +50,7 @@ const codeSpec: Partial<DataFlowSpec> = {
   connections: [],
 };
 
-describe('mountVanillaStage — structure', () => {
+describe('mountStage — structure', () => {
   it('roots the render in .rdfa-stage', () => {
     const { container } = mount();
 
@@ -123,7 +119,7 @@ describe('mountVanillaStage — structure', () => {
   });
 });
 
-describe('mountVanillaStage — dynamic clips', () => {
+describe('mountStage — dynamic clips', () => {
   // Two sequential steps: the move owns [0, ~1000), the arrow the step after.
   // Probing inside each step proves a clip is drawn while live and NOT drawn
   // outside its window — the scrubbability the React overlay gets from
@@ -220,7 +216,7 @@ describe('mountVanillaStage — dynamic clips', () => {
   });
 });
 
-describe('mountVanillaStage — convergence', () => {
+describe('mountStage — convergence', () => {
   it('stops on the equality bailout rather than on the budget', () => {
     // Nothing moves between passes in jsdom, so the second measurement equals
     // the first and the loop must bail out at once.
@@ -237,7 +233,7 @@ describe('mountVanillaStage — convergence', () => {
   });
 });
 
-describe('mountVanillaStage — teardown', () => {
+describe('mountStage — teardown', () => {
   it('destroy() detaches the render', () => {
     const { container, handle } = mount();
 
@@ -271,7 +267,7 @@ describe('mountVanillaStage — teardown', () => {
   });
 });
 
-describe('mountVanillaStage — set_content and comments', () => {
+describe('mountStage — set_content and comments', () => {
   const contentSpec = {
     timeline: [
       {
@@ -344,7 +340,7 @@ describe('mountVanillaStage — set_content and comments', () => {
   });
 });
 
-describe('mountVanillaStage — update(t), the retained read path', () => {
+describe('mountStage — update(t), the retained read path', () => {
   const movingSpec: Partial<DataFlowSpec> = {
     packets: [{ id: 'p', kind: 'http_packet' }],
     timeline: [
@@ -432,7 +428,7 @@ describe('mountVanillaStage — update(t), the retained read path', () => {
   });
 });
 
-describe('mountVanillaStage — teardown', () => {
+describe('mountStage — teardown', () => {
   it('detaches the tree and disconnects the observer', () => {
     const disconnect = vi.fn();
     vi.stubGlobal(
@@ -472,7 +468,7 @@ describe('mountVanillaStage — teardown', () => {
  * setting them got silence. What follows asserts they are genuinely CONSUMED,
  * not just accepted.
  */
-describe('mountVanillaStage — options', () => {
+describe('mountStage — options', () => {
   it('feeds density into the stage model', () => {
     const scaleFor = (density: Density): string | undefined => {
       const { container } = mount(undefined, 0, { density });

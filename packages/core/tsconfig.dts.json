@@ -4,10 +4,6 @@
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "module": "esnext",
     "moduleResolution": "bundler",
-    "paths": {
-      "@dataflow-animator/core/*": ["../core/src/*"]
-    },
-    "jsx": "react-jsx",
     "skipLibCheck": true,
     "declaration": true,
     "emitDeclarationOnly": true,
@@ -17,6 +13,8 @@
     "types": [],
     "resolveJsonModule": true
   },
+  // Tests excluded: they are not part of the published surface, and a `.d.ts`
+  // built from them would drag vitest's types into the program.
   "include": ["src"],
-  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx"]
+  "exclude": ["src/**/*.test.ts"]
 }

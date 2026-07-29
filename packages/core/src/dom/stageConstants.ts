@@ -64,9 +64,6 @@ export const PASTILLE_INSET = 5;
 /** Half-width of the arrowhead triangle. Origin: `ArrowLine.tsx` `HEAD`. */
 export const ARROW_HEAD = 9;
 
-/** Duration (ms) of a tree edge's draw-in. Origin: `Stage.tsx` `EDGE_DRAW_MS`. */
-export const EDGE_DRAW_MS = 450;
-
 /**
  * Muted mid-tones used to tint each logic net. Chosen to stay legible on both
  * themes and to differ only slightly from the neutral wire — enough to tell two

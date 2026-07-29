@@ -8,7 +8,7 @@
     "skipLibCheck": true,
     "moduleResolution": "bundler",
     "paths": {
-      "@react-dataflow-animator/core/*": ["../core/src/*"]
+      "@dataflow-animator/core/*": ["../core/src/*"]
     },
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,

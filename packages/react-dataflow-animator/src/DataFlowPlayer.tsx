@@ -2,18 +2,25 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 // The only import that makes Vite emit `dist/style.css`, which `package.json`
 // exports as `react-dataflow-animator/styles.css`. Dropping it ships a package
 // with no stylesheet, silently.
-import './styles/dataflow.css';
+//
+// The stylesheet itself lives in the core now — it styles the core's renderer,
+// not anything React draws. Until this package consumes the PUBLISHED core
+// (step 3.2), it is pulled through the source alias and re-emitted here, so the
+// same bytes ship twice: once as `@dataflow-animator/core/styles.css`, once as
+// `react-dataflow-animator/styles.css`. 3.2 drops this import and points
+// consumers at the core's stylesheet instead.
+import '@dataflow-animator/core/styles/dataflow.css';
 import type { CSSProperties } from 'react';
 import type { DataFlowPlayerProps } from './types';
-import { mountVanillaPlayer } from '@react-dataflow-animator/core/dom/player';
-import { serializeSpec } from '@react-dataflow-animator/core/export/json';
+import { mountPlayer } from '@dataflow-animator/core/dom/player';
+import { serializeSpec } from '@dataflow-animator/core/export/json';
 import { toStyleMap } from './utils/styleMap';
 
 /**
  * Main player: compiles a `spec` into a deterministic timeline and plays it.
  *
  * Since v3 this component is a MOUNT, not a renderer. It creates the
- * framework-agnostic DOM renderer from `@react-dataflow-animator/core` in an
+ * framework-agnostic DOM renderer from `@dataflow-animator/core` in an
  * effect and tears it down on unmount; React never manages the player's
  * children. That is what makes a frame ~6x cheaper: a clock tick mutates the
  * DOM in place instead of re-rendering a tree.
@@ -93,7 +100,7 @@ export function DataFlowPlayer({
     if (!host) return;
 
     const resume = resumeRef.current;
-    const player = mountVanillaPlayer(host, specRef.current, {
+    const player = mountPlayer(host, specRef.current, {
       height,
       width,
       className,

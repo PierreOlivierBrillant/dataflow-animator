@@ -4,7 +4,7 @@ import { RISK_DEMOS } from './riskDemos';
 /**
  * The reference grid — a NON-REGRESSION gate for the vanilla renderer.
  *
- * What it proves: that a future change to `@react-dataflow-animator/core/dom`
+ * What it proves: that a future change to `@dataflow-animator/core/dom`
  * has not moved a pixel of the rendered output. Each golden is a contact sheet:
  * one frozen frame of the vanilla stage at every `timeline.stops[]`, so a single
  * image covers every settled instant of a demo.

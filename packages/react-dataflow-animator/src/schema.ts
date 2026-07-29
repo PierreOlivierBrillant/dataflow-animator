@@ -1,4 +1,4 @@
-import schemaJson from '@react-dataflow-animator/core/schema.generated.json';
+import schemaJson from '@dataflow-animator/core/schema.generated.json';
 
 /**
  * JSON Schema (draft-07) of the DataFlow specification.

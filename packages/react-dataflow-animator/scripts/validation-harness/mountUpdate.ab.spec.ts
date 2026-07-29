@@ -8,7 +8,7 @@ import { appendAbResult } from './abResults';
  * Mount-vs-update gate: the retained renderer against ITSELF — and, since step
  * 2.6b removed the React renderer, the PRIMARY structural gate.
  *
- * Panel A is `mountVanillaStage(spec, t)`. Panel B is mounted at the start of
+ * Panel A is `mountStage(spec, t)`. Panel B is mounted at the start of
  * the timeline and walked to the same `t` through a fixed set of checkpoints
  * with `update()`. If retained mode is sound, the two are the same rendering; if
  * `update()` leaves anything behind — a stale style declaration, a head polygon

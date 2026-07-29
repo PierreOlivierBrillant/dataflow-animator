@@ -3,7 +3,7 @@
  *
  * `Stage` + `useStageGeometry` form the iteration `Gₙ₊₁ = measure(render(Gₙ))`,
  * terminated by `sameGeometry` returning the previous object identity — React
- * then bails out of re-rendering, so nothing re-measures. `mountVanillaStage` is
+ * then bails out of re-rendering, so nothing re-measures. `mountStage` is
  * a single imperative call, so it has to run that iteration itself and, above
  * all, know when to stop.
  *

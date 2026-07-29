@@ -10,10 +10,15 @@ The engine is a pure function `evaluate(timeline, t)`: no DOM, no real clock, ba
 The repository is an **npm workspaces monorepo**:
 
 ```text
-packages/core/                      framework-agnostic core (private, source-only): spec
-                                     types, JSON Schema, the pure engine, TeX/highlight,
-                                     JSON export — inlined into the published bundle
-packages/react-dataflow-animator/   the published npm package (React binding over core)
+packages/core/                      @dataflow-animator/core — the PUBLISHED framework-agnostic
+                                     package: spec types, JSON Schema, the pure engine,
+                                     TeX/highlight, JSON export, the DOM renderer and its
+                                     stylesheet. Usable on its own, and the common
+                                     dependency of every framework wrapper
+packages/react-dataflow-animator/   the published npm package (React binding over core).
+                                     Still INLINES the core's source via an alias rather
+                                     than depending on the published package — switching
+                                     that over is a major version of its own
 apps/docs/                          Docusaurus site (demos, playground, API docs)
 docs/                               SPEC.md, ARCHITECTURE.md (internal references)
 ```
@@ -57,13 +62,18 @@ npm run check:subicons   # generated sub-icon glyph data is fresh
 
 - **English for code and technical docs.** ALL code comments (`//`, `/* */`, JSDoc) and ALL internal documentation — `README.md`, `docs/*.md`, this `CLAUDE.md` file, commit messages — must be written in English. Never introduce new comments or new docs in French. **Exception (do not confuse):** the _user-facing_ content of the `apps/docs` site remains bilingual EN/FR via native i18n (see the "Internationalization" section below) — the French half (`src/i18n/fr.ts`, `i18n/fr/**`, the `fr:` of demo specs) is NOT code to "switch to English", it is the intentional translation.
 - **Strict TypeScript.** No `any`. If you need an `as unknown as X`, write a comment explaining why.
-- **`packages/core` must never import `react`**, not even in `import type`. It is the framework-agnostic
-  layer, consumed by the React package via a source alias and inlined into its bundle — a React import
-  there would leak into every downstream consumer regardless of framework. Precedent: `nodeColors`'s
-  `nodeTint` returns `Record<string, string>` rather than `React.CSSProperties`; the React package casts
-  at the call site instead. If a helper needs a React-specific type, it belongs in
-  `packages/react-dataflow-animator/src`, not in core.
-- **No breaking changes** on the public API (`packages/react-dataflow-animator/src/index.ts`) without changing the major version and documenting it.
+- **`packages/core` must never import `react`**, not even in `import type`. It is a PUBLISHED
+  framework-agnostic package, consumed directly by callers with no framework and by wrappers for
+  frameworks other than React — a React import there would land in every one of their bundles.
+  Precedent: `nodeColors`'s `nodeTint` returns `Record<string, string>` rather than
+  `React.CSSProperties`; the React package casts at the call site instead. If a helper needs a
+  React-specific type, it belongs in `packages/react-dataflow-animator/src`, not in core.
+- **Two public APIs, two semver surfaces.** `packages/core/src/index.ts` is as public as
+  `packages/react-dataflow-animator/src/index.ts`: no breaking change to either without a major
+  version and documentation. Anything added to the core's barrel is a promise — the renderer's
+  plumbing (`el.ts`, `reconcile.ts`, `settle.ts`, `geometryTracker.ts`, the circuit router…) stays
+  out of it deliberately, and the harness reaches it through the source alias, not a published
+  subpath.
 - **Tests first** for uncovered areas you are going to refactor.
 - **Comments**: describe the _why_, not the _what_. The code is enough to say what it does. A comment explaining an avoided pitfall (e.g. Babel loose mode in Docusaurus) is precious; a comment that paraphrases the next line is not.
 - **SSR-safe**: no `window` / `document` / `requestAnimationFrame` access outside of a `useEffect` or `useLayoutEffect`. Check before proposing.
@@ -121,38 +131,40 @@ Pitfalls already encountered in this repo — check them when you touch the affe
 - **Consistent units in geometry**: horizontal/vertical decisions and offsets are taken in measured pixels, not in 0..1 ratios (or else by correcting by the Stage aspect). Two modules that decide differently contradict each other on non-square stages.
 - **rAF loops**: cap the time delta (inactive tab → huge `dt` upon return).
 - **Dual paths**: if a function has an optimized path and a fallback (e.g. `evaluate`), a test must prove their equivalence — the prod path is not necessarily the one tests exercise.
-- **npm publication**: before any `npm publish`, verify the tarball with `npm pack --dry-run` (LICENSE present, `files`/`exports` correct).
+- **npm publication**: before any `npm publish`, verify the tarball with `npm pack --dry-run` (LICENSE present, `files`/`exports` correct). Two packages ship now — check both.
+- **The core's stylesheet is duplicated for now**: `packages/core/src/styles/dataflow.css` is built into `@dataflow-animator/core/styles.css` AND re-emitted as `react-dataflow-animator/styles.css`, because the React package still inlines the core's source. Edit the one source file; never fork it.
 
 ## Available scripts (quick reference)
 
 Monorepo root:
 
-| Script                  | Effect                                                                                                                 |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `npm run dev`           | Builds the lib then starts Docusaurus site in watch                                                                    |
-| `npm run build`         | Full build (lib + site)                                                                                                |
-| `npm run build:lib`     | Core isolated typecheck, then lib package build                                                                        |
-| `npm run build:docs`    | Site build only                                                                                                        |
-| `npm run lint`          | ESLint on all workspaces that expose it                                                                                |
-| `npm run format:check`  | Checks Prettier formatting                                                                                             |
-| `npm run format:write`  | Applies Prettier                                                                                                       |
-| `npm test`              | vitest tests of `@react-dataflow-animator/core` and of `react-dataflow-animator` (each has its own coverage threshold) |
-| `npm run test:coverage` | Same, with coverage thresholds                                                                                         |
-| `npm run deadcode`      | knip — dead code detection                                                                                             |
-| `npm run check:schema`  | Verifies core's generated JSON Schema is fresh                                                                         |
+| Script                  | Effect                                                                                                           |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `npm run dev`           | Builds the lib then starts Docusaurus site in watch                                                              |
+| `npm run build`         | Full build (both packages + site)                                                                                |
+| `npm run build:lib`     | Core package build (isolated typecheck included), then React package build                                       |
+| `npm run build:docs`    | Site build only                                                                                                  |
+| `npm run lint`          | ESLint on all workspaces that expose it                                                                          |
+| `npm run format:check`  | Checks Prettier formatting                                                                                       |
+| `npm run format:write`  | Applies Prettier                                                                                                 |
+| `npm test`              | vitest tests of `@dataflow-animator/core` and of `react-dataflow-animator` (each has its own coverage threshold) |
+| `npm run test:coverage` | Same, with coverage thresholds                                                                                   |
+| `npm run deadcode`      | knip — dead code detection                                                                                       |
+| `npm run check:schema`  | Verifies core's generated JSON Schema is fresh                                                                   |
 
-Package (`packages/core/`, private, source-only — no `build`/`dev` script, it is never bundled on its own):
+Package (`packages/core/` — published as `@dataflow-animator/core`):
 
-| Script                      | Effect                                        |
-| --------------------------- | --------------------------------------------- |
-| `npm run lint`              | ESLint on src/                                |
-| `npm run typecheck`         | Isolated tsc typecheck (core's tsconfig)      |
-| `npm test`                  | Unit vitest tests                             |
-| `npm run test:coverage`     | Tests + coverage                              |
-| `npm run generate:schema`   | types.ts → schema.generated.json              |
-| `npm run check:schema`      | CI guard: schema.generated.json is fresh      |
-| `npm run generate:subicons` | react-icons glyphs → subIconData.generated.ts |
-| `npm run check:subicons`    | CI guard: generated sub-icon data is fresh    |
+| Script                      | Effect                                                         |
+| --------------------------- | -------------------------------------------------------------- |
+| `npm run build`             | rm -rf dist, schema, typecheck, vite lib build, flattened d.ts |
+| `npm run lint`              | ESLint on src/                                                 |
+| `npm run typecheck`         | Isolated tsc typecheck (core's tsconfig)                       |
+| `npm test`                  | Unit vitest tests                                              |
+| `npm run test:coverage`     | Tests + coverage                                               |
+| `npm run generate:schema`   | types.ts → schema.generated.json                               |
+| `npm run check:schema`      | CI guard: schema.generated.json is fresh                       |
+| `npm run generate:subicons` | react-icons glyphs → subIconData.generated.ts                  |
+| `npm run check:subicons`    | CI guard: generated sub-icon data is fresh                     |
 
 Package (`packages/react-dataflow-animator/`):
 

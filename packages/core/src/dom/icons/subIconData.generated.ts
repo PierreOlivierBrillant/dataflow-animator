@@ -17,7 +17,7 @@
 // attribution above ships with it — see the published package's LICENSE.
 
 /** One SVG child element of an icon (react-icons trees are flat). */
-export interface SubIconChild {
+interface SubIconChild {
   tag: string;
   attr: Record<string, string>;
 }

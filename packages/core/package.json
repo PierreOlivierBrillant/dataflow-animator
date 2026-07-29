@@ -1,24 +1,48 @@
 {
-  "name": "@react-dataflow-animator/core",
-  "version": "0.0.0",
-  "private": true,
-  "description": "Framework-agnostic core of react-dataflow-animator: spec TypeScript types and the JSON Schema generated from them.",
+  "name": "@dataflow-animator/core",
+  "version": "0.1.0",
+  "description": "Framework-agnostic engine and DOM renderer for deterministic, scrubbable data-flow animations compiled from a JSON spec.",
   "type": "module",
   "license": "MIT",
+  "keywords": [
+    "animation",
+    "diagram",
+    "dataflow",
+    "teaching",
+    "visualization",
+    "vanilla",
+    "framework-agnostic"
+  ],
+  "author": "Pierre-Olivier Brillant",
+  "homepage": "https://github.com/PierreOlivierBrillant/react-dataflow-animator",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PierreOlivierBrillant/react-dataflow-animator.git",
+    "directory": "packages/core"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts",
-    "./types": "./src/types.ts",
-    "./schema": "./src/schema.ts",
-    "./schema.generated.json": "./src/schema.generated.json",
-    "./engine/*": "./src/engine/*.ts",
-    "./tex/*": "./src/tex/*.ts",
-    "./highlight/*": "./src/highlight/*.ts",
-    "./export/*": "./src/export/*.ts",
-    "./render/*": "./src/render/*.ts",
-    "./dom/*": "./src/dom/*.ts",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./schema.json": "./dist/schema.json",
     "./package.json": "./package.json"
   },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
   "scripts": {
+    "build": "rm -rf dist && node scripts/generate-schema.mjs && npm run typecheck && vite build && rollup -c rollup.dts.config.mjs",
+    "postbuild": "cp src/schema.generated.json dist/schema.json",
     "generate:schema": "node scripts/generate-schema.mjs",
     "check:schema": "node scripts/check-schema-is-fresh.mjs",
     "generate:subicons": "node scripts/generate-subicon-data.mjs",
@@ -37,8 +61,11 @@
     "eslint": "^10.3.0",
     "jsdom": "^26.1.0",
     "react-icons": "^5.6.0",
+    "rollup": "^4.61.1",
+    "rollup-plugin-dts": "^6.4.1",
     "ts-json-schema-generator": "^2.9.0",
     "typescript": "~6.0.2",
+    "vite": "^8.0.12",
     "vitest": "^3.2.4"
   }
 }

@@ -10,7 +10,7 @@ export default defineConfig({
     alias: {
       // The core is a source-only workspace: resolve its subpaths to source so
       // Vite INLINES it into the bundle (it is not in rollupOptions.external).
-      '@react-dataflow-animator/core': fileURLToPath(
+      '@dataflow-animator/core': fileURLToPath(
         new URL('../core/src', import.meta.url)
       ),
     },

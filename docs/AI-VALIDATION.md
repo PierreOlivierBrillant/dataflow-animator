@@ -37,8 +37,8 @@ URL parameters: `?demo=<id>` (see the navigation bar for the list),
 `pcb` | `chalk` | `terminal` | `paper` | `neon` — the same two axes as the
 player's props, so a palette can be eyeballed on any demo).
 
-The harness mounts the renderer with `mountVanillaStage` and reads `compile`,
-`clipOpacity`/`contentCrossfade` from `@react-dataflow-animator/core` (none of
+The harness mounts the renderer with `mountStage` and reads `compile`,
+`clipOpacity`/`contentCrossfade` from `@dataflow-animator/core` (none of
 them public): a single source of truth, no duplication to resync. The DOM
 measurement is real → we also see the **re-layout** of a `set_content` (font
 refit, ResizeObserver), not just the movement "intended" by the engine.
@@ -85,7 +85,7 @@ The contrast is most telling on a **short window** (little hold): the
 
 ## Tool 3 — the renderer's own gates
 
-The framework-agnostic DOM renderer (`@react-dataflow-animator/core/dom`) is now
+The framework-agnostic DOM renderer (`@dataflow-animator/core/dom`) is now
 the only renderer; the React one it replaced was removed at step 2.6b. Two gates
 guard it, and it is worth being exact about **what each one proves**, because
 they replaced an A/B comparison against React whose job is finished — the proof
@@ -187,7 +187,7 @@ npm run harness:bench -w react-dataflow-animator -- --renderer wrapper  # publis
 ```
 
 `scripts/bench-perf.mjs` drives the harness's `?bench=1&demo=<id>` page in one of
-two modes: the core's `mountVanillaPlayer` (`--renderer vanilla`, default) or the
+two modes: the core's `mountPlayer` (`--renderer vanilla`, default) or the
 published `DataFlowPlayer` (`--renderer wrapper`), both autoPlay + loop, for ~300
 frames on `circuit` (heavy: dense orthogonal routing) and `clientServer`
 (average), recording via Playwright + CDP:

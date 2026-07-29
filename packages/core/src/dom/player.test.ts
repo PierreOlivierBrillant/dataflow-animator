@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { mountVanillaPlayer } from './player';
+import { mountPlayer } from './player';
 import type { DataFlowSpec } from '../types';
 
 const spec: DataFlowSpec = {
@@ -18,7 +18,7 @@ const spec: DataFlowSpec = {
 function mount(options = {}) {
   const container = document.createElement('div');
   document.body.appendChild(container);
-  const player = mountVanillaPlayer(container, spec, options);
+  const player = mountPlayer(container, spec, options);
   return { container, player };
 }
 
@@ -29,7 +29,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('mountVanillaPlayer — the root', () => {
+describe('mountPlayer — the root', () => {
   it('renders .rdfa-player carrying the theme and mode', () => {
     const { player } = mount({ theme: 'blueprint', mode: 'dark' });
 
@@ -70,7 +70,7 @@ describe('mountVanillaPlayer — the root', () => {
   });
 });
 
-describe('mountVanillaPlayer — the clock drives the stage', () => {
+describe('mountPlayer — the clock drives the stage', () => {
   it('mutates the stage on a clock notification instead of rebuilding it', () => {
     const { player } = mount();
     const nodesBefore = [...player.el.querySelectorAll('[data-node-id]')];
@@ -99,7 +99,7 @@ describe('mountVanillaPlayer — the clock drives the stage', () => {
   });
 });
 
-describe('mountVanillaPlayer — keyboard', () => {
+describe('mountPlayer — keyboard', () => {
   const press = (el: HTMLElement, key: string): KeyboardEvent => {
     const event = new KeyboardEvent('keydown', { key, cancelable: true });
     el.dispatchEvent(event);
@@ -148,7 +148,7 @@ describe('mountVanillaPlayer — keyboard', () => {
   });
 });
 
-describe('mountVanillaPlayer — the export slot', () => {
+describe('mountPlayer — the export slot', () => {
   it('is absent unless the player is exportable', () => {
     expect(
       mount().player.el.querySelector('[aria-label="Spécification JSON"]')
@@ -184,7 +184,7 @@ describe('mountVanillaPlayer — the export slot', () => {
   });
 });
 
-describe('mountVanillaPlayer — full screen', () => {
+describe('mountPlayer — full screen', () => {
   it('requests full screen on the root, and exits from anywhere', () => {
     const { player } = mount();
     const request = vi.fn();
@@ -226,7 +226,7 @@ describe('mountVanillaPlayer — full screen', () => {
   });
 });
 
-describe('mountVanillaPlayer — teardown', () => {
+describe('mountPlayer — teardown', () => {
   it('detaches everything and stops driving the stage', () => {
     const { container, player } = mount({ exportable: true });
     (
@@ -267,11 +267,11 @@ describe('mountVanillaPlayer — teardown', () => {
   });
 });
 
-describe('mountVanillaPlayer — initialT', () => {
+describe('mountPlayer — initialT', () => {
   it('opens at the instant asked for, stage and control bar together', () => {
     const container = document.createElement('div');
     document.body.appendChild(container);
-    const player = mountVanillaPlayer(container, spec, { initialT: 800 });
+    const player = mountPlayer(container, spec, { initialT: 800 });
 
     expect(player.clock.t).toBe(800);
     // The bar is written from the clock exactly once at construction, before
@@ -290,11 +290,11 @@ describe('mountVanillaPlayer — initialT', () => {
   it('is not equivalent to mounting at 0 and seeking afterwards', () => {
     const direct = document.createElement('div');
     document.body.appendChild(direct);
-    const a = mountVanillaPlayer(direct, spec, { initialT: 800 });
+    const a = mountPlayer(direct, spec, { initialT: 800 });
 
     const walked = document.createElement('div');
     document.body.appendChild(walked);
-    const b = mountVanillaPlayer(walked, spec);
+    const b = mountPlayer(walked, spec);
     b.clock.seek(800);
 
     // Both land on the same instant...
@@ -308,7 +308,7 @@ describe('mountVanillaPlayer — initialT', () => {
   });
 });
 
-describe('mountVanillaPlayer — options that reach the stage', () => {
+describe('mountPlayer — options that reach the stage', () => {
   // `density` used to be declared here and dropped on the floor: the stage
   // hardcoded 'comfortable'. `'spacious'` was not even expressible.
   it('forwards density, including spacious', () => {
@@ -326,7 +326,7 @@ describe('mountVanillaPlayer — options that reach the stage', () => {
     const container = document.createElement('div');
     document.body.appendChild(container);
 
-    mountVanillaPlayer(
+    mountPlayer(
       container,
       {
         ...spec,
@@ -357,7 +357,7 @@ describe('mountVanillaPlayer — options that reach the stage', () => {
   });
 });
 
-describe('mountVanillaPlayer — style and warnings', () => {
+describe('mountPlayer — style and warnings', () => {
   it('applies extra styles to the root', () => {
     const { player } = mount({ style: { border: '2px solid red' } });
 
@@ -378,7 +378,7 @@ describe('mountVanillaPlayer — style and warnings', () => {
 
     // A `keep_until` pointing at an action that does not exist is one of the
     // things the compiler warns about.
-    const player = mountVanillaPlayer(container, {
+    const player = mountPlayer(container, {
       ...spec,
       timeline: [
         {

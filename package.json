@@ -11,17 +11,17 @@
   ],
   "scripts": {
     "build": "npm run build:lib && npm run build:docs",
-    "build:lib": "npm run typecheck -w @react-dataflow-animator/core && npm run build -w react-dataflow-animator",
+    "build:lib": "npm run build -w @dataflow-animator/core && npm run build -w react-dataflow-animator",
     "build:docs": "npm run build -w @react-dataflow-animator/docs",
     "dev": "npm run build -w react-dataflow-animator && concurrently \"npm run dev -w react-dataflow-animator\" \"npm run dev -w @react-dataflow-animator/docs\"",
     "lint": "npm run lint --workspaces --if-present",
-    "test": "npm run test -w @react-dataflow-animator/core -w react-dataflow-animator",
-    "test:coverage": "npm run test:coverage -w @react-dataflow-animator/core -w react-dataflow-animator",
+    "test": "npm run test -w @dataflow-animator/core -w react-dataflow-animator",
+    "test:coverage": "npm run test:coverage -w @dataflow-animator/core -w react-dataflow-animator",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,mdx,css}\"",
     "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,mdx,css}\"",
     "deadcode": "knip",
-    "check:schema": "npm run check:schema -w @react-dataflow-animator/core",
-    "check:subicons": "npm run check:subicons -w @react-dataflow-animator/core"
+    "check:schema": "npm run check:schema -w @dataflow-animator/core",
+    "check:subicons": "npm run check:subicons -w @dataflow-animator/core"
   },
   "devDependencies": {
     "concurrently": "^10.0.3",

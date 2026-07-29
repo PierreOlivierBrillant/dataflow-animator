@@ -4,13 +4,13 @@ import type {
   PlayerTheme,
   PlayerMode,
   Highlighter,
-} from '@react-dataflow-animator/core/types';
+} from '@dataflow-animator/core/types';
 
-// The framework-agnostic spec types now live in @react-dataflow-animator/core.
+// The framework-agnostic spec types now live in @dataflow-animator/core.
 // Re-export them here so the package's public API (via ./index.ts) and every
 // internal `./types` import keep resolving unchanged; only the React-facing
 // props type, which depends on React, is defined in this package.
-export type * from '@react-dataflow-animator/core/types';
+export type * from '@dataflow-animator/core/types';
 
 export interface DataFlowPlayerProps {
   /** The specification to animate. */

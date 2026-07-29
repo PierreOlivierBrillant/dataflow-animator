@@ -12,25 +12,25 @@ import {
 } from './controls';
 import { h, s, setStyle } from './el';
 import { createJsonDialog, type JsonDialogElement } from './jsonDialog';
-import { mountVanillaStage, type VanillaStageHandle } from './mount';
+import { mountStage, type StageHandle } from './mount';
 
 /**
- * Framework-agnostic player — the vanilla-DOM equivalent of `DataFlowPlayer`.
+ * The player: a stage, its control bar and its clock, in plain DOM.
  *
- * This is where the retained renderer finally gets a clock: `createPlayerClock`
- * (delivered in step 2.2 with no caller) drives `VanillaStageHandle.update`
- * through a subscription. One notification per frame, one `update(t)`, no
- * rebuild — which is the whole point of the migration.
+ * This is the package's headline entry point, and the one every framework
+ * wrapper mounts. It is where the retained renderer gets a clock:
+ * `createPlayerClock` drives `StageHandle.update` through a subscription. One
+ * notification per frame, one `update(t)`, no rebuild — which is the whole
+ * point of the design.
  *
  * OUT OF SCOPE, deliberately: changing the `spec` on a live player. `update`
  * only moves time. A new spec means a new mount, and arranging that is the
- * React wrapper's job at step 2.6.
+ * wrapper's job — every option here is read once, at mount.
  *
- * SSR-safe: nothing here touches `document` until `mountVanillaPlayer` is
- * called.
+ * SSR-safe: nothing here touches `document` until `mountPlayer` is called.
  */
 
-export interface VanillaPlayerOptions {
+export interface PlayerOptions {
   /** Height of the player. A number is taken as pixels. Default: 420. */
   height?: number | string;
   /**
@@ -81,7 +81,7 @@ export interface VanillaPlayerOptions {
   style?: Readonly<Record<string, string>>;
 }
 
-export interface VanillaPlayerHandle {
+export interface PlayerHandle {
   /** The `.rdfa-player` root, for callers that need to place or measure it. */
   readonly el: HTMLElement;
   readonly clock: PlayerClock;
@@ -122,11 +122,11 @@ function jsonButton(onOpen: () => void): HTMLButtonElement {
   return btn;
 }
 
-export function mountVanillaPlayer(
+export function mountPlayer(
   container: HTMLElement,
   spec: DataFlowSpec,
-  options: VanillaPlayerOptions = {}
-): VanillaPlayerHandle {
+  options: PlayerOptions = {}
+): PlayerHandle {
   const {
     height = 420,
     width,
@@ -209,7 +209,7 @@ export function mountVanillaPlayer(
 
   // The control bar goes in BEFORE the stage is mounted, and that ordering is
   // load-bearing rather than stylistic. The stage takes its height from the
-  // space the bar leaves, and it MEASURES during `mountVanillaStage` — including
+  // space the bar leaves, and it MEASURES during `mountStage` — including
   // the one-shot capture of a `set_content` node's pre-panel geometry. Mounting
   // the stage first would measure it at the full player height, anchor the
   // icon→panel morph to that, and then shrink it when the bar arrived; React
@@ -227,7 +227,7 @@ export function mountVanillaPlayer(
     root.appendChild(bar.el);
   }
 
-  const stage: VanillaStageHandle = mountVanillaStage(root, spec, clock.t, {
+  const stage: StageHandle = mountStage(root, spec, clock.t, {
     density,
     highlight,
     debug,

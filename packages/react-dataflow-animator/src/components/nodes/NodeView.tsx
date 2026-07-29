@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import type { CSSProperties } from 'react';
 import type { Highlighter, Node } from '../../types';
-import { renderNodeVisual } from '@react-dataflow-animator/core/dom/nodeElement';
+import { renderNodeVisual } from '@dataflow-animator/core/dom/nodeElement';
 
 export interface NodeViewProps {
   /** The node to represent. Only `type` — and, for panels,

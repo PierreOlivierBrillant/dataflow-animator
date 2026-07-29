@@ -17,36 +17,36 @@
  *    start and arrival; the displayed jerk quantifies the gain compared to
  *    linear.
  *
- * Everything mounts the core's `mountVanillaStage` / `mountVanillaPlayer` and
+ * Everything mounts the core's `mountStage` / `mountPlayer` and
  * reads the TRUE engine functions (`compile`, `contentCrossfade`, `clipOpacity`)
  * from the core: a single source of truth, no duplication to manually resync.
  */
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { compile } from '@react-dataflow-animator/core/engine/compiler';
+import { compile } from '@dataflow-animator/core/engine/compiler';
 import {
   evaluate,
   type Clip,
   type SetContentClip,
   type Timeline,
-} from '@react-dataflow-animator/core/engine/timeline';
+} from '@dataflow-animator/core/engine/timeline';
 import {
   clipOpacity,
   contentCrossfade,
-} from '@react-dataflow-animator/core/render/clipOpacity';
-import { mountVanillaStage } from '@react-dataflow-animator/core/dom/mount';
-import { mountVanillaPlayer } from '@react-dataflow-animator/core/dom/player';
+} from '@dataflow-animator/core/render/clipOpacity';
+import { mountStage } from '@dataflow-animator/core/dom/mount';
+import { mountPlayer } from '@dataflow-animator/core/dom/player';
 import {
   firstDifference,
   normalizeStageHtml,
-} from '@react-dataflow-animator/core/dom/normalizeHtml';
+} from '@dataflow-animator/core/dom/normalizeHtml';
 import { DataFlowPlayer } from '../../src/DataFlowPlayer';
 import type { DataFlowSpec, PlayerTheme } from '../../src/types';
 import {
   demosById,
   getSpec,
 } from '../../../../apps/docs/src/site-content/demos';
-import '../../src/styles/dataflow.css';
+import '@dataflow-animator/core/styles/dataflow.css';
 import './harness.css';
 
 const params = new URLSearchParams(window.location.search);
@@ -117,7 +117,7 @@ function resolveFrozenT(durationMs: number): number {
 const isBench = params.has('bench');
 const benchFrames = Number(params.get('frames') ?? '300');
 const BENCH_PANEL = { width: 640, height: 420 };
-// Which renderer the bench drives. `vanilla` is the core's `mountVanillaPlayer`;
+// Which renderer the bench drives. `vanilla` is the core's `mountPlayer`;
 // `wrapper` is the published `DataFlowPlayer` — the same renderer plus whatever
 // the React wrapper costs per frame (expected: nothing, since the wrapper
 // renders nothing once mounted). The React renderer was removed at step 2.6b.
@@ -187,7 +187,7 @@ function VanillaBenchApp() {
   useEffect(() => {
     const container = slotRef.current;
     if (!container || !spec) return;
-    const player = mountVanillaPlayer(container, spec, {
+    const player = mountPlayer(container, spec, {
       height: BENCH_PANEL.height,
       width: BENCH_PANEL.width,
       // No chrome, so the measurement compares the RENDERER against the React
@@ -234,7 +234,7 @@ function VanillaPanel({
     const container = slotRef.current;
     if (!container) return;
     const steps = walkKey.split(',').map(Number);
-    const handle = mountVanillaStage(container, spec, steps[0]);
+    const handle = mountStage(container, spec, steps[0]);
     for (let i = 1; i < steps.length; i++) handle.update(steps[i]);
     // The convergence diagnostic, republished for scripts to read. `converged:
     // false` means the measurement BUDGET stopped the loop rather than the
@@ -277,7 +277,7 @@ function ABPanel({
   label: string;
   panelId: 'a' | 'b';
   children: ReactNode;
-  /** The child renders its OWN `.rdfa-player` — `mountVanillaPlayer` does. */
+  /** The child renders its OWN `.rdfa-player` — `mountPlayer` does. */
   bare?: boolean;
 }) {
   return (
@@ -305,7 +305,7 @@ function VanillaPlayerPanel({ spec, t }: { spec: DataFlowSpec; t: number }) {
   useEffect(() => {
     const container = slotRef.current;
     if (!container) return;
-    const player = mountVanillaPlayer(container, spec, {
+    const player = mountPlayer(container, spec, {
       height: AB_PANEL.height,
       width: AB_PANEL.width,
       theme,
@@ -350,7 +350,7 @@ function ABApp() {
   // of the MEASUREMENT: two independent mounts of the same spec at the same `t`
   // must be pixel-identical, or DOM measurement itself is nondeterministic.
   // `chrome` mounts the whole player (stage + control bar) via
-  // `mountVanillaPlayer`, which builds its own `.rdfa-player` → `bare`.
+  // `mountPlayer`, which builds its own `.rdfa-player` → `bare`.
   const panel = () =>
     isChrome ? (
       <VanillaPlayerPanel spec={spec} t={t} />
@@ -631,7 +631,7 @@ function FrozenStage({
   useEffect(() => {
     const container = ref.current;
     if (!container) return;
-    const handle = mountVanillaStage(container, spec, t);
+    const handle = mountStage(container, spec, t);
     return () => handle.destroy();
   }, [spec, t]);
   return (
@@ -693,7 +693,7 @@ function LiveProbe({
   const [t, setT] = useState(frozen ?? lo);
 
   const boxRef = useRef<HTMLDivElement | null>(null);
-  const handleRef = useRef<ReturnType<typeof mountVanillaStage> | null>(null);
+  const handleRef = useRef<ReturnType<typeof mountStage> | null>(null);
 
   // Mount the vanilla stage once. The rAF loop below advances `t`; a separate
   // effect pushes it into the retained renderer with `update(t)`. The morph is
@@ -702,7 +702,7 @@ function LiveProbe({
   useEffect(() => {
     const container = boxRef.current;
     if (!container) return;
-    const handle = mountVanillaStage(container, spec, frozen ?? lo);
+    const handle = mountStage(container, spec, frozen ?? lo);
     handleRef.current = handle;
     return () => {
       handleRef.current = null;

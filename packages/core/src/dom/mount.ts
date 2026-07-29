@@ -91,8 +91,8 @@ import {
   type NodeElementOptions,
 } from './nodeElement';
 
-/** Options accepted by {@link mountVanillaStage}. */
-export interface VanillaStageOptions {
+/** Options accepted by {@link mountStage}. */
+export interface StageOptions {
   /** Sizing preset. Default: `'comfortable'` — `Stage`'s own default. */
   density?: Density;
   /**
@@ -108,8 +108,8 @@ export interface VanillaStageOptions {
   debug?: boolean;
 }
 
-/** Handle returned by {@link mountVanillaStage}. */
-export interface VanillaStageHandle {
+/** Handle returned by {@link mountStage}. */
+export interface StageHandle {
   /**
    * The `.rdfa-stage` root. Exposed so a caller that composes the stage with
    * sibling chrome can place it without guessing which child it is.
@@ -188,12 +188,13 @@ interface FlowElement {
 }
 
 /**
- * Framework-agnostic DOM renderer: the vanilla-DOM equivalent of `Stage.tsx`,
- * producing the same `.rdfa-*` markup, styled by the same `dataflow.css`,
- * without any framework runtime.
+ * The stage alone: the diagram, without the control bar or a clock. Emits the
+ * `.rdfa-*` markup that `styles/dataflow.css` styles, with no framework runtime.
  *
- * PHASE 2.5 SCOPE — RETAINED MODE. Step 2.4 completed every rendering layer at a
- * frozen `t`; this step makes `t` move without rebuilding the tree.
+ * Most callers want {@link mountPlayer} instead; this is the entry point for a
+ * host that supplies its own chrome and drives `update(t)` itself.
+ *
+ * RETAINED MODE. The tree is built once and MUTATED as `t` moves, never rebuilt.
  *
  * The design rule that makes this trustworthy is `build === create + apply`:
  * every element module exposes a `create` that builds only what is independent
@@ -206,18 +207,18 @@ interface FlowElement {
  * path-dependent, faithfully to React: `iconGeomByNode` (captured once, never
  * rewritten) and `codeRatios` (gated by a deadband). See `update` below.
  *
- * The layer split from 2.4 still holds. Overlays (arrows, packets, comments,
- * zones) are absolutely positioned: they read the settled geometry and cannot
+ * The layers are split by what can move what. Overlays (arrows, packets,
+ * comments, zones) are absolutely positioned: they read the settled geometry and cannot
  * perturb it, so they are reconciled after the loop. A `set_content` panel is
  * not an overlay — it lives inside its node and makes it GROW — so it is applied
  * before the loop, which converges with it in place.
  */
-export function mountVanillaStage(
+export function mountStage(
   container: HTMLElement,
   spec: DataFlowSpec,
   t: number,
-  options: VanillaStageOptions = {}
-): VanillaStageHandle {
+  options: StageOptions = {}
+): StageHandle {
   const { timeline } = compile(spec);
 
   const root = h('div', { class: 'rdfa-stage' });
