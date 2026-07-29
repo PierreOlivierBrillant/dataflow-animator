@@ -106,7 +106,5 @@ export type {
   GeometryMap,
   NodeGeom,
 } from '@react-dataflow-animator/core/engine/geometry';
-// `useClock` was removed in v3: the player's clock now lives in the core and is
-// no longer a React hook. `hooks/useClock.ts` remains in the source tree because
-// the A/B validation harness drives the React renderer with it until step 2.6b
-// removes that renderer.
+// `useClock` was removed in v3: the player's clock lives in the core and is no
+// longer a React hook.

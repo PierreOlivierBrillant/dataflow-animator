@@ -5,6 +5,11 @@ All notable changes to `react-dataflow-animator` are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+<!-- Internal note (no release): after 3.0.0, the now-unused React renderer
+     (Stage, Controls, the JSX node/dynamic components, useClock…) was deleted
+     from the source tree. None of it was exported, so there is no change for
+     consumers and no version bump. -->
+
 ## [3.0.0]
 
 `DataFlowPlayer` no longer renders a React tree. It mounts a framework-agnostic

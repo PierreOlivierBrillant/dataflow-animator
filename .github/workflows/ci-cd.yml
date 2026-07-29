@@ -39,9 +39,6 @@ jobs:
       - name: Check sub-icon data is fresh
         run: npm run check:subicons
 
-      - name: Check icon registry parity
-        run: npm run check:icons
-
       - name: Run Prettier
         run: npm run format:check
 

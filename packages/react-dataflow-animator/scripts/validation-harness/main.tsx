@@ -3,23 +3,23 @@
  *
  * Two channels, both deterministic (the engine is `evaluate(timeline, t)`):
  *
- *  - CLARITY → a "contact sheet": a frozen Stage at each `timeline.stops[]`.
- *    A vision AI judges at a glance overlaps, readability, out-of-bounds,
- *    across the whole scenario. Real DOM measurement → we also see the
- *    re-layout of a `set_content` (font refit, ResizeObserver), not
+ *  - CLARITY → a "contact sheet": a frozen vanilla stage at each
+ *    `timeline.stops[]`. A vision AI judges at a glance overlaps, readability,
+ *    out-of-bounds, across the whole scenario. Real DOM measurement → we also
+ *    see the re-layout of a `set_content` (font refit, ResizeObserver), not
  *    just the "intended" movement.
  *
  *  - FLUIDITY → the curve of the value-over-time. Fluidity is NOT in
  *    a frame: it's a property of the derivative. For each `set_content`, we
  *    plot the REALLY rendered opacity (`contentCrossfade`, which also drives the
- *    geometry lerp on the Stage side) against the old linear crossfade
- *    (`clipOpacity` raw) as a reference. The rendered curve is now an S of
- *    `easeInOutCubic` — slowed down start and arrival; the displayed jerk quantifies
- *    the gain compared to linear.
+ *    geometry lerp) against the old linear crossfade (`clipOpacity` raw) as a
+ *    reference. The rendered curve is now an S of `easeInOutCubic` — slowed down
+ *    start and arrival; the displayed jerk quantifies the gain compared to
+ *    linear.
  *
- * We reuse the TRUE render functions (`contentCrossfade`, `clipOpacity`,
- * `compile`, `Stage`) imported from `src`: a single source of truth, no
- * duplication to manually resync.
+ * Everything mounts the core's `mountVanillaStage` / `mountVanillaPlayer` and
+ * reads the TRUE engine functions (`compile`, `contentCrossfade`, `clipOpacity`)
+ * from the core: a single source of truth, no duplication to manually resync.
  */
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -41,10 +41,6 @@ import {
   normalizeStageHtml,
 } from '@react-dataflow-animator/core/dom/normalizeHtml';
 import { DataFlowPlayer } from '../../src/DataFlowPlayer';
-import { Stage } from '../../src/components/Stage';
-import { Controls } from '../../src/components/Controls';
-import { useClock, type Clock } from '../../src/hooks/useClock';
-import { highlightCode } from '@react-dataflow-animator/core/highlight/highlight';
 import type { DataFlowSpec, PlayerTheme } from '../../src/types';
 import {
   demosById,
@@ -80,44 +76,21 @@ const catalog = demosById;
 const demo = catalog[demoId];
 const spec: DataFlowSpec | undefined = demo ? getSpec(demo, locale) : undefined;
 
-// ─── A/B mode (?ab=1) ──────────────────────────────────────────────────────
-// Side-by-side, fixed-size, frozen-`t` comparison of the React `Stage` against
-// the framework-agnostic DOM renderer being built in
-// `@react-dataflow-animator/core/dom/mount` — see docs/AI-VALIDATION.md and
-// scripts/validation-harness/compare.ab.spec.ts (the pixel-diff gate that
-// drives this page).
+// ─── Self-test mode (?ab=1) ────────────────────────────────────────────────
+// Two INDEPENDENT mounts of the vanilla renderer, side by side at a frozen `t`.
+// Calibrates the measurement floor: two independent mounts must be pixel-
+// identical. See docs/AI-VALIDATION.md and selftest.ab.spec.ts.
 const isAB = params.has('ab');
-// Mount-vs-update mode (?mu=1). Both panels are the VANILLA renderer: panel A
-// is mounted fresh at `t`, panel B is mounted at the start of the timeline and
-// walked to `t` with `update()`. It is the proof that retained mode does not
-// drift, and — unlike the A/B gate — it does not involve React at all, so it
-// stays meaningful after the 2.6 switchover. See mountUpdate.ab.spec.ts.
+// Mount-vs-update mode (?mu=1). Panel A is mounted fresh at `t`, panel B is
+// mounted at the start of the timeline and walked to `t` with `update()`. It
+// proves retained mode does not drift, on the live DOM, so it is exact and
+// environment-independent. See mountUpdate.ab.spec.ts.
 const isMU = params.has('mu');
-// `?chrome=1` widens the A/B comparison from the stage alone to the WHOLE
-// player: control bar included. The diff target is already
-// `[data-ab-panel="x"] .rdfa-player`, so the chrome enters the comparison
-// without changing the selector.
+// `?chrome=1` widens the comparison from the stage alone to the WHOLE player:
+// control bar included. The diff target is already
+// `[data-ab-panel="x"] .rdfa-player`, so the chrome enters without changing the
+// selector.
 const isChrome = params.has('chrome');
-// `?walk=1` drives BOTH panels through the same sequence of instants before
-// capturing, instead of mounting each at a frozen `t`. It is the only mode that
-// reproduces the real playback scenario on both sides — and therefore the only
-// one that compares React and the vanilla renderer on states that depend on the
-// PATH taken (`iconGeomByNode`), which a frozen mount cannot reach.
-const isWalk = params.has('walk');
-// `panelB=react` mounts a SECOND, independent React `Stage` instead of the
-// vanilla renderer: two mounts of the identical spec/t, used by
-// selftest.ab.spec.ts to calibrate the gate itself (0.00% expected) before
-// it's trusted to judge the real (React vs. vanilla) diff.
-// `panelB=player` drives panel B with the PUBLISHED React component instead of
-// calling `mountVanillaPlayer` by hand. Same expected markup as `vanilla` in
-// chrome mode — which is the point: any difference is overhead or drift the
-// wrapper introduced between the props and the core's options.
-const panelBMode: 'vanilla' | 'react' | 'player' =
-  params.get('panelB') === 'react'
-    ? 'react'
-    : params.get('panelB') === 'player'
-      ? 'player'
-      : 'vanilla';
 
 /**
  * Resolves the single frozen instant the A/B page renders at, in priority
@@ -138,24 +111,18 @@ function resolveFrozenT(durationMs: number): number {
 }
 
 // ─── Perf bench mode (?bench=1) ────────────────────────────────────────────
-// A minimal page — one `Stage`, no filmstrip/curves chrome — driven by the
-// SAME `useClock` hook `DataFlowPlayer` uses (autoPlay + loop), so the
-// measured cadence is the real player's, not a reimplementation of it. See
-// scripts/bench-perf.mjs and docs/AI-VALIDATION.md.
+// A minimal page — one player, no filmstrip/curves chrome — autoPlay + loop, so
+// the measured cadence is the real player's. See scripts/bench-perf.mjs and
+// docs/AI-VALIDATION.md.
 const isBench = params.has('bench');
 const benchFrames = Number(params.get('frames') ?? '300');
 const BENCH_PANEL = { width: 640, height: 420 };
-// Which renderer the bench drives. Both are measured in the SAME run (see
-// scripts/bench-perf.mjs) because these figures are machine-dependent.
-// `wrapper` measures the published `DataFlowPlayer` — the vanilla renderer plus
-// whatever the React wrapper costs per frame (expected: nothing, since the
-// wrapper renders nothing once mounted).
+// Which renderer the bench drives. `vanilla` is the core's `mountVanillaPlayer`;
+// `wrapper` is the published `DataFlowPlayer` — the same renderer plus whatever
+// the React wrapper costs per frame (expected: nothing, since the wrapper
+// renders nothing once mounted). The React renderer was removed at step 2.6b.
 const benchRenderer =
-  params.get('renderer') === 'vanilla'
-    ? 'vanilla'
-    : params.get('renderer') === 'wrapper'
-      ? 'wrapper'
-      : 'react';
+  params.get('renderer') === 'wrapper' ? 'wrapper' : 'vanilla';
 
 /**
  * The passive rAF sampler, shared by both bench renderers.
@@ -235,68 +202,6 @@ function VanillaBenchApp() {
   }, []);
   if (!spec) return <div className="harness-error">Unknown demo: {demoId}</div>;
   return <div ref={slotRef} />;
-}
-
-function BenchApp() {
-  if (!spec) {
-    return (
-      <div className="harness-error">
-        Unknown demo: <code>{demoId}</code>. Available demos:{' '}
-        {Object.keys(catalog).sort().join(', ')}
-      </div>
-    );
-  }
-  const { timeline } = compile(spec);
-  const clock = useClock({
-    durationMs: timeline.durationMs,
-    autoPlay: true,
-    loop: true,
-  });
-
-  // A SEPARATE, passive rAF loop just measures the wall-clock gap between
-  // successive frames; `useClock`'s own rAF loop (started by `autoPlay`)
-  // is what actually advances `t` and re-renders `Stage` below. Both
-  // callbacks are scheduled in the same browser animation-frame batch, so
-  // the gap this loop measures still reflects the real per-frame cost
-  // (React re-render + DOM commit + layout/paint) the player pays.
-  useEffect(() => {
-    const samples: number[] = [];
-    let last: number | null = null;
-    let raf = 0;
-    const sample = (now: number) => {
-      if (last != null) samples.push(now - last);
-      last = now;
-      if (samples.length >= benchFrames) {
-        (window as unknown as { __BENCH__: unknown }).__BENCH__ = {
-          demo: demoId,
-          frames: samples.length,
-          samples,
-          done: true,
-        };
-        return;
-      }
-      raf = requestAnimationFrame(sample);
-    };
-    raf = requestAnimationFrame(sample);
-    return () => cancelAnimationFrame(raf);
-  }, []);
-
-  return (
-    <div
-      className="rdfa-player"
-      data-theme={theme}
-      data-mode={mode}
-      style={{ width: BENCH_PANEL.width, height: BENCH_PANEL.height }}
-    >
-      <Stage
-        spec={spec}
-        timeline={timeline}
-        t={clock.t}
-        highlight={highlightCode}
-        density="comfortable"
-      />
-    </div>
-  );
 }
 
 const AB_PANEL = { width: 480, height: 320 };
@@ -394,47 +299,12 @@ function ABPanel({
   );
 }
 
-/**
- * A `Clock` frozen at `t`.
- *
- * `DataFlowPlayer` owns its clock and cannot be told to stand still from the
- * outside, so the chrome comparison assembles `Stage` + `Controls` by hand — the
- * same approach the panels already take for the stage. Every command is a no-op:
- * the gate captures a still frame, and a control that moved would break the
- * self-test's successive-capture invariant.
- */
-function frozenClock(t: number, durationMs: number): Clock {
-  const noop = () => {};
-  return {
-    t,
-    playing: false,
-    durationMs,
-    play: noop,
-    pause: noop,
-    toggle: noop,
-    seek: noop,
-    playTo: noop,
-    restart: noop,
-  };
-}
-
 /** Mounts the framework-agnostic PLAYER — stage plus chrome — paused at `t`. */
-function VanillaPlayerPanel({
-  spec,
-  t,
-  path,
-}: {
-  spec: DataFlowSpec;
-  t: number;
-  path?: readonly number[];
-}) {
+function VanillaPlayerPanel({ spec, t }: { spec: DataFlowSpec; t: number }) {
   const slotRef = useRef<HTMLDivElement | null>(null);
-  const walk = path && path.length > 0 ? path : [t];
-  const walkKey = walk.join(',');
   useEffect(() => {
     const container = slotRef.current;
     if (!container) return;
-    const steps = walkKey.split(',').map(Number);
     const player = mountVanillaPlayer(container, spec, {
       height: AB_PANEL.height,
       width: AB_PANEL.width,
@@ -442,90 +312,14 @@ function VanillaPlayerPanel({
       mode,
       controls: true,
       autoPlay: false,
-      // Opens AT the first instant of the walk rather than at 0 and seeking:
-      // the icon→panel anchor is captured on the first measurement, so where
-      // the player opens is part of what it renders.
-      initialT: steps[0],
+      // Opens AT `t` rather than at 0 and seeking: the icon→panel anchor is
+      // captured on the first measurement, so where the player opens is part of
+      // what it renders.
+      initialT: t,
     });
-    for (const step of steps.slice(1)) player.clock.seek(step);
     return () => player.destroy();
-  }, [spec, walkKey]);
+  }, [spec, t]);
   return <div ref={slotRef} />;
-}
-
-/**
- * Panel B driven by the PUBLISHED `DataFlowPlayer`.
- *
- * Deliberately declarative: props only, no handle, no imperative seek. That is
- * the whole assertion — if the component can be given the same instant and box
- * as `VanillaPlayerPanel` gets imperatively and produce the same pixels, then
- * the prop→option mapping is lossless.
- *
- * Frozen `t` only. The wrapper's clock is not reachable from outside, so a walk
- * cannot be replayed through it; asking for one is a harness error rather than
- * something to silently approximate.
- */
-function WrapperPlayerPanel({ spec, t }: { spec: DataFlowSpec; t: number }) {
-  // Loud on purpose: a silently-ignored `walk` would leave a cell measuring
-  // something other than what its name claims.
-  if (isWalk)
-    throw new Error(
-      'panelB=player cannot walk: the wrapper does not expose its clock. ' +
-        'Drop &walk=1, or use panelB=vanilla for a walk cell.'
-    );
-  return (
-    <DataFlowPlayer
-      spec={spec}
-      height={AB_PANEL.height}
-      width={AB_PANEL.width}
-      theme={theme}
-      mode={mode}
-      controls
-      autoPlay={false}
-      initialT={t}
-    />
-  );
-}
-
-/**
- * Panel A under `?walk=1`: re-renders `Stage` across the sequence, ONE COMMIT
- * PER STEP.
- *
- * The per-step commit is the whole point. React accumulates `iconGeomByNode`
- * from the geometry measured between renders, so only a real sequence of
- * renders reproduces what production does — a single render at the target `t`
- * lands on a different icon anchor. Publishing `ready` at the end is what keeps
- * the gate from capturing mid-walk.
- */
-function StageWalk({
-  spec,
-  timeline,
-  path,
-}: {
-  spec: DataFlowSpec;
-  timeline: Timeline;
-  path: readonly number[];
-}) {
-  const [i, setI] = useState(0);
-  useEffect(() => {
-    if (i >= path.length - 1) {
-      const w = window as unknown as { __AB__?: Record<string, unknown> };
-      if (w.__AB__) w.__AB__.ready = true;
-      return;
-    }
-    const raf = requestAnimationFrame(() => setI(i + 1));
-    return () => cancelAnimationFrame(raf);
-  }, [i, path.length]);
-
-  return (
-    <Stage
-      spec={spec}
-      timeline={timeline}
-      t={path[i]}
-      highlight={highlightCode}
-      density="comfortable"
-    />
-  );
 }
 
 function ABApp() {
@@ -541,91 +335,50 @@ function ABApp() {
   const t = resolveFrozenT(timeline.durationMs);
 
   // Same inline-during-render publication style as `__VALIDATION__` below:
-  // a plain diagnostic global, read by compare.ab.spec.ts / selftest.ab.spec.ts
-  // via `page.evaluate`.
+  // a plain diagnostic global, read by selftest.ab.spec.ts via `page.evaluate`.
   (window as unknown as { __AB__: unknown }).__AB__ = {
     demo: demoId,
     t,
     durationMs: timeline.durationMs,
-    panelB: panelBMode,
     chrome: isChrome,
-    walk: isWalk,
-    // A walk is only comparable once panel A has committed every step of it;
-    // `StageWalk` flips this when it lands on the target.
-    ready: !isWalk,
+    ready: true,
   };
 
-  const path = isWalk
-    ? cumulativePath(timeline.durationMs, t / (timeline.durationMs || 1))
-    : undefined;
-
-  const reactStage = isWalk ? (
-    <StageWalk spec={spec} timeline={timeline} path={path!} />
-  ) : (
-    <Stage
-      spec={spec}
-      timeline={timeline}
-      t={t}
-      highlight={highlightCode}
-      density="comfortable"
-    />
-  );
-
-  // ONE definition of what a React panel contains, used by both sides. The
-  // cross-mount self-test compares panel A against a second React mount, so an
-  // asymmetry here would show up as a renderer difference that isn't one.
-  const reactPanel = (
-    <>
-      {reactStage}
-      {isChrome ? (
-        <Controls
-          clock={frozenClock(t, timeline.durationMs)}
-          timeline={timeline}
-          isFullscreen={false}
-          onToggleFullscreen={() => {}}
-        />
-      ) : null}
-    </>
-  );
+  // Both panels are INDEPENDENT mounts of the vanilla renderer. Since the React
+  // renderer was removed (step 2.6b), the self-test no longer proves "React ==
+  // vanilla" — that proof is in the git history. What survives is a calibration
+  // of the MEASUREMENT: two independent mounts of the same spec at the same `t`
+  // must be pixel-identical, or DOM measurement itself is nondeterministic.
+  // `chrome` mounts the whole player (stage + control bar) via
+  // `mountVanillaPlayer`, which builds its own `.rdfa-player` → `bare`.
+  const panel = () =>
+    isChrome ? (
+      <VanillaPlayerPanel spec={spec} t={t} />
+    ) : (
+      <VanillaPanel spec={spec} t={t} />
+    );
 
   return (
     <main className="harness ab-harness" data-theme={mode}>
       <header className="harness-bar">
         <h1>
-          A/B — {demoId}{' '}
+          self-test — {demoId}{' '}
           <span>
-            · t={Math.round(t)}ms · panel B = {panelBMode}
+            · t={Math.round(t)}ms · vanilla vs vanilla
             {isChrome ? ' · chrome' : ''}
-            {isWalk ? ' · walk' : ''}
           </span>
         </h1>
       </header>
       <div className="ab-grid">
-        <ABPanel label="A — React (Stage.tsx)" panelId="a">
-          {reactPanel}
+        <ABPanel label="A — Vanilla DOM" panelId="a" bare={isChrome}>
+          {panel()}
         </ABPanel>
         <ABPanel
-          label={
-            panelBMode === 'react'
-              ? 'B — React (self-test mount)'
-              : panelBMode === 'player'
-                ? 'B — react-dataflow-animator (DataFlowPlayer wrapper)'
-                : 'B — Vanilla DOM (@react-dataflow-animator/core)'
-          }
+          label="B — Vanilla DOM (independent mount)"
           panelId="b"
-          // `bare` whenever the child builds its own `.rdfa-player` — which
-          // `DataFlowPlayer` does, through the core.
-          bare={isChrome && panelBMode !== 'react'}
+          bare={isChrome}
         >
-          {panelBMode === 'react' ? (
-            reactPanel
-          ) : panelBMode === 'player' ? (
-            <WrapperPlayerPanel spec={spec} t={t} />
-          ) : isChrome ? (
-            <VanillaPlayerPanel spec={spec} t={t} path={path} />
-          ) : (
-            <VanillaPanel spec={spec} t={t} path={path} />
-          )}
+          {panel()}
         </ABPanel>
       </div>
     </main>
@@ -854,6 +607,44 @@ function CurvePanel({ clip, timeline }: { clip: Clip; timeline: Timeline }) {
   );
 }
 
+/**
+ * A `.rdfa-player` box holding the VANILLA renderer frozen at `t`.
+ *
+ * The stage is mounted directly under `.rdfa-player`, exactly as the real player
+ * does: `.rdfa-player` is `display:flex; flex-direction:column`, so the stage's
+ * `flex: 1 1 auto` gives it height even though every one of its children is
+ * absolutely positioned (content height 0). No extra flex wrapper is needed here
+ * — unlike `VanillaPanel`, which nests one level below ABPanel's `.rdfa-player`.
+ */
+function FrozenStage({
+  spec,
+  t,
+  width,
+  height,
+}: {
+  spec: DataFlowSpec;
+  t: number;
+  width: number;
+  height: number;
+}) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const container = ref.current;
+    if (!container) return;
+    const handle = mountVanillaStage(container, spec, t);
+    return () => handle.destroy();
+  }, [spec, t]);
+  return (
+    <div
+      ref={ref}
+      className="rdfa-player"
+      data-theme={theme}
+      data-mode={mode}
+      style={{ height, width }}
+    />
+  );
+}
+
 function Filmstrip({
   spec,
   timeline,
@@ -866,20 +657,7 @@ function Filmstrip({
       {timeline.stops.map((stop, i) => (
         <figure className="frame" key={`${stop}-${i}`}>
           <figcaption>t={Math.round(stop)}ms</figcaption>
-          <div
-            className="rdfa-player"
-            data-theme={theme}
-            data-mode={mode}
-            style={{ height: 280, width: 440 }}
-          >
-            <Stage
-              spec={spec}
-              timeline={timeline}
-              t={stop}
-              highlight={highlightCode}
-              density="comfortable"
-            />
-          </div>
+          <FrozenStage spec={spec} t={stop} width={440} height={280} />
         </figure>
       ))}
     </div>
@@ -913,6 +691,29 @@ function LiveProbe({
   const frozenParam = params.get('probeT');
   const frozen = frozenParam != null ? Number(frozenParam) : null;
   const [t, setT] = useState(frozen ?? lo);
+
+  const boxRef = useRef<HTMLDivElement | null>(null);
+  const handleRef = useRef<ReturnType<typeof mountVanillaStage> | null>(null);
+
+  // Mount the vanilla stage once. The rAF loop below advances `t`; a separate
+  // effect pushes it into the retained renderer with `update(t)`. The morph is
+  // emergent from the frame-by-frame play, so driving `update` per frame — rather
+  // than remounting — is exactly what reproduces it.
+  useEffect(() => {
+    const container = boxRef.current;
+    if (!container) return;
+    const handle = mountVanillaStage(container, spec, frozen ?? lo);
+    handleRef.current = handle;
+    return () => {
+      handleRef.current = null;
+      handle.destroy();
+    };
+  }, [spec, frozen, lo]);
+
+  useEffect(() => {
+    handleRef.current?.update(t);
+  }, [t]);
+
   useEffect(() => {
     const w = window as unknown as {
       __probe?: { start: number; objectId: string };
@@ -944,19 +745,12 @@ function LiveProbe({
         {Math.round(t)}ms
       </div>
       <div
+        ref={boxRef}
         className="rdfa-player"
         data-theme={theme}
         data-mode={mode}
         style={{ height: 380, width: 560 }}
-      >
-        <Stage
-          spec={spec}
-          timeline={timeline}
-          t={t}
-          highlight={highlightCode}
-          density="comfortable"
-        />
-      </div>
+      />
     </div>
   );
 }
@@ -1054,12 +848,10 @@ function App() {
 // the real render (Docusaurus doesn't wrap the player in StrictMode).
 createRoot(document.getElementById('root')!).render(
   isBench ? (
-    benchRenderer === 'vanilla' ? (
-      <VanillaBenchApp />
-    ) : benchRenderer === 'wrapper' ? (
+    benchRenderer === 'wrapper' ? (
       <WrapperBenchApp />
     ) : (
-      <BenchApp />
+      <VanillaBenchApp />
     )
   ) : isMU ? (
     <MUApp />

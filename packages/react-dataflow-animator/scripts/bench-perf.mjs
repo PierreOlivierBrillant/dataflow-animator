@@ -1,10 +1,12 @@
 /**
- * Perf baseline: average cost of a React player frame, real rAF-driven
- * playback (autoPlay + loop, via the SAME `useClock` hook `DataFlowPlayer`
- * uses — see scripts/validation-harness/main.tsx's `BenchApp`), over ~300
- * frames, on `circuit` (heavy: dense orthogonal routing) and `clientServer`
- * (average). This is the baseline the step-2.6 gate compares the future
- * vanilla-DOM renderer against — see docs/AI-VALIDATION.md.
+ * Perf baseline: average cost of a player frame under real rAF-driven playback
+ * (autoPlay + loop), over ~300 frames, on `circuit` (heavy: dense orthogonal
+ * routing) and `clientServer` (average).
+ *
+ * Since step 2.6b removed the React renderer, this measures the vanilla renderer
+ * (`--renderer vanilla`, the default) or the published `DataFlowPlayer`
+ * (`--renderer wrapper`). The frozen `bench-baseline.json` keeps the step-2.1
+ * React figure purely as a HISTORICAL reference; it is never regenerated.
  *
  * Frame timing comes from wall-clock gaps between successive
  * `requestAnimationFrame` callbacks (the real cadence a user experiences);
@@ -12,8 +14,8 @@
  * (script / style / layout) over the same window, sourced from Chrome
  * DevTools Protocol rather than reimplemented.
  *
- *   node scripts/bench-perf.mjs
- *   node scripts/bench-perf.mjs --demo circuit --frames 300
+ *   node scripts/bench-perf.mjs                      # vanilla
+ *   node scripts/bench-perf.mjs --renderer wrapper   # published component
  */
 import { parseArgs } from 'node:util';
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -30,21 +32,16 @@ const { values } = parseArgs({
     frames: { type: 'string', default: '300' },
     port: { type: 'string', default: '5197' },
     out: { type: 'string' },
-    renderer: { type: 'string', default: 'both' },
+    renderer: { type: 'string', default: 'vanilla' },
   },
 });
 
 const DEMOS = values.demo ? [values.demo] : ['circuit', 'clientServer'];
-// `both` measures the two renderers in ONE run, which is the only comparison
-// worth making: these numbers are machine-dependent, so diffing a fresh vanilla
-// figure against a React baseline captured elsewhere would mostly measure the
-// hardware. See docs/AI-VALIDATION.md.
-//
-// `--renderer wrapper` measures the published `DataFlowPlayer`. Pair it with
-// `vanilla` (`--renderer wrapper` then compare against a `both` run captured on
-// the same machine) to read the wrapper's own per-frame cost.
-const RENDERERS =
-  values.renderer === 'both' ? ['react', 'vanilla'] : [values.renderer];
+// One renderer per run. These figures are machine-dependent, so a comparison is
+// only meaningful within a single run on one machine — run `vanilla` and
+// `wrapper` back to back on the same box to read the wrapper's own per-frame
+// cost. See docs/AI-VALIDATION.md.
+const RENDERERS = [values.renderer === 'wrapper' ? 'wrapper' : 'vanilla'];
 const FRAMES = Number(values.frames);
 
 // The harness's own vite.config.ts reads PORT from the environment (see
@@ -147,10 +144,8 @@ const report = {
   demos: results,
 };
 
-// NOT bench-baseline.json by default any more: that file is the step 2.1 React
-// reference and stays frozen. A run writes beside it — and a `wrapper` run gets
-// its own file rather than overwriting the react-vs-vanilla comparison, which is
-// the step 2.5 reference the wrapper is measured against.
+// Never bench-baseline.json: that file is the frozen step-2.1 React reference,
+// kept for history only. `vanilla` and `wrapper` runs each write their own file.
 const defaultOut =
   values.renderer === 'wrapper'
     ? 'validation-harness/bench-wrapper.json'

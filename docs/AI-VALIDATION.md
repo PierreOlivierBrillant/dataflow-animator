@@ -22,8 +22,8 @@ screenshot cannot reveal it; the curve must be drawn.
 
 ## Tool 1 — visual harness (both channels)
 
-Vite serves a harness that, for a given demo, renders **a frozen `Stage` at each
-`timeline.stops[]`** (contact sheet) and, for each `set_content`, plots
+Vite serves a harness that, for a given demo, renders **a frozen vanilla stage at
+each `timeline.stops[]`** (contact sheet) and, for each `set_content`, plots
 the **actual crossfade opacity** (`clipOpacity`, which also drives the geometry
 lerp) against the same curve passed through `easeInOutCubic`.
 
@@ -37,7 +37,7 @@ URL parameters: `?demo=<id>` (see the navigation bar for the list),
 `pcb` | `chalk` | `terminal` | `paper` | `neon` — the same two axes as the
 player's props, so a palette can be eyeballed on any demo).
 
-The harness imports `Stage` from the package's own `src`, and `compile`,
+The harness mounts the renderer with `mountVanillaStage` and reads `compile`,
 `clipOpacity`/`contentCrossfade` from `@react-dataflow-animator/core` (none of
 them public): a single source of truth, no duplication to resync. The DOM
 measurement is real → we also see the **re-layout** of a `set_content` (font
@@ -83,198 +83,123 @@ fluidity is won, and the AI immediately sees what to change and where.
 The contrast is most telling on a **short window** (little hold): the
 `spa` demo has a second `set_content` of ~750 ms that illustrates it well.
 
-## Tool 3 — A/B harness, pixel-diff gate and perf baseline
+## Tool 3 — the renderer's own gates
 
-`Stage.tsx`'s rendering is being reimplemented as a framework-agnostic DOM
-renderer (`@react-dataflow-animator/core/dom/mount`), one layer at a time. The
-harness carries the instrument that keeps that migration honest: a side-by-side
-comparison mode, a pixel-diff gate calibrated against its own noise floor, a
-ratchet that forces a landed layer to delete its own exemptions, and a perf
-baseline. As of step 2.4 the gate is EXACT: every cell diffs at 0.0000% and the
-ratchet is empty.
+The framework-agnostic DOM renderer (`@react-dataflow-animator/core/dom`) is now
+the only renderer; the React one it replaced was removed at step 2.6b. Two gates
+guard it, and it is worth being exact about **what each one proves**, because
+they replaced an A/B comparison against React whose job is finished — the proof
+that the two renderers agreed to the pixel is in the git history (200/200 A/B
+cells at 0.0000%), not in any file here.
 
-### A/B mode (`?ab=1`)
+| Gate            | Command                       | Proves                                                                                        | Exact?                                      |
+| --------------- | ----------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| mount-vs-update | `npm run harness:mountupdate` | the renderer is internally consistent: `mount(t)` == `mount(0)` then `update()` walked to `t` | yes — live DOM diff, no image               |
+| self-test       | `npm run harness:selftest`    | the measurement floor is zero: two independent mounts are pixel-identical                     | yes — 0.00% required                        |
+| reference grid  | `npm run test:visual`         | no regression over time: the render matches a frozen golden                                   | approximate — pixels, font/Chrome-dependent |
+
+### mount-vs-update — the primary structural gate (`?mu=1`)
 
 ```bash
-npm run harness -w react-dataflow-animator
-# → http://localhost:5199/?ab=1&demo=spa&probePct=0.5
+npm run harness:mountupdate -w react-dataflow-animator
 ```
 
-Renders two fixed-size (480×320), frozen-`t` panels side by side:
+`mountUpdate.ab.spec.ts` mounts two vanilla stages of the same spec: panel A
+fresh at `t`, panel B at `0` then walked to `t` with `update()` through the
+checkpoints `0 → 25% → 50% → 75% → t`. Both render live, in the same run, and the
+verdict is a **normalised `outerHTML` comparison** (`normalizeStageHtml`), not a
+screenshot. It therefore depends on no font, no Chrome version, no external
+reference — it asserts an internal invariant (retained mode == remount) and stays
+exact everywhere. It is also the only gate that exercises `update()` at all.
 
-- **panel A** — the real React `Stage`;
-- **panel B** — `mountVanillaStage` (default); a SECOND independent React
-  `Stage` mount of the identical spec (`panelB=react`), used to calibrate the
-  gate itself (see self-test below); or the published `DataFlowPlayer`
-  (`panelB=player`, chrome mode only — the wrapper does not expose its clock, so
-  it cannot walk, and asking it to throws rather than silently approximating).
+The one class of cell it does not assert on is a `set_content` caught
+mid-crossfade — a documented path dependence of the renderer (the icon geometry
+anchoring the icon→panel morph is captured once), detected from the spec rather
+than listed by hand.
 
-Extra URL parameters, on top of `?demo=`/`?mode=`/`?theme=`/`?locale=` from
-the normal harness: `?probeT=<ms>` or `?probePct=<0..1>` (fraction of the
-compiled duration — lets a script ask for "25%" without first looking up that
-demo's own duration) freeze the instant both panels render at; the default is
-the timeline's midpoint. `window.__AB__` exposes `{ demo, t, durationMs,
-panelB, ready }` for scripts to poll, plus `{ passes, converged }` from the
-vanilla renderer's settle loop (see the convergence diagnostic below).
-
-### Self-test — calibrating the gate against itself
+### self-test — the measurement floor (`?ab=1`)
 
 ```bash
 npm run harness:selftest -w react-dataflow-animator
 ```
 
-`selftest.ab.spec.ts` proves the MEASUREMENT has zero noise floor before
-trusting it to judge anything, over every risk demo (`riskDemos.ts`, the same
-list `harness.visual.spec.ts` golden-tests) × both themes:
+`selftest.ab.spec.ts` renders two INDEPENDENT vanilla panels of the same spec at
+the same frozen `t` (480×320), over every risk demo (`riskDemos.ts`) × both
+themes × two configs (`stage`, `chrome`), and requires exactly 0.00% on two
+checks (120 total):
 
-- **successive capture** — screenshot panel A twice in a row (same mount, no
-  time change): must be 0.00%, or something is still settling (fonts,
-  ResizeObserver, a wall-clock CSS animation);
-- **cross-mount** — screenshot panel A against panel B mounted as a SECOND,
-  independent React `Stage` (`panelB=react`) of the identical spec/`t`: must
-  be 0.00%, or DOM measurement itself is nondeterministic across mounts.
+- **successive capture** — screenshot one panel twice in a row: a non-zero diff
+  means something is still settling (fonts, ResizeObserver, a wall-clock CSS
+  animation);
+- **cross-mount** — screenshot two independent mounts: a non-zero diff means DOM
+  measurement is nondeterministic across mounts.
 
-Both checks require EXACTLY 0.00% on every configuration (120 checks). Note what
-is being calibrated: the MEASUREMENT, which is determined by panel A's
-configuration plus the capture protocol. `panelB=react` mounts a second panel A,
-so an entry naming a panel-B variant would measure nothing new — which is why
-compare's `wrapper` mode needs no entry of its own and is covered by `chrome`'s.
-The rule the self-test enforces binds on compare modes whose PANEL A is
-uncalibrated. While
-building this, the self-test caught a real bug: a `loading` spinner is a
-native CSS `@keyframes` animation, driven by the browser's wall clock rather
-than React's `t` — so two successive captures drifted even with `t` frozen.
-The fix is `animations: 'disabled'` on the `.screenshot()` calls (the same
-mechanism `expect(page).toHaveScreenshot()` already applies by default in
-`harness.visual.spec.ts` — just not, until then, on a raw `.screenshot()`
-call). Until this suite reports 0.00% everywhere, don't trust `compare`'s
-numbers.
+If this floor were not zero, no pixel gate built on top of it could be trusted.
+While building the renderer, this suite caught a real bug: a `loading` spinner is
+a native CSS `@keyframes` animation driven by the browser's wall clock, so two
+successive captures drifted even with `t` frozen. The fix is
+`animations: 'disabled'` on the `.screenshot()` calls (the same mechanism
+`toHaveScreenshot()` applies by default). `?probeT=<ms>` / `?probePct=<0..1>`
+freeze the instant; `window.__AB__` exposes `{ demo, t, durationMs, chrome,
+ready }` plus `{ passes, converged }` from the settle loop.
 
-### Compare — the actual A/B pixel-diff gate
+### reference grid — visual non-regression (`test:visual`)
 
 ```bash
-npm run harness:compare -w react-dataflow-animator
-COMPARE_THRESHOLD=0.005 npm run harness:compare -w react-dataflow-animator  # override the 0.01% default
+npm run test:visual -w react-dataflow-animator
+npm run test:visual -w react-dataflow-animator -- --update-snapshots  # regenerate
 ```
 
-`compare.ab.spec.ts` walks every risk demo × 5 instants (0/25/50/75/100% of
-duration) × 2 themes × 4 modes (`stage`, `chrome`, `walk`, `wrapper` — 200
-cells), diffs panel A against panel B with
-`pixelmatch`, and judges each cell against a threshold (`COMPARE_THRESHOLD` env
-var, default 0.01%). It is deliberately NOT wired into the root `npm run` check
-sequence or CI yet.
+`referenceGrid.visual.spec.ts` captures a **contact sheet** per risk demo × theme
+(10 fullPage goldens): one frozen frame of the vanilla stage at every
+`timeline.stops[]`, so a single image covers every settled instant. It pins the
+renderer against its own past — a future change that moves a pixel is flagged.
 
-Panel B renders **every layer panel A does at a frozen `t`**: the static
-substrate (zones, static nodes, baseline connections; step 2.2), the dynamic
-clips — packets (`move`), progressive arrows (`arrow`), flow charges (`flow`);
-step 2.3 — `set_content` panels and comment bubbles (step 2.4), the player
-chrome (step 2.5), and since step 2.6a the `wrapper` mode, where panel B is
-built by the published `DataFlowPlayer` component rather than by a direct
-`mountVanillaPlayer` call — the proof that the React wrapper's prop→option
-mapping loses nothing.
+It does **not** compare against React; that renderer is gone. FRAGILE by nature:
+the goldens depend on the machine's font rendering and the Chrome version
+(`channel: 'chrome'`), and `maxDiffPixelRatio: 0.02` absorbs anti-aliasing dust.
+Regenerate in the target environment with `--update-snapshots`. It is a
+LOCAL/manual gate — **not wired into CI** (that would need a pinned rendering
+environment), exactly as it was before this step.
 
-**The whole 200-cell grid currently measures exactly 0.0000%** — not "under
-threshold", bit-identical screenshots — and the ratchet is empty. Since the
-self-test independently pins the harness's own noise floor at exactly 0.00%,
-there is no headroom left to hide in: any non-zero cell is a real difference in
-what the two renderers drew. That is why the default threshold is 0.01% rather
-than the 0.1% it started at; it guards against measurement dust, it is not a
-tolerance budget.
+### Shared plumbing
 
-The two layers split by whether they can perturb measurement, and the split is
-structural. Overlays (arrows, packets, comments, zones) are absolutely
-positioned: they read the settled geometry and cannot change it, so they are
-built once, after the convergence loop. A `set_content` panel is **not** an
-overlay — it lives inside its node and makes it GROW — so it is built up front
-and the loop converges with it in place, negotiating a common code-font scale
-along the way.
+`selftest.ab.spec.ts` and `mountUpdate.ab.spec.ts` run under
+`playwright.compare.config.ts` — its own port (5198, distinct from the
+interactive harness's 5199) and `reuseExistingServer: false` unconditionally, so
+a developer's running `npm run harness` session is never silently reused
+mid-measurement (the documented port-5199 trap). `referenceGrid.visual.spec.ts`
+runs under `playwright.config.ts` (port 5199) instead. Per-cell rows are
+accumulated on disk (`abResults.ts`, gitignored) rather than in memory, because
+Playwright restarts the worker after a failing test; `globalTeardown.ts` prints
+the final tables exactly once, in the main process.
 
-#### The ratchet
-
-While the vanilla renderer was being built layer by layer, some cells
-legitimately differed. Loosening the threshold to accommodate them would have
-blinded the gate everywhere; instead they were enumerated, one line per cell
-with its reason, in `compare-ratchet.json`. **That file is now empty** — step
-2.4 was forced to drain it by rule 3 below. Three rules, and the third is what
-makes it a ratchet rather than a suppression list:
-
-| situation                            | verdict                              |
-| ------------------------------------ | ------------------------------------ |
-| **unlisted** cell over the threshold | failure — a regression               |
-| **listed** cell over the threshold   | tolerated, printed with its reason   |
-| **listed** cell that now **passes**  | failure — delete it from the ratchet |
-
-Without the third rule the list would only ever go stale: a step could land its
-layer, leave the entry behind, and keep that cell exempt forever. So the list
-can only shrink, and every entry that survives is one someone had to justify.
-
-Rules 1 and 3 are judged in different places, and not by accident. An unlisted
-regression asserts inside the test that names it, so the failure points at the
-cell. A listed-but-passing cell cannot be judged from inside a single test —
-that test passed — so the verdict lives in `globalTeardown.ts`, the only place
-that sees the whole grid; it throws, which is what makes Playwright exit
-non-zero.
-
-The reasons in `compare-ratchet.json` are evidence, not guesswork: each was
-derived by diffing the `.rdfa-*` element inventory of the two panels, so the
-listed cause is the only structural difference present in that cell.
-
-**When your step lands a layer**, re-run the gate and delete every entry it now
-passes. The gate will not let you forget.
-
-With the ratchet empty, re-adding an entry is a deliberate admission that a
-layer regressed or that a new one has not landed yet — never a way to quiet a
-diff you have not explained. A residual difference you can account for is worth
-more than a gate that has been talked down.
-
-#### Shared plumbing
-
-Both `compare.ab.spec.ts` and `selftest.ab.spec.ts` run under
-`playwright.compare.config.ts` — a config dedicated to these two files, never
-`test:visual`'s goldens: its own port (5198, distinct from the interactive
-harness's default 5199) and `reuseExistingServer: false` unconditionally, so
-a developer's already-running `npm run harness` session is never silently
-reused mid-measurement (the documented port-5199 trap). Per-cell rows are
-accumulated on disk (`abResults.ts`, gitignored scratch) rather than in an
-in-memory array, because Playwright restarts the worker process (fresh module
-state) after a failing test; the final table is printed from
-`globalTeardown.ts`, which Playwright guarantees runs exactly once, in the main
-process, regardless of worker restarts.
-
-#### Convergence diagnostic
-
-`window.__AB__` also carries `passes` and `converged` from the vanilla
-renderer's settle loop. `converged: false` means the measurement BUDGET stopped
-the loop rather than the geometry settling — the renderer would then be drawing
-a state React never renders, and **the fix is not to raise the budget**: it is
-matched to React's on purpose (see `core/src/dom/settle.ts`). Every risk demo
-currently settles in 3 passes, inside React's 4.
+`window.__AB__` also carries `passes` and `converged` from the settle loop.
+`converged: false` means the measurement BUDGET stopped the loop rather than the
+geometry settling — the fix is not to raise the budget (see
+`core/src/dom/settle.ts`). Every risk demo settles in 3 passes.
 
 ### Perf baseline
 
 ```bash
-npm run harness:bench -w react-dataflow-animator
+npm run harness:bench -w react-dataflow-animator                        # vanilla
+npm run harness:bench -w react-dataflow-animator -- --renderer wrapper  # published component
 ```
 
-`scripts/bench-perf.mjs` drives the harness's `?bench=1&demo=<id>` page, in one
-of three renderer modes (`?renderer=react|vanilla|wrapper`): the React `Stage`
-driven by `useClock`, the core's `mountVanillaPlayer`, or the published
-`DataFlowPlayer` component. All three autoPlay + loop — for ~300 frames on `circuit` (heavy: dense
-orthogonal routing) and `clientServer` (average), and records, via Playwright
+`scripts/bench-perf.mjs` drives the harness's `?bench=1&demo=<id>` page in one of
+two modes: the core's `mountVanillaPlayer` (`--renderer vanilla`, default) or the
+published `DataFlowPlayer` (`--renderer wrapper`), both autoPlay + loop, for ~300
+frames on `circuit` (heavy: dense orthogonal routing) and `clientServer`
+(average), recording via Playwright + CDP:
 
-- CDP:
-
-* the wall-clock gap between successive `requestAnimationFrame` callbacks
+- the wall-clock gap between successive `requestAnimationFrame` callbacks
   (mean/median/p95/min/max) — the cadence a user actually experiences;
-* the CDP `Performance` domain's script/layout/style/task duration deltas
-  over the whole run — a breakdown by phase, useful once there is a second
-  (vanilla) renderer to compare against.
+- the CDP `Performance` domain's script/layout/style/task duration deltas over
+  the whole run — a breakdown by phase.
 
-Results are saved beside the versioned
-`scripts/validation-harness/bench-baseline.json`, which is the FROZEN step-2.1
-React reference and is never rewritten: a default run writes `bench-vanilla.json`
-(react + vanilla in one run) and `--renderer wrapper` writes
-`bench-wrapper.json`. Two caveats:
+`bench-baseline.json` is the FROZEN step-2.1 React figure, kept for HISTORY only
+and never rewritten; `--renderer vanilla` writes `bench-vanilla.json`,
+`--renderer wrapper` writes `bench-wrapper.json`. Two caveats:
 
 - at these demos' sizes, render cost is comfortably under the 16.7ms frame
   budget, so the wall-clock frame time reads as vsync-locked (~16.7ms)

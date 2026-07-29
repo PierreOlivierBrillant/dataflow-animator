@@ -23,7 +23,6 @@
     "check:schema": "node scripts/check-schema-is-fresh.mjs",
     "generate:subicons": "node scripts/generate-subicon-data.mjs",
     "check:subicons": "node scripts/check-subicon-data-is-fresh.mjs",
-    "check:icons": "node scripts/check-icon-parity.mjs",
     "lint": "eslint src",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",

@@ -1,7 +1,7 @@
 import { expect, type Page } from '@playwright/test';
 
 /**
- * Same stabilization recipe as `harness.visual.spec.ts`: wait for the A/B
+ * Same stabilization recipe as `referenceGrid.visual.spec.ts`: wait for the A/B
  * page to have mounted (`window.__AB__.ready`), then for fonts to settle,
  * then a short buffer for the ResizeObserver / set_content measurement
  * passes to fall back to rest before a screenshot is taken.

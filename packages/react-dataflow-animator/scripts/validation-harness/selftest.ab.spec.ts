@@ -5,46 +5,32 @@ import { waitForAbReady } from './waitForAbReady';
 import { appendAbResult } from './abResults';
 
 /**
- * Calibration for the A/B compare gate (`compare.ab.spec.ts`): before that
- * gate's percentages can be trusted to mean anything about the REAL renderer,
- * we must prove the measurement itself has zero noise floor. Two independent
- * questions, both required to be exactly 0.00%:
+ * Measurement-floor calibration for the vanilla renderer.
  *
- *  - successive capture: screenshot the SAME React panel twice in a row — a
+ * Since step 2.6b there is no React panel to compare against — that proof is in
+ * the git history. What this gate still does, and why it matters, is prove the
+ * MEASUREMENT itself has zero noise floor: if two independent mounts of the same
+ * renderer disagreed by a pixel, no visual gate built on it could be trusted.
+ * Two independent questions, both required to be exactly 0.00%:
+ *
+ *  - successive capture: screenshot the SAME vanilla panel twice in a row — a
  *    non-zero diff would mean residual animation, unsettled fonts, or a
- *    ResizeObserver pass still in flight, not a rendering difference.
- *  - cross-mount: screenshot two INDEPENDENT React mounts of the identical
- *    spec at the identical `t` (`panelB=react`) — a non-zero diff would mean
- *    DOM measurement is nondeterministic across mounts, which would show up
- *    in the real gate as false positives no fix to the vanilla renderer could
- *    ever close.
+ *    ResizeObserver pass still in flight.
+ *  - cross-mount: screenshot two INDEPENDENT vanilla mounts of the identical
+ *    spec at the identical `t` — a non-zero diff would mean DOM measurement is
+ *    nondeterministic across mounts.
  *
- * Until both are 0.00% on every demo x theme, `compare.ab.spec.ts`'s numbers
- * are not meaningful — see docs/AI-VALIDATION.md. The final table is printed
- * by `globalTeardown.ts`, not from here — see `abResults.ts` for why.
+ * The final table is printed by `globalTeardown.ts`, not from here — see
+ * `abResults.ts` for why. See docs/AI-VALIDATION.md for how this sits beside the
+ * mount-vs-update gate and the reference grid.
  */
 
 const THEMES = ['light', 'dark'] as const;
 
 /**
- * The configurations the gate is calibrated for. A configuration that compare
- * exercises but the self-test does not is a configuration whose numbers mean
- * nothing — which is exactly how the `chrome` cells slipped in uncalibrated.
- *
- * Read that rule precisely, because it is narrower than it looks. What is
- * calibrated here is the MEASUREMENT, and the measurement is determined by
- * **panel A's configuration plus the capture protocol** — `panelB=react` mounts
- * a second panel A, so an entry naming a panel-B variant would measure nothing
- * new. The rule therefore binds on compare modes whose PANEL A is uncalibrated.
- *
- * That is why compare's `wrapper` mode has no entry of its own: it reuses
- * `chrome`'s panel A, `chrome`'s probe grid and `chrome`'s
- * `animations: 'disabled'` capture, and only swaps what panel B is built by. It
- * is calibrated by the `chrome` entry below.
- *
- * `chrome` sweeps the probe grid where `stage` samples only the midpoint,
- * because composing the stage with a sibling control bar changes the stage's
- * height and therefore its measurement schedule — and the suspected race is
+ * Two configurations. `stage` samples the midpoint; `chrome` sweeps the probe
+ * grid, because composing the stage with a sibling control bar changes the
+ * stage's height and therefore its measurement schedule — a race that would be
  * instant-dependent, so a single instant would not find it.
  */
 const CONFIGS = [
@@ -62,7 +48,7 @@ for (const config of CONFIGS) {
             : `${demo} · ${Math.round(pct * 100)}% · ${theme} · chrome`;
         test(`self-test — ${suffix}`, async ({ page }) => {
           await page.goto(
-            `/?ab=1&demo=${demo}&mode=${theme}&panelB=react&probePct=${pct}${config.query}`
+            `/?ab=1&demo=${demo}&mode=${theme}&probePct=${pct}${config.query}`
           );
           await waitForAbReady(page);
 

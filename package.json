@@ -21,8 +21,7 @@
     "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,mdx,css}\"",
     "deadcode": "knip",
     "check:schema": "npm run check:schema -w @react-dataflow-animator/core",
-    "check:subicons": "npm run check:subicons -w @react-dataflow-animator/core",
-    "check:icons": "npm run check:icons -w @react-dataflow-animator/core"
+    "check:subicons": "npm run check:subicons -w @react-dataflow-animator/core"
   },
   "devDependencies": {
     "concurrently": "^10.0.3",

@@ -43,7 +43,6 @@ npm run build            # build lib + site (typecheck included)
 npm run test:integration -w react-dataflow-animator
 npm run check:schema
 npm run check:subicons   # generated sub-icon glyph data is fresh
-npm run check:icons      # React and vanilla icon registries expose the same keys
 ```
 
 ### What to do in case of failure
@@ -154,7 +153,6 @@ Package (`packages/core/`, private, source-only — no `build`/`dev` script, it 
 | `npm run check:schema`      | CI guard: schema.generated.json is fresh      |
 | `npm run generate:subicons` | react-icons glyphs → subIconData.generated.ts |
 | `npm run check:subicons`    | CI guard: generated sub-icon data is fresh    |
-| `npm run check:icons`       | CI guard: React/vanilla icon registry parity  |
 
 Package (`packages/react-dataflow-animator/`):
 

@@ -5,21 +5,21 @@ import { waitForAbReady } from './waitForAbReady';
 import { appendAbResult } from './abResults';
 
 /**
- * Mount-vs-update gate: the retained renderer against ITSELF.
+ * Mount-vs-update gate: the retained renderer against ITSELF — and, since step
+ * 2.6b removed the React renderer, the PRIMARY structural gate.
  *
  * Panel A is `mountVanillaStage(spec, t)`. Panel B is mounted at the start of
- * the timeline and walked to the same `t` through the compare grid's
- * checkpoints with `update()`. If retained mode is sound, the two are the same
- * rendering; if `update()` leaves anything behind — a stale style declaration, a
- * head polygon that should have gone, an element in the wrong document position
- * — they are not.
+ * the timeline and walked to the same `t` through a fixed set of checkpoints
+ * with `update()`. If retained mode is sound, the two are the same rendering; if
+ * `update()` leaves anything behind — a stale style declaration, a head polygon
+ * that should have gone, an element in the wrong document position — they are
+ * not.
  *
- * WHY THIS GATE EXISTS ALONGSIDE compare.ab.spec.ts. The A/B gate compares the
- * vanilla renderer to React, and it will retire when React stops being the
- * reference at step 2.6. This one involves no React at all: it asserts an
- * internal invariant of the renderer, so it keeps its meaning afterwards. It is
- * also the only gate that exercises `update()` at all — the A/B grid only ever
- * mounts.
+ * WHY IT IS EXACT AND ENVIRONMENT-INDEPENDENT. Both panels render live, in the
+ * same run, and the verdict is a normalised `outerHTML` comparison — not a
+ * screenshot. It asserts an internal invariant of the renderer (retained mode ==
+ * remount), so it depends on no font, no browser version, and no external
+ * reference. It is the only gate that exercises `update()` at all.
  *
  * WHY THE PATH IS CUMULATIVE. A single jump from 0 to `t` would only show that
  * one transition lands correctly. Drift in a retained renderer accumulates over

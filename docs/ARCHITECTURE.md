@@ -60,14 +60,12 @@ spec's structure rather than its identity, carrying the current instant and play
 state across. Live per-option updates would be a second renderer's worth of
 work.
 
-### The React renderer, until step 2.6b
-
-`src/components/` (`Stage.tsx`, `Controls.tsx`, `nodes/`, `dynamic/`),
-`src/hooks/useClock.ts` and `src/tex/RichText.tsx` are no longer reachable from
-`index.ts` and no longer ship in the bundle. They stay in the tree because they
-are **panel A of the A/B pixel gate**: the reference the vanilla renderer is
-measured against. The validation harness imports them from source directly. They
-are removed at step 2.6b, once the migration no longer needs a reference.
+The React renderer that preceded this design (`Stage.tsx`, `Controls.tsx`,
+`nodes/`, `dynamic/`, `hooks/`, `tex/`) was removed at step 2.6b, once the
+migration no longer needed it as the A/B gate's reference. The proof that the two
+renderers agreed to the pixel lives in the git history; the surviving gates check
+the vanilla renderer against itself and against a frozen reference grid (see
+[AI-VALIDATION.md](./AI-VALIDATION.md)).
 
 ## Monorepo structure
 
@@ -116,9 +114,6 @@ packages/
       components/nodes/NodeView.tsx   isolated node preview, mounts renderNodeVisual
       styles/
         dataflow.css                  scoped .rdfa- styles
-      ── retained until step 2.6b, unpublished, gate reference only ──
-      hooks/useClock.ts, hooks/useStageGeometry.ts
-      components/Stage.tsx, Controls.tsx, nodes/, dynamic/, tex/RichText.tsx
 apps/
   docs/                              Docusaurus site
     docs/                            MDX content (intro, concepts, reference)
