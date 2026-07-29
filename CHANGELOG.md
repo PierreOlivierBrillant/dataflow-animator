@@ -1,6 +1,7 @@
 # Changelog
 
-All notable changes to `react-dataflow-animator` are documented here.
+All notable changes to `@dataflow-animator/core` and `@dataflow-animator/react`
+(formerly `react-dataflow-animator`) are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -9,6 +10,62 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
      (Stage, Controls, the JSX node/dynamic components, useClock…) was deleted
      from the source tree. None of it was exported, so there is no change for
      consumers and no version bump. -->
+
+## `@dataflow-animator/react` 0.1.0
+
+**Renamed package.** `react-dataflow-animator` becomes
+`@dataflow-animator/react`, and the version restarts at `0.1.0` alongside the
+core rather than continuing to `4.0.0` — the npm name is new, so nothing is
+being upgraded in place. `react-dataflow-animator@3.0.0` is not maintained.
+
+The React binding stops bundling the engine and now **depends** on the published
+core. One engine and one stylesheet on disk instead of two.
+
+### Migrating from `react-dataflow-animator@3.0.0`
+
+```diff
+-npm install react-dataflow-animator
++npm install @dataflow-animator/react
+```
+
+```diff
+-import { DataFlowPlayer } from 'react-dataflow-animator';
+-import 'react-dataflow-animator/styles.css';
++import { DataFlowPlayer } from '@dataflow-animator/react';
++import '@dataflow-animator/core/styles.css';
+```
+
+```diff
+-import schema from 'react-dataflow-animator/schema.json';
++import schema from '@dataflow-animator/core/schema.json';
+```
+
+Every **export name** is unchanged — `DataFlowPlayer`, `NodeView`,
+`registerNodeIcon`/`getNodeIcon`, `registerSubIcon`/`getSubIcon`, `compile`,
+`evaluate`, `computeLayout`, `dataFlowSchema`, every spec and timeline type. Only
+the package name, the stylesheet path and the schema path move.
+
+### Changed
+
+- **`@dataflow-animator/core` is a runtime `dependency`** (`^0.1.0`), externalised
+  from the bundle instead of inlined into it. It installs automatically.
+- **The published `.d.ts` REFERENCES the core's types** instead of copying them,
+  so a consumer resolves one set of spec types whichever package they import
+  from. 106 kB → 6 kB.
+- `dist/index.js`: **290 kB → 3.7 kB**. The engine, the DOM renderer and the
+  stylesheet are no longer duplicated here.
+
+### Removed
+
+- **`@dataflow-animator/react/styles.css`** — the package emits no stylesheet.
+  Import `@dataflow-animator/core/styles.css`, which is the same bytes, shipped
+  once. **This is the one change that silently breaks a page rather than the
+  build**: without it the markup mounts and measures, but nothing has a size, a
+  colour or a transition.
+- **`@dataflow-animator/react/schema.json`** — use
+  `@dataflow-animator/core/schema.json`.
+- `prismjs` as a direct dependency: nothing in this package imports it, and the
+  core already declares it, so it still arrives transitively.
 
 ## `@dataflow-animator/core` 0.1.0
 

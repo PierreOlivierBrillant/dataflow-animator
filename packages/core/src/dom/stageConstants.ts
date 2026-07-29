@@ -3,7 +3,7 @@
  * `Stage`.
  *
  * Every value here is a DUPLICATE of one that currently lives inside
- * `packages/react-dataflow-animator/src/components/Stage.tsx` (or
+ * `packages/react/src/components/Stage.tsx` (or
  * `ArrowLine.tsx` / `useStageGeometry.ts`). They are copied rather than moved
  * because the React package's `src` is frozen for this phase; the duplication is
  * temporary and resorbed at step 2.6, when the React components are deleted and

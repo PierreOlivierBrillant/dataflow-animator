@@ -1,4 +1,4 @@
-# react-dataflow-animator
+# @dataflow-animator/react
 
 Composant React qui compile une spécification JSON en une animation
 déterministe et navigable de flux de données (client/serveur, requêtes
@@ -9,13 +9,19 @@ SQL, microservices…).
 - SSR-safe, utilisable directement dans Docusaurus, Next.js, Vite, etc.
 - Coloration syntaxique intégrée (Prism, remplaçable).
 
+Ce paquet est une **liaison React** au-dessus de
+[`@dataflow-animator/core`](../core/README.md), qui contient le moteur, le
+rendu DOM et la feuille de style. Le cœur est une dépendance : il s'installe
+tout seul, et c'est de lui que vient la CSS.
+
 ## Installation
 
 ```bash
-npm install react-dataflow-animator
+npm install @dataflow-animator/react
 ```
 
 `react` et `react-dom` (≥ 18) sont attendus en `peerDependencies`.
+`@dataflow-animator/core` est une dépendance normale — rien à installer en plus.
 
 > **ESM uniquement.** Ce package ne fournit pas d'entrée CommonJS. Votre
 > bundler (Vite, Next.js, esbuild…) doit supporter les modules ES. Node.js
@@ -25,8 +31,8 @@ npm install react-dataflow-animator
 ## Utilisation
 
 ```tsx
-import { DataFlowPlayer } from 'react-dataflow-animator';
-import 'react-dataflow-animator/styles.css';
+import { DataFlowPlayer } from '@dataflow-animator/react';
+import '@dataflow-animator/core/styles.css';
 
 const spec = {
   direction: 'left-to-right',
@@ -90,15 +96,23 @@ et le SSR triviaux.
 
 ## Extensibilité
 
-```tsx
-import { registerNodeIcon, registerSubIcon } from 'react-dataflow-animator';
+```ts
+import { registerNodeIcon, registerSubIcon } from '@dataflow-animator/react';
 
-registerNodeIcon('queue', <svg viewBox="0 0 24 24">{/* … */}</svg>);
-registerSubIcon('kafka', <svg viewBox="0 0 24 24">{/* … */}</svg>);
+// Une icône est du MARKUP SVG (ou une fabrique `() => SVGElement`), pas un
+// ReactNode : le lecteur rend hors de React depuis la v3.
+registerNodeIcon('queue', '<svg viewBox="0 0 24 24">…</svg>');
+registerSubIcon('kafka', '<svg viewBox="0 0 24 24">…</svg>');
 ```
 
 Une sous-icône peut aussi être un **texte libre** (`'v2'`, `'API'`, `'JWT'`),
 automatiquement rendu en pastille.
+
+## Sans React ?
+
+Le cœur se monte seul, sans aucun framework :
+`mountPlayer(container, spec, options)` — voir
+[`@dataflow-animator/core`](../core/README.md).
 
 ## Documentation
 

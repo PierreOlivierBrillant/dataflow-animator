@@ -4,7 +4,7 @@ Instructions for Claude (and any other agent) working on this repository.
 
 ## Project overview
 
-`react-dataflow-animator` is a React component that compiles a JSON specification into a deterministic, scrubbable animation of data flows.
+`@dataflow-animator/react` is a React component that compiles a JSON specification into a deterministic, scrubbable animation of data flows.
 The engine is a pure function `evaluate(timeline, t)`: no DOM, no real clock, backwards scrubbing comes for free.
 
 The repository is an **npm workspaces monorepo**:
@@ -15,10 +15,9 @@ packages/core/                      @dataflow-animator/core — the PUBLISHED fr
                                      TeX/highlight, JSON export, the DOM renderer and its
                                      stylesheet. Usable on its own, and the common
                                      dependency of every framework wrapper
-packages/react-dataflow-animator/   the published npm package (React binding over core).
-                                     Still INLINES the core's source via an alias rather
-                                     than depending on the published package — switching
-                                     that over is a major version of its own
+packages/react/                     @dataflow-animator/react — the published React binding.
+                                     DEPENDS on @dataflow-animator/core (externalised, not
+                                     inlined): it ships neither the engine nor the CSS
 apps/docs/                          Docusaurus site (demos, playground, API docs)
 docs/                               SPEC.md, ARCHITECTURE.md (internal references)
 ```
@@ -33,7 +32,7 @@ Read these files before any non-trivial modification:
 - [`docs/AI-VALIDATION.md`](./docs/AI-VALIDATION.md) — how to get rendering (clarity/smoothness) validated by an AI via the deterministic harness and Playwright visual regression.
 - [`docs/SEARCH.md`](./docs/SEARCH.md) — Algolia DocSearch indexing model (how playground examples are indexed; crawler `recordExtractor` reference).
 - [`apps/docs/docs/`](./apps/docs/docs/) — MDX user documentation (concepts, references).
-- [`packages/core/src/types.ts`](./packages/core/src/types.ts) and [`schema.ts`](./packages/core/src/schema.ts) — exact shape of the spec (source of truth; `packages/react-dataflow-animator/src/types.ts` and `schema.ts` are thin re-exports kept for a stable public import path).
+- [`packages/core/src/types.ts`](./packages/core/src/types.ts) and [`schema.ts`](./packages/core/src/schema.ts) — exact shape of the spec (source of truth; `packages/react/src/types.ts` re-exports them for the React binding).
 
 ## Hard rules before every commit
 
@@ -45,7 +44,7 @@ npm run lint             # ESLint on all workspaces
 npm run deadcode         # knip: dead code / unused exports
 npm run test:coverage    # vitest + coverage thresholds
 npm run build            # build lib + site (typecheck included)
-npm run test:integration -w react-dataflow-animator
+npm run test:integration -w @dataflow-animator/react
 npm run check:schema
 npm run check:subicons   # generated sub-icon glyph data is fresh
 ```
@@ -67,13 +66,19 @@ npm run check:subicons   # generated sub-icon glyph data is fresh
   frameworks other than React — a React import there would land in every one of their bundles.
   Precedent: `nodeColors`'s `nodeTint` returns `Record<string, string>` rather than
   `React.CSSProperties`; the React package casts at the call site instead. If a helper needs a
-  React-specific type, it belongs in `packages/react-dataflow-animator/src`, not in core.
+  React-specific type, it belongs in `packages/react/src`, not in core.
 - **Two public APIs, two semver surfaces.** `packages/core/src/index.ts` is as public as
-  `packages/react-dataflow-animator/src/index.ts`: no breaking change to either without a major
+  `packages/react/src/index.ts`: no breaking change to either without a major
   version and documentation. Anything added to the core's barrel is a promise — the renderer's
   plumbing (`el.ts`, `reconcile.ts`, `settle.ts`, `geometryTracker.ts`, the circuit router…) stays
   out of it deliberately, and the harness reaches it through the source alias, not a published
   subpath.
+- **`packages/react/src` imports the core's TOP-LEVEL barrel only.** Never
+  `@dataflow-animator/core/dom/player` or any other subpath: those resolve in this monorepo (the
+  alias short-circuits `exports`) and fail for everyone who installs the package, since the
+  published `exports` lists only `.`, `./styles.css` and `./schema.json`. If the barrel is missing
+  something `src/` needs, add it to the core's barrel — that is a deliberate public commitment,
+  not a workaround. The harness is the ONE exception, and only because it never ships.
 - **Tests first** for uncovered areas you are going to refactor.
 - **Comments**: describe the _why_, not the _what_. The code is enough to say what it does. A comment explaining an avoided pitfall (e.g. Babel loose mode in Docusaurus) is precious; a comment that paraphrases the next line is not.
 - **SSR-safe**: no `window` / `document` / `requestAnimationFrame` access outside of a `useEffect` or `useLayoutEffect`. Check before proposing.
@@ -132,25 +137,26 @@ Pitfalls already encountered in this repo — check them when you touch the affe
 - **rAF loops**: cap the time delta (inactive tab → huge `dt` upon return).
 - **Dual paths**: if a function has an optimized path and a fallback (e.g. `evaluate`), a test must prove their equivalence — the prod path is not necessarily the one tests exercise.
 - **npm publication**: before any `npm publish`, verify the tarball with `npm pack --dry-run` (LICENSE present, `files`/`exports` correct). Two packages ship now — check both.
-- **The core's stylesheet is duplicated for now**: `packages/core/src/styles/dataflow.css` is built into `@dataflow-animator/core/styles.css` AND re-emitted as `react-dataflow-animator/styles.css`, because the React package still inlines the core's source. Edit the one source file; never fork it.
+- **The core is consumed TWO ways, and they must not cross**: the harness/vitest/`tsc` resolve `@dataflow-animator/core` to `../core/src` through an alias (the only way to reach the deep subpaths the harness needs, which the published `exports` does not list); the LIBRARY BUILD externalises it instead — `packages/react/vite.config.ts` has NO `resolve.alias` on purpose. Re-adding one there silently re-inlines the whole engine into `dist/index.js` **with every test still green**. What catches it is the artefact: `grep -c "rdfa-stage" packages/react/dist/index.js` must be `0`. See ARCHITECTURE.md, "Two ways to consume the core".
+- **The stylesheet ships once, from the core**: `packages/core/src/styles/dataflow.css` → `@dataflow-animator/core/styles.css`. The React package emits no CSS and exposes no `./styles.css`; consumers (the docs site's `custom.css` included) import the core's. Edit the one source file; never fork it.
 
 ## Available scripts (quick reference)
 
 Monorepo root:
 
-| Script                  | Effect                                                                                                           |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `npm run dev`           | Builds the lib then starts Docusaurus site in watch                                                              |
-| `npm run build`         | Full build (both packages + site)                                                                                |
-| `npm run build:lib`     | Core package build (isolated typecheck included), then React package build                                       |
-| `npm run build:docs`    | Site build only                                                                                                  |
-| `npm run lint`          | ESLint on all workspaces that expose it                                                                          |
-| `npm run format:check`  | Checks Prettier formatting                                                                                       |
-| `npm run format:write`  | Applies Prettier                                                                                                 |
-| `npm test`              | vitest tests of `@dataflow-animator/core` and of `react-dataflow-animator` (each has its own coverage threshold) |
-| `npm run test:coverage` | Same, with coverage thresholds                                                                                   |
-| `npm run deadcode`      | knip — dead code detection                                                                                       |
-| `npm run check:schema`  | Verifies core's generated JSON Schema is fresh                                                                   |
+| Script                  | Effect                                                                                                            |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `npm run dev`           | Builds both libs, then watches core + react + the Docusaurus site (3 processes)                                   |
+| `npm run build`         | Full build (both packages + site)                                                                                 |
+| `npm run build:lib`     | Core package build (isolated typecheck included), then React package build                                        |
+| `npm run build:docs`    | Site build only                                                                                                   |
+| `npm run lint`          | ESLint on all workspaces that expose it                                                                           |
+| `npm run format:check`  | Checks Prettier formatting                                                                                        |
+| `npm run format:write`  | Applies Prettier                                                                                                  |
+| `npm test`              | vitest tests of `@dataflow-animator/core` and of `@dataflow-animator/react` (each has its own coverage threshold) |
+| `npm run test:coverage` | Same, with coverage thresholds                                                                                    |
+| `npm run deadcode`      | knip — dead code detection                                                                                        |
+| `npm run check:schema`  | Verifies core's generated JSON Schema is fresh                                                                    |
 
 Package (`packages/core/` — published as `@dataflow-animator/core`):
 
@@ -165,8 +171,10 @@ Package (`packages/core/` — published as `@dataflow-animator/core`):
 | `npm run check:schema`      | CI guard: schema.generated.json is fresh                       |
 | `npm run generate:subicons` | react-icons glyphs → subIconData.generated.ts                  |
 | `npm run check:subicons`    | CI guard: generated sub-icon data is fresh                     |
+| `npm run dev`               | vite build in watch mode (the docs site consumes this dist)    |
+| `npm run smoke:export`      | Sanity-checks the emitted dist/schema.json                     |
 
-Package (`packages/react-dataflow-animator/`):
+Package (`packages/react/` — published as `@dataflow-animator/react`):
 
 | Script                     | Effect                                      |
 | -------------------------- | ------------------------------------------- |

@@ -5,7 +5,7 @@ import { customSubIcon, registerSubIcon } from './registry';
 
 /**
  * Framework-free `subicon` tech badges — the port of
- * `packages/react-dataflow-animator/src/components/nodes/subIcons.tsx`.
+ * `packages/react/src/components/nodes/subIcons.tsx`.
  *
  * The React version renders `<def.Icon color={…} title={name} />` from
  * react-icons. Core cannot: react-icons' `IconBase` imports React, and the

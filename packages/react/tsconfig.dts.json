@@ -5,6 +5,7 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "paths": {
+      "@dataflow-animator/core": ["../core/src/index.ts"],
       "@dataflow-animator/core/*": ["../core/src/*"]
     },
     "jsx": "react-jsx",

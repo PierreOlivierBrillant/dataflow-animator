@@ -1,4 +1,4 @@
-import type { DataFlowSpec } from 'react-dataflow-animator';
+import type { DataFlowSpec } from '@dataflow-animator/react';
 import type { Locale } from '../../i18n';
 
 // A reference of ALL EIGHT logic gates on `direction: 'circuit'`. Each gate is a

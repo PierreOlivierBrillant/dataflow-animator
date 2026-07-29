@@ -1,4 +1,4 @@
-import { DataFlowSpec } from 'react-dataflow-animator';
+import { DataFlowSpec } from '@dataflow-animator/react';
 
 /**
  * The motivating case: a full subtractor's I/O pads, labelled the way a circuit

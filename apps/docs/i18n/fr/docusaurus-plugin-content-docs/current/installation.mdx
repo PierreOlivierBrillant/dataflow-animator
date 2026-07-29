@@ -7,16 +7,27 @@ slug: /installation
 ## Installation
 
 ```bash
-npm install react-dataflow-animator
+npm install @dataflow-animator/react
 ```
 
 `react` et `react-dom` (≥ 18) sont attendus en `peerDependencies`.
 
+[`@dataflow-animator/core`](https://www.npmjs.com/package/@dataflow-animator/core)
+— le moteur, le rendu DOM et la feuille de style — s'installe avec lui, en
+dépendance. Vous ne l'installez jamais vous-même, mais c'est **de lui que vous
+importez la feuille de style** : le paquet React n'embarque aucune CSS.
+
+:::tip Sans React ?
+Le cœur se monte tout seul, dans n'importe quelle page :
+`mountPlayer(container, spec, options)`. Le paquet React est une fine liaison
+au-dessus de cet appel exact.
+:::
+
 ## Utilisation minimale
 
 ```tsx
-import { DataFlowPlayer } from 'react-dataflow-animator';
-import 'react-dataflow-animator/styles.css';
+import { DataFlowPlayer } from '@dataflow-animator/react';
+import '@dataflow-animator/core/styles.css';
 
 const spec = {
   direction: 'left-to-right',
@@ -45,11 +56,11 @@ Importez le CSS une seule fois dans `src/css/custom.css` puis utilisez le
 composant dans n'importe quel fichier MDX :
 
 ```css title="src/css/custom.css"
-@import 'react-dataflow-animator/styles.css';
+@import '@dataflow-animator/core/styles.css';
 ```
 
 ```mdx title="docs/mon-article.mdx"
-import { DataFlowPlayer } from 'react-dataflow-animator';
+import { DataFlowPlayer } from '@dataflow-animator/react';
 
 <DataFlowPlayer spec={spec} mode="auto" />
 ```
@@ -66,8 +77,8 @@ comme client component.
 ```tsx title="app/exemple/page.tsx"
 'use client';
 
-import { DataFlowPlayer } from 'react-dataflow-animator';
-import 'react-dataflow-animator/styles.css';
+import { DataFlowPlayer } from '@dataflow-animator/react';
+import '@dataflow-animator/core/styles.css';
 
 export default function Page() {
   return <DataFlowPlayer spec={spec} />;
@@ -85,7 +96,7 @@ l'auto-complétion et la validation inline sur tous vos fichiers
   "json.schemas": [
     {
       "fileMatch": ["*.dataflow.json"],
-      "url": "./node_modules/react-dataflow-animator/schema.json"
+      "url": "./node_modules/@dataflow-animator/core/schema.json"
     }
   ]
 }

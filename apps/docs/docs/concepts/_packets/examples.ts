@@ -1,4 +1,4 @@
-import { DataFlowSpec } from 'react-dataflow-animator';
+import { DataFlowSpec } from '@dataflow-animator/react';
 
 /**
  * A full round-trip showing the packet `kind`s: http_packet (with body),

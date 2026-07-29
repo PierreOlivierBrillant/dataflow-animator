@@ -11,7 +11,7 @@
       "project": ["src/**/*.ts", "scripts/*.mjs"],
       "ignoreDependencies": ["react-icons"]
     },
-    "packages/react-dataflow-animator": {
+    "packages/react": {
       "entry": [
         "src/index.ts",
         "src/**/*.test.ts",
@@ -24,8 +24,7 @@
         "src/**/*.tsx",
         "scripts/*.mjs",
         "scripts/validation-harness/**/*.{ts,tsx}"
-      ],
-      "ignoreDependencies": ["prismjs"]
+      ]
     },
     "apps/docs": {
       "entry": [
@@ -34,13 +33,15 @@
         "src/theme/**/*.tsx",
         "src/**/*.test.{ts,tsx}"
       ],
-      "project": ["src/**/*.ts", "src/**/*.tsx"]
+      "project": ["src/**/*.ts", "src/**/*.tsx"],
+      // @dataflow-animator/core is reached ONLY from src/css/custom.css
+      // (`@import '@dataflow-animator/core/styles.css'`), and `project` covers
+      // .ts/.tsx only — knip cannot see it. The site needs it as a direct
+      // dependency now that the React binding no longer emits the stylesheet.
+      "ignoreDependencies": ["@dataflow-animator/core"]
     }
   },
-  "ignore": [
-    "eslint.config.js",
-    "packages/react-dataflow-animator/src/css.d.ts"
-  ],
+  "ignore": ["eslint.config.js"],
   "ignoreDependencies": [
     "@docusaurus/theme-common",
     "@eslint/js",

@@ -1,6 +1,6 @@
 import Heading from '@theme/Heading';
 import Link from '@docusaurus/Link';
-import { DataFlowPlayer } from 'react-dataflow-animator';
+import { DataFlowPlayer } from '@dataflow-animator/react';
 import { demosById, getSpec } from './demos';
 import { useLocale, useTranslation } from '../i18n';
 
@@ -15,7 +15,7 @@ export function IntroDoc() {
     <>
       <div className="docs-lead">
         <p>
-          <code>react-dataflow-animator</code>
+          <code>@dataflow-animator/react</code>
           {intro.leadPost}
         </p>
       </div>

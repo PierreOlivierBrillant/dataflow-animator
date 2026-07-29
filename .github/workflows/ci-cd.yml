@@ -52,7 +52,7 @@ jobs:
         run: npm run test:coverage
 
       - name: Run Integration Tests
-        run: npm run test:integration -w react-dataflow-animator
+        run: npm run test:integration -w @dataflow-animator/react
 
       # Also typechecks core in isolation (own tsconfig), which the deploy-only
       # full build would otherwise be the first to catch — on main, too late.

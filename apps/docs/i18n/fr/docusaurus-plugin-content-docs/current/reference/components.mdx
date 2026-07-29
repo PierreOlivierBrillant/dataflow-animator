@@ -3,7 +3,7 @@ title: Composants et API JavaScript
 slug: /reference/components
 ---
 
-import { DataFlowPlayer } from 'react-dataflow-animator';
+import { DataFlowPlayer } from '@dataflow-animator/react';
 import { themeExample } from './_components/themes';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
@@ -14,8 +14,8 @@ syntaxique. Pour la forme de la spécification JSON (`spec`), voir la
 [Référence API (spec JSON)](./api.mdx).
 
 ```tsx
-import { DataFlowPlayer } from 'react-dataflow-animator';
-import 'react-dataflow-animator/styles.css';
+import { DataFlowPlayer } from '@dataflow-animator/react';
+import '@dataflow-animator/core/styles.css';
 ```
 
 ## `<DataFlowPlayer>`
@@ -232,7 +232,7 @@ Une icône est du **balisage SVG**, ou une **fabrique** renvoyant un `SVGElement
 quand elle doit varier :
 
 ```ts
-import { registerSubIcon } from 'react-dataflow-animator';
+import { registerSubIcon } from '@dataflow-animator/react';
 
 registerSubIcon(
   'k8s',

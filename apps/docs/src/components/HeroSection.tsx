@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Copy, Check, ArrowRight, BookOpen } from 'lucide-react';
-import { DataFlowPlayer } from 'react-dataflow-animator';
+import { DataFlowPlayer } from '@dataflow-animator/react';
 import { demosById, getSpec } from '../site-content';
 import Link from '@docusaurus/Link';
 import { useLocale, useTranslation } from '../i18n';
 
-const INSTALL_CMD = 'npm install react-dataflow-animator';
+const INSTALL_CMD = 'npm install @dataflow-animator/react';
 
 export function HeroSection() {
   const t = useTranslation();

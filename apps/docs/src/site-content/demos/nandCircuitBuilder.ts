@@ -1,4 +1,4 @@
-import type { DataFlowSpec } from 'react-dataflow-animator';
+import type { DataFlowSpec } from '@dataflow-animator/react';
 
 // Shared builder for the "everything from NAND" family (half/full adder &
 // subtractor). From a netlist it builds the nodes, the id'd wires, and a

@@ -1,4 +1,4 @@
-import { DataFlowSpec } from 'react-dataflow-animator';
+import { DataFlowSpec } from '@dataflow-animator/react';
 
 /** `move`: a packet travels from one node to another (appearance + arrival). */
 export const moveExample: DataFlowSpec = {

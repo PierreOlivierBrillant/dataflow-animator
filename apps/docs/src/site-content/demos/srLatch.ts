@@ -1,4 +1,4 @@
-import type { DataFlowSpec } from 'react-dataflow-animator';
+import type { DataFlowSpec } from '@dataflow-animator/react';
 import type { Locale } from '../../i18n';
 
 // An SR LATCH from two cross-coupled NAND gates — the simplest MEMORY element,

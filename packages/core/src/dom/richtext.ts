@@ -8,7 +8,7 @@ import { h, s, type Child } from './el';
 
 /**
  * DOM materialisation of the `$…$` subset — the port of
- * `packages/react-dataflow-animator/src/tex/RichText.tsx`.
+ * `packages/react/src/tex/RichText.tsx`.
  *
  * The two renderers exist as a pair because a spec's prose reaches the screen
  * through both: node labels are HTML, connection labels are an SVG `<text>`,

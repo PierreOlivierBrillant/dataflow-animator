@@ -1,4 +1,4 @@
-import { DataFlowSpec, LineStyle, PathShape } from 'react-dataflow-animator';
+import { DataFlowSpec, LineStyle, PathShape } from '@dataflow-animator/react';
 
 /** Un même lien décliné dans chaque style de ligne. */
 export const lineStyleExample: (style: LineStyle) => DataFlowSpec = (

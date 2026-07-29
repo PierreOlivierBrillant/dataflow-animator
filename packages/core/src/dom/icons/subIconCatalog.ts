@@ -9,7 +9,7 @@
  * no data — and core may not import react.
  *
  * It mirrors `KNOWN` in
- * `packages/react-dataflow-animator/src/components/nodes/subIcons.tsx`;
+ * `packages/react/src/components/nodes/subIcons.tsx`;
  * `subIconParity.test.ts` fails if the two drift apart. Colours are chosen to
  * stay readable on both light and dark backgrounds.
  */

@@ -2,6 +2,6 @@
 build
 node_modules
 
-# Copié depuis packages/react-dataflow-animator/src/schema.generated.json
+# Copié depuis packages/core/src/schema.generated.json
 # au build/dev (voir scripts/copy-schema.mjs) — généré, pas committé.
 static/schema.json

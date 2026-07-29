@@ -5,8 +5,8 @@ import {
   DataFlowPlayer,
   NodeView,
   dataFlowSchema,
-} from 'react-dataflow-animator';
-import type { DataFlowSpec, Node, NodeType } from 'react-dataflow-animator';
+} from '@dataflow-animator/react';
+import type { DataFlowSpec, Node, NodeType } from '@dataflow-animator/react';
 import { demosById, getSpec } from './demos';
 import { getApiExamples } from './apiExamples';
 import { useLocale, useTranslation } from '../i18n';
@@ -28,10 +28,10 @@ interface DocPage {
   render: () => ReactNode;
 }
 
-const install = `npm install react-dataflow-animator`;
+const install = `npm install @dataflow-animator/react`;
 
-const usage = `import { DataFlowPlayer } from 'react-dataflow-animator';
-import 'react-dataflow-animator/styles.css';
+const usage = `import { DataFlowPlayer } from '@dataflow-animator/react';
+import '@dataflow-animator/core/styles.css';
 
 <DataFlowPlayer spec={spec} />`;
 

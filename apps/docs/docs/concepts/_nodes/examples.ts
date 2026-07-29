@@ -1,4 +1,4 @@
-import { DataFlowSpec, NodeType } from 'react-dataflow-animator';
+import { DataFlowSpec, NodeType } from '@dataflow-animator/react';
 
 /** Tous les types de nœuds, disposés en grille pour un aperçu visuel. */
 const NODE_TYPES: NodeType[] = [

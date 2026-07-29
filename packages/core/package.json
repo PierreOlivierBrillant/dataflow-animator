@@ -43,6 +43,8 @@
   "scripts": {
     "build": "rm -rf dist && node scripts/generate-schema.mjs && npm run typecheck && vite build && rollup -c rollup.dts.config.mjs",
     "postbuild": "cp src/schema.generated.json dist/schema.json",
+    "dev": "vite build --watch",
+    "smoke:export": "node scripts/smoke-export.mjs",
     "generate:schema": "node scripts/generate-schema.mjs",
     "check:schema": "node scripts/check-schema-is-fresh.mjs",
     "generate:subicons": "node scripts/generate-subicon-data.mjs",

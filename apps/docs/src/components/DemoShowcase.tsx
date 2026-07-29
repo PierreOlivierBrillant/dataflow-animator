@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import Link from '@docusaurus/Link';
-import { DataFlowPlayer } from 'react-dataflow-animator';
+import { DataFlowPlayer } from '@dataflow-animator/react';
 import { demos, getSpec, pickLocale } from '../site-content';
 import { useLocale, useTranslation } from '../i18n';
 

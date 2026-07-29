@@ -1,5 +1,5 @@
 import { useRef, type UIEvent } from 'react';
-import { highlightCode } from 'react-dataflow-animator';
+import { highlightCode } from '@dataflow-animator/react';
 
 /**
  * Éditeur de code colorisé : un `<pre>` colorisé (Prism) positionné derrière un

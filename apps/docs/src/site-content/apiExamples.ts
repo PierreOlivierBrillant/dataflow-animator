@@ -3,7 +3,7 @@ import type {
   DataFlowSpec,
   Node,
   Packet,
-} from 'react-dataflow-animator';
+} from '@dataflow-animator/react';
 import type { Locale } from '../i18n';
 
 /**

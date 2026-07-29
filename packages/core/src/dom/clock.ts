@@ -2,7 +2,7 @@ import { clamp } from '../engine/timeline';
 
 /**
  * Framework-free playback clock — the port of
- * `packages/react-dataflow-animator/src/hooks/useClock.ts`.
+ * `packages/react/src/hooks/useClock.ts`.
  *
  * Time `t` (ms) is the ONLY source of truth of the animation: everything else
  * (`evaluate`) flows from it. `seek` sets `t`, playback only advances it.

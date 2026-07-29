@@ -1,4 +1,4 @@
-import { DataFlowSpec, Direction } from 'react-dataflow-animator';
+import { DataFlowSpec, Direction } from '@dataflow-animator/react';
 
 export const orientationExample: (direction: Direction) => DataFlowSpec = (
   direction: Direction

@@ -1,4 +1,4 @@
-import type { DataFlowSpec } from 'react-dataflow-animator';
+import type { DataFlowSpec } from '@dataflow-animator/react';
 import type { Locale } from '../../i18n';
 
 // Red-black tree — the RECOLORING case, told in full for students. We start from

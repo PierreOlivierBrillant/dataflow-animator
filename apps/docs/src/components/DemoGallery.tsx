@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { DataFlowPlayer, type DataFlowSpec } from 'react-dataflow-animator';
+import { DataFlowPlayer, type DataFlowSpec } from '@dataflow-animator/react';
 import Link from '@docusaurus/Link';
 import { Search, X, ExternalLink, Sparkles } from 'lucide-react';
 import {

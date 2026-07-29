@@ -1,4 +1,4 @@
-import { DataFlowSpec } from 'react-dataflow-animator';
+import { DataFlowSpec } from '@dataflow-animator/react';
 
 /** Small scene used to preview a palette: nodes, a connection, a comment and a
  *  packet in flight — enough surface to show off background, node stroke, arrow

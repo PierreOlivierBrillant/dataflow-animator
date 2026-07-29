@@ -9,7 +9,7 @@ const config = {
   baseUrl: '/react-dataflow-animator/',
   trailingSlash: true,
   organizationName: 'PierreOlivierBrillant',
-  projectName: 'react-dataflow-animator',
+  projectName: '@dataflow-animator/react',
   onBrokenLinks: 'throw',
   markdown: {
     hooks: {
@@ -53,24 +53,29 @@ const config = {
         },
       };
     },
-    // Allows webpack to detect changes in the lib dist when running in dev
+    // Allows webpack to detect changes in the lib dists when running in dev
     // (docusaurus doesn't watch node_modules by default). Two things are needed:
-    //  1. watchOptions.ignored must NOT ignore the linked lib;
-    //  2. snapshot.unmanagedPaths must mark it MUTABLE — webpack 5 treats
+    //  1. watchOptions.ignored must NOT ignore the linked libs;
+    //  2. snapshot.unmanagedPaths must mark them MUTABLE — webpack 5 treats
     //     node_modules as "managed" (immutable, cached by version) and will
-    //     otherwise never re-read the rebuilt dist even when it is being watched.
-    // The lib is a workspace symlink and webpack resolves symlinks, so we list
+    //     otherwise never re-read a rebuilt dist even when it is being watched.
+    // The libs are workspace symlinks and webpack resolves symlinks, so we list
     // BOTH the node_modules path and the real packages/ path.
+    //
+    // BOTH packages are listed: since the React binding externalises the core,
+    // `@dataflow-animator/core` is a module webpack resolves on its own (it is
+    // also where `custom.css` gets the stylesheet from), so a core rebuild that
+    // is not watched here would never reach the page.
     function watchLibPlugin() {
       const libPathRe =
-        /[\\/](?:node_modules|packages)[\\/]react-dataflow-animator[\\/]/;
+        /[\\/](?:node_modules[\\/]@dataflow-animator[\\/](?:core|react)|packages[\\/](?:core|react))[\\/]/;
       return {
         name: 'watch-lib-dist',
         configureWebpack() {
           return {
             snapshot: { unmanagedPaths: [libPathRe] },
             watchOptions: {
-              ignored: /node_modules\/(?!react-dataflow-animator)/,
+              ignored: /node_modules\/(?!@dataflow-animator\/)/,
             },
           };
         },
@@ -115,7 +120,7 @@ const config = {
           items: [
             {
               label: 'npm',
-              href: 'https://www.npmjs.com/package/react-dataflow-animator',
+              href: 'https://www.npmjs.com/package/@dataflow-animator/react',
             },
             {
               label: 'GitHub',

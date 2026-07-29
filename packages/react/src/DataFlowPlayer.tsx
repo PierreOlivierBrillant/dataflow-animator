@@ -1,19 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-// The only import that makes Vite emit `dist/style.css`, which `package.json`
-// exports as `react-dataflow-animator/styles.css`. Dropping it ships a package
-// with no stylesheet, silently.
-//
-// The stylesheet itself lives in the core now — it styles the core's renderer,
-// not anything React draws. Until this package consumes the PUBLISHED core
-// (step 3.2), it is pulled through the source alias and re-emitted here, so the
-// same bytes ship twice: once as `@dataflow-animator/core/styles.css`, once as
-// `react-dataflow-animator/styles.css`. 3.2 drops this import and points
-// consumers at the core's stylesheet instead.
-import '@dataflow-animator/core/styles/dataflow.css';
 import type { CSSProperties } from 'react';
 import type { DataFlowPlayerProps } from './types';
-import { mountPlayer } from '@dataflow-animator/core/dom/player';
-import { serializeSpec } from '@dataflow-animator/core/export/json';
+// This package emits no stylesheet of its own: the CSS styles the CORE's
+// renderer, not anything React draws, so it ships once with the core and the
+// consumer imports `@dataflow-animator/core/styles.css`. A side-effect import
+// here would re-emit the same bytes a second time.
+import { mountPlayer, serializeSpec } from '@dataflow-animator/core';
 import { toStyleMap } from './utils/styleMap';
 
 /**

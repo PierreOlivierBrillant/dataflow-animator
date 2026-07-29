@@ -1,7 +1,7 @@
 {
-  "name": "react-dataflow-animator",
-  "version": "3.0.0",
-  "description": "Composant React qui compile une spécification JSON en une animation déterministe et navigable de flux de données (client/serveur/SQL…).",
+  "name": "@dataflow-animator/react",
+  "version": "0.1.0",
+  "description": "React binding for @dataflow-animator/core: compiles a JSON specification into a deterministic, scrubbable animation of data flows.",
   "type": "module",
   "license": "MIT",
   "keywords": [
@@ -17,7 +17,8 @@
   "homepage": "https://github.com/PierreOlivierBrillant/react-dataflow-animator",
   "repository": {
     "type": "git",
-    "url": "https://github.com/PierreOlivierBrillant/react-dataflow-animator.git"
+    "url": "https://github.com/PierreOlivierBrillant/react-dataflow-animator.git",
+    "directory": "packages/react"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -27,8 +28,6 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./styles.css": "./dist/style.css",
-    "./schema.json": "./dist/schema.json",
     "./package.json": "./package.json"
   },
   "files": [
@@ -36,19 +35,15 @@
     "README.md",
     "LICENSE"
   ],
-  "sideEffects": [
-    "**/*.css"
-  ],
+  "sideEffects": false,
   "scripts": {
     "build": "rm -rf dist && node ../core/scripts/generate-schema.mjs && tsc -b tsconfig.app.json tsconfig.node.json && vite build && rollup -c rollup.dts.config.mjs",
-    "postbuild": "cp ../core/src/schema.generated.json dist/schema.json",
     "dev": "vite build --watch",
     "lint": "eslint src",
     "preview": "vite preview",
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:integration": "vitest run --config vitest.integration.config.ts",
-    "smoke:export": "node scripts/smoke-export.mjs",
     "harness": "vite --config scripts/validation-harness/vite.config.ts",
     "curves": "node scripts/extract-curves.mjs",
     "test:visual": "playwright test",
@@ -62,12 +57,11 @@
     "react-dom": ">=18"
   },
   "dependencies": {
-    "prismjs": "^1.30.0"
+    "@dataflow-animator/core": "^0.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.61.1",
-    "@dataflow-animator/core": "*",
     "@testing-library/react": "^16.3.0",
     "@types/node": "^24.12.3",
     "@types/pngjs": "^6.0.5",

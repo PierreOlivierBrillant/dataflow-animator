@@ -1,9 +1,9 @@
 {
   "files": [],
   "references": [
-    { "path": "./packages/react-dataflow-animator/tsconfig.app.json" },
-    { "path": "./packages/react-dataflow-animator/tsconfig.node.json" },
-    { "path": "./packages/react-dataflow-animator/tsconfig.dts.json" },
+    { "path": "./packages/react/tsconfig.app.json" },
+    { "path": "./packages/react/tsconfig.node.json" },
+    { "path": "./packages/react/tsconfig.dts.json" },
     { "path": "./apps/docs/tsconfig.json" }
   ]
 }

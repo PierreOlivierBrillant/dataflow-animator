@@ -1,6 +1,6 @@
 import Ajv, { type ErrorObject } from 'ajv';
 import addFormats from 'ajv-formats';
-import { dataFlowSchema } from 'react-dataflow-animator';
+import { dataFlowSchema } from '@dataflow-animator/react';
 
 const ajv = new Ajv({ allErrors: true, strict: false });
 addFormats(ajv);

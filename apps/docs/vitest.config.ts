@@ -4,13 +4,12 @@ import { fileURLToPath } from 'node:url';
 export default defineConfig({
   resolve: {
     alias: {
-      // Pointer vers le source schema uniquement pour les tests (évite de charger
-      // le bundle React complet de la lib alors qu'on n'a besoin que du JSON Schema).
-      'react-dataflow-animator': fileURLToPath(
-        new URL(
-          '../../packages/react-dataflow-animator/src/schema.ts',
-          import.meta.url
-        )
+      // Point at the schema SOURCE only, so the tests (which validate demo specs
+      // against the JSON Schema) never pull a built bundle in. It resolves into
+      // the core now: `dataFlowSchema` is owned there, and the React package only
+      // re-exports it.
+      '@dataflow-animator/react': fileURLToPath(
+        new URL('../../packages/core/src/schema.ts', import.meta.url)
       ),
     },
   },

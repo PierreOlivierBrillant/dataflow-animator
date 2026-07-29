@@ -1,4 +1,4 @@
-import type { DataFlowSpec } from 'react-dataflow-animator';
+import type { DataFlowSpec } from '@dataflow-animator/react';
 import type { Locale } from '../../i18n';
 
 // Binary search tree — SEARCH, slowed down for beginners. A query key (a

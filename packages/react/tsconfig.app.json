@@ -7,7 +7,17 @@
     "types": ["vite/client"],
     "skipLibCheck": true,
     "moduleResolution": "bundler",
+    // In-repo, everything resolves the core to its SOURCE: this program, vitest
+    // and the harness all agree, so there is no build-order coupling (no need to
+    // have built `../core/dist` before typechecking) and a core edit is visible
+    // immediately. The PUBLISHED contract — does the core's flattened
+    // `dist/index.d.ts` really expose what `src/` imports? — is verified where it
+    // belongs, on the real tarballs, by the external consumer smoke test.
+    //
+    // The `/*` entry is what the harness needs: it reaches deep subpaths that the
+    // core's published `exports` no longer lists.
     "paths": {
+      "@dataflow-animator/core": ["../core/src/index.ts"],
       "@dataflow-animator/core/*": ["../core/src/*"]
     },
     "allowImportingTsExtensions": true,

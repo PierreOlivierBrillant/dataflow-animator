@@ -7,7 +7,7 @@ import {
   type DataFlowPlayerProps,
   type PlayerTheme,
   dataFlowSchema,
-} from 'react-dataflow-animator';
+} from '@dataflow-animator/react';
 import { demos, demosById, getSpec, pickLocale } from '../site-content/demos';
 import { useLocale, useTranslation } from '../i18n';
 import type { SpecError } from '../site-content/validateSpec';
@@ -387,7 +387,7 @@ function PlaygroundContent() {
                   validate: true,
                   schemas: [
                     {
-                      uri: 'http://react-dataflow-animator/schema.json',
+                      uri: 'http://dataflow-animator/schema.json',
                       fileMatch: ['*'],
                       schema: dataFlowSchema,
                     },

@@ -6,7 +6,7 @@ import { customNodeIcon, registerNodeIcon } from './registry';
 
 /**
  * Framework-free node pictograms — the port of
- * `packages/react-dataflow-animator/src/components/nodes/nodeIcons.tsx`.
+ * `packages/react/src/components/nodes/nodeIcons.tsx`.
  *
  * Inline SVG using `currentColor`, so the glyph follows the theme.
  */

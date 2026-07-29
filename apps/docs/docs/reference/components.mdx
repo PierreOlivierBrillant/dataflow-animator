@@ -3,7 +3,7 @@ title: Components and JavaScript API
 slug: /reference/components
 ---
 
-import { DataFlowPlayer } from 'react-dataflow-animator';
+import { DataFlowPlayer } from '@dataflow-animator/react';
 import { themeExample } from './_components/themes';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
@@ -14,8 +14,8 @@ highlighting. For the shape of the JSON specification (`spec`), see the
 [API Reference (JSON spec)](./api.mdx).
 
 ```tsx
-import { DataFlowPlayer } from 'react-dataflow-animator';
-import 'react-dataflow-animator/styles.css';
+import { DataFlowPlayer } from '@dataflow-animator/react';
+import '@dataflow-animator/core/styles.css';
 ```
 
 ## `<DataFlowPlayer>`
@@ -231,7 +231,7 @@ An icon is **SVG markup**, or a **factory** returning an `SVGElement` when it ha
 to vary:
 
 ```ts
-import { registerSubIcon } from 'react-dataflow-animator';
+import { registerSubIcon } from '@dataflow-animator/react';
 
 registerSubIcon(
   'k8s',

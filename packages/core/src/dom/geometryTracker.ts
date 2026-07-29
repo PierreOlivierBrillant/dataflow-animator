@@ -3,7 +3,7 @@ import { PASTILLE_INSET } from './stageConstants';
 
 /**
  * Framework-free DOM measurement — the port of
- * `packages/react-dataflow-animator/src/hooks/useStageGeometry.ts`.
+ * `packages/react/src/hooks/useStageGeometry.ts`.
  *
  * Measures the actual position of the nodes (`getBoundingClientRect`) relative
  * to the stage, and can keep it up to date via a `ResizeObserver` (on the stage

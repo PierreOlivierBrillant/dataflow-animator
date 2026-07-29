@@ -28,7 +28,7 @@ the **actual crossfade opacity** (`clipOpacity`, which also drives the geometry
 lerp) against the same curve passed through `easeInOutCubic`.
 
 ```bash
-npm run harness -w react-dataflow-animator
+npm run harness -w @dataflow-animator/react
 # → http://localhost:5199/?demo=spa&mode=light
 ```
 
@@ -101,7 +101,7 @@ cells at 0.0000%), not in any file here.
 ### mount-vs-update — the primary structural gate (`?mu=1`)
 
 ```bash
-npm run harness:mountupdate -w react-dataflow-animator
+npm run harness:mountupdate -w @dataflow-animator/react
 ```
 
 `mountUpdate.ab.spec.ts` mounts two vanilla stages of the same spec: panel A
@@ -120,7 +120,7 @@ than listed by hand.
 ### self-test — the measurement floor (`?ab=1`)
 
 ```bash
-npm run harness:selftest -w react-dataflow-animator
+npm run harness:selftest -w @dataflow-animator/react
 ```
 
 `selftest.ab.spec.ts` renders two INDEPENDENT vanilla panels of the same spec at
@@ -146,8 +146,8 @@ ready }` plus `{ passes, converged }` from the settle loop.
 ### reference grid — visual non-regression (`test:visual`)
 
 ```bash
-npm run test:visual -w react-dataflow-animator
-npm run test:visual -w react-dataflow-animator -- --update-snapshots  # regenerate
+npm run test:visual -w @dataflow-animator/react
+npm run test:visual -w @dataflow-animator/react -- --update-snapshots  # regenerate
 ```
 
 `referenceGrid.visual.spec.ts` captures a **contact sheet** per risk demo × theme
@@ -182,8 +182,8 @@ geometry settling — the fix is not to raise the budget (see
 ### Perf baseline
 
 ```bash
-npm run harness:bench -w react-dataflow-animator                        # vanilla
-npm run harness:bench -w react-dataflow-animator -- --renderer wrapper  # published component
+npm run harness:bench -w @dataflow-animator/react                        # vanilla
+npm run harness:bench -w @dataflow-animator/react -- --renderer wrapper  # published component
 ```
 
 `scripts/bench-perf.mjs` drives the harness's `?bench=1&demo=<id>` page in one of

@@ -1,10 +1,10 @@
 # React DataFlow Animator
 
 [![CI](https://github.com/PierreOlivierBrillant/react-dataflow-animator/actions/workflows/ci-cd.yml/badge.svg?branch=main)](https://github.com/PierreOlivierBrillant/react-dataflow-animator/actions/workflows/ci-cd.yml)
-[![npm version](https://img.shields.io/npm/v/react-dataflow-animator.svg)](https://www.npmjs.com/package/react-dataflow-animator)
-[![npm downloads](https://img.shields.io/npm/dm/react-dataflow-animator.svg)](https://www.npmjs.com/package/react-dataflow-animator)
-[![bundle size](https://img.shields.io/bundlephobia/minzip/react-dataflow-animator)](https://bundlephobia.com/package/react-dataflow-animator)
-[![license](https://img.shields.io/npm/l/react-dataflow-animator.svg)](./LICENSE)
+[![npm version](https://img.shields.io/npm/v/@dataflow-animator/react.svg)](https://www.npmjs.com/package/@dataflow-animator/react)
+[![npm downloads](https://img.shields.io/npm/dm/@dataflow-animator/react.svg)](https://www.npmjs.com/package/@dataflow-animator/react)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/@dataflow-animator/react)](https://bundlephobia.com/package/@dataflow-animator/react)
+[![license](https://img.shields.io/npm/l/@dataflow-animator/react.svg)](./LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178c6)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-%3E%3D18-61dafb)](https://react.dev/)
 
@@ -19,16 +19,23 @@ React component that compiles a JSON specification into a deterministic and navi
 ## Installation
 
 ```bash
-npm install react-dataflow-animator
+npm install @dataflow-animator/react
 ```
 
 `react` and `react-dom` (≥ 18) are expected in `peerDependencies`.
+[`@dataflow-animator/core`](./packages/core/README.md) — the engine, the DOM
+renderer and the stylesheet — comes along as a dependency; nothing extra to
+install. Note that the stylesheet is imported FROM the core, not from this
+package.
+
+No React? The core mounts on its own:
+`mountPlayer(container, spec, options)`.
 
 ## Usage
 
 ```tsx
-import { DataFlowPlayer } from 'react-dataflow-animator';
-import 'react-dataflow-animator/styles.css';
+import { DataFlowPlayer } from '@dataflow-animator/react';
+import '@dataflow-animator/core/styles.css';
 
 const spec = {
   direction: 'left-to-right',
@@ -107,7 +114,7 @@ An icon is **SVG markup**, or a **factory** returning an `SVGElement` when it
 has to vary:
 
 ```ts
-import { registerNodeIcon, registerSubIcon } from 'react-dataflow-animator';
+import { registerNodeIcon, registerSubIcon } from '@dataflow-animator/react';
 
 registerNodeIcon('queue', '<svg viewBox="0 0 24 24">…</svg>');
 registerSubIcon('kafka', '<svg viewBox="0 0 24 24">…</svg>');
@@ -159,12 +166,14 @@ The project is an npm workspaces monorepo:
 
 ```text
 packages/
-  core/                      framework-agnostic core (private, not published): spec
-                             types, JSON Schema, the pure engine, TeX/highlight, JSON
-                             export AND the DOM renderer the player runs on —
-                             inlined into the published bundle, no React dependency
-  react-dataflow-animator/   the package published on npm: a thin React wrapper
-                             that mounts the core's renderer
+  core/                      @dataflow-animator/core — the published framework-agnostic
+                             package: spec types, JSON Schema, the pure engine,
+                             TeX/highlight, JSON export, the DOM renderer the player
+                             runs on and its stylesheet. Usable on its own, and the
+                             common dependency of every binding. No React dependency
+  react/                     @dataflow-animator/react — published on npm: a thin React
+                             binding that mounts the core's renderer and DEPENDS on the
+                             core (it does not bundle it)
 apps/
   docs/                      Docusaurus site (demos, playground, API doc)
 docs/

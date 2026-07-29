@@ -1,4 +1,4 @@
-import { DataFlowSpec, Action } from 'react-dataflow-animator';
+import { DataFlowSpec, Action } from '@dataflow-animator/react';
 
 /**
  * Cinq actions racines = cinq étapes logiques navigables (Précédent / Suivant).

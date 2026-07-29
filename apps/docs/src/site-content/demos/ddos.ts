@@ -1,4 +1,4 @@
-import type { Action, DataFlowSpec, Packet } from 'react-dataflow-animator';
+import type { Action, DataFlowSpec, Packet } from '@dataflow-animator/react';
 import type { Locale } from '../../i18n';
 
 /**
