@@ -28,8 +28,15 @@ renderer and the stylesheet — comes along as a dependency; nothing extra to
 install. Note that the stylesheet is imported FROM the core, not from this
 package.
 
-No React? The core mounts on its own:
-`mountPlayer(container, spec, options)`.
+No React? Two options, both published from this repository:
+
+- [`@dataflow-animator/element`](./packages/element/README.md) — the
+  `<dataflow-player>` custom element (light DOM). One tag, works in plain HTML,
+  Vue, Svelte, Angular, Astro… and needs no build step from a CDN;
+- [`@dataflow-animator/core`](./packages/core/README.md) directly — it mounts on
+  its own: `mountPlayer(container, spec, options)`.
+
+Either way the stylesheet is the core's, and it is not optional.
 
 ## Usage
 
@@ -148,7 +155,9 @@ skeleton into the static HTML:
 <DataFlowPlayer spec={spec} fallback={<img src="/diagram.png" alt="…" />} />
 ```
 
-`NodeView` behaves the same way.
+`NodeView` behaves the same way. `<dataflow-player>` is client-only in the same
+sense: importing `@dataflow-animator/element` on a server is inert, and the tag
+renders nothing until it reaches a browser.
 
 ## Documentation
 
@@ -174,6 +183,10 @@ packages/
   react/                     @dataflow-animator/react — published on npm: a thin React
                              binding that mounts the core's renderer and DEPENDS on the
                              core (it does not bundle it)
+  element/                   @dataflow-animator/element — published on npm: the
+                             <dataflow-player> custom element (light DOM), same
+                             dependency pattern as react. For plain HTML, Vue, Svelte,
+                             Angular — anything that renders a tag
 apps/
   docs/                      Docusaurus site (demos, playground, API doc)
 docs/

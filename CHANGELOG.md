@@ -1,7 +1,8 @@
 # Changelog
 
-All notable changes to `@dataflow-animator/core` and `@dataflow-animator/react`
-(formerly `react-dataflow-animator`) are documented here.
+All notable changes to `@dataflow-animator/core`, `@dataflow-animator/react`
+(formerly `react-dataflow-animator`) and `@dataflow-animator/element` are
+documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -10,6 +11,58 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
      (Stage, Controls, the JSX node/dynamic components, useClock…) was deleted
      from the source tree. None of it was exported, so there is no change for
      consumers and no version bump. -->
+
+## `@dataflow-animator/element` 0.1.0
+
+**New package.** `<dataflow-player>`, a custom element over
+`@dataflow-animator/core` — the first binding that is not React, and the one that
+covers plain HTML, Vue, Svelte, Angular and anything else that renders a tag.
+
+```html
+<script type="module">
+  import '@dataflow-animator/element';
+  import '@dataflow-animator/core/styles.css';
+</script>
+
+<dataflow-player height="420" theme="blueprint" spec="{ … }"></dataflow-player>
+```
+
+- **Light DOM, no Shadow DOM.** The core's global `.rdfa-*` stylesheet applies as
+  it is, and you can style the player with ordinary CSS
+  (`dataflow-player .rdfa-player { … }`). Encapsulating would have forced this
+  package to carry its own copy of the CSS, which is exactly what "the stylesheet
+  ships once" exists to prevent. Shadow DOM stays available as a later opt-in.
+- **It ships neither the engine nor the CSS.** `@dataflow-animator/core` is a real
+  dependency at `^0.1.0`, externalised from the bundle — 6.5 kB of JavaScript, and
+  a `.d.ts` that references the core's types instead of copying them. Import
+  `@dataflow-animator/core/styles.css` once; **without the stylesheet nothing has a
+  size.**
+- **Every option of the core's player is reachable**, as a kebab-case attribute or
+  a camelCase property (`spec`, `theme`, `mode`, `density`, `height`, `width`,
+  `player-class`, `speed`, `initial-t`, `controls`, `exportable`, `auto-play`,
+  `loop`, `debug`, plus `highlight` as a property). `spec` takes a JSON string or a
+  real object.
+- **An absent boolean attribute means "unspecified", not `false`.** The core
+  defaults `controls` to `true`, so `<dataflow-player>` with no `controls`
+  attribute still shows the control bar — **write `controls="false"` to hide it.**
+  Same for `exportable`, `auto-play`, `loop` and `debug`.
+- **Changing an option remounts the player**, as in the React binding: several
+  synchronous changes coalesce into one remount, the new player reopens at the
+  previous instant and play state, and only the first mount honours `initial-t` /
+  `auto-play`.
+- **Two events**, because mounting is deferred by a microtask:
+  `dataflow-player:mounted` (after every mount, remounts included) and
+  `dataflow-player:error` (an unreadable `spec` attribute — reported and ignored,
+  never blanking a working player).
+- `defineDataFlowPlayer(tag?)` registers an extra tag name; the default
+  `dataflow-player` is registered when you import the package.
+- **SSR-safe**: importing the package on a server is inert, not fatal.
+
+No CDN bundle in this release, deliberately: `esm.sh`/`jspm` rewrite bare module
+specifiers, and an import map covers the rest, so a self-contained build would only
+add a second copy of the engine. Both recipes are in the package README.
+
+A demo of the element on the documentation site is not part of this release.
 
 ## `@dataflow-animator/react` 0.1.0
 

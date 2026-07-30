@@ -4,4 +4,5 @@ import { clearAbResults } from './abResults';
 export default function globalSetup(): void {
   clearAbResults('selftest');
   clearAbResults('mountupdate');
+  clearAbResults('element');
 }

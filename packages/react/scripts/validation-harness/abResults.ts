@@ -33,7 +33,7 @@ export interface AbResultRow {
   note?: string;
 }
 
-export type AbSpec = 'selftest' | 'mountupdate';
+export type AbSpec = 'selftest' | 'mountupdate' | 'element';
 
 const RESULTS_DIR = fileURLToPath(new URL('./.ab-results', import.meta.url));
 

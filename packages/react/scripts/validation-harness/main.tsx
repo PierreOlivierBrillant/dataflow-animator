@@ -35,12 +35,23 @@ import {
   contentCrossfade,
 } from '@dataflow-animator/core/render/clipOpacity';
 import { mountStage } from '@dataflow-animator/core/dom/mount';
-import { mountPlayer } from '@dataflow-animator/core/dom/player';
+import {
+  mountPlayer,
+  type PlayerOptions,
+} from '@dataflow-animator/core/dom/player';
 import {
   firstDifference,
   normalizeStageHtml,
 } from '@dataflow-animator/core/dom/normalizeHtml';
 import { DataFlowPlayer } from '../../src/DataFlowPlayer';
+// The custom element, by relative path into its source — the same way this file
+// already reaches `../../src/DataFlowPlayer` and the site's demos. Importing the
+// barrel is what REGISTERS `<dataflow-player>`, so the `?wc=1` mode below needs
+// nothing else.
+import {
+  MOUNTED_EVENT,
+  type DataFlowPlayerElement,
+} from '../../../element/src/index';
 import type { DataFlowSpec, PlayerTheme } from '../../src/types';
 import {
   demosById,
@@ -86,6 +97,11 @@ const isAB = params.has('ab');
 // proves retained mode does not drift, on the live DOM, so it is exact and
 // environment-independent. See mountUpdate.ab.spec.ts.
 const isMU = params.has('mu');
+// Web-component mode (?wc=1). Panel A calls `mountPlayer` directly, panel B
+// places a `<dataflow-player>` carrying the equivalent attributes. The custom
+// element does nothing but call `mountPlayer`, so it has no licence to move a
+// pixel — this is the gate that keeps that true. See element.ab.spec.ts.
+const isWC = params.has('wc');
 // `?chrome=1` widens the comparison from the stage alone to the WHOLE player:
 // control bar included. The diff target is already
 // `[data-ab-panel="x"] .rdfa-player`, so the chrome enters without changing the
@@ -483,6 +499,201 @@ function MUApp() {
   );
 }
 
+// ─── Web-component mode (?wc=1) ────────────────────────────────────────────
+
+/**
+ * The A/B pairs of the WC gate: for each case, the core's options on one side and
+ * the element's attributes on the other.
+ *
+ * The two spellings sitting next to each other IS the gate. Everywhere else in
+ * this repo, two values that must stay manually in sync are a design smell; here
+ * the human asserts "these two are the same request" and the pixel diff is what
+ * proves the element's attribute parsing agrees. Writing panel B's attributes by
+ * deriving them from panel A's options would test the element against itself.
+ *
+ * `default` covers the plain configuration; the rest each move ONE thing, so a
+ * failing cell names the attribute that broke.
+ */
+const WC_CASES = {
+  default: { options: {}, attrs: {} },
+  'no-controls': {
+    options: { controls: false },
+    attrs: { controls: 'false' },
+  },
+  compact: { options: { density: 'compact' }, attrs: { density: 'compact' } },
+  spacious: {
+    options: { density: 'spacious' },
+    attrs: { density: 'spacious' },
+  },
+  blueprint: { options: { theme: 'blueprint' }, attrs: { theme: 'blueprint' } },
+  exportable: { options: { exportable: true }, attrs: { exportable: '' } },
+} as const satisfies Record<
+  string,
+  { options: PlayerOptions; attrs: Record<string, string> }
+>;
+
+type WcCase = keyof typeof WC_CASES;
+
+const wcCase: WcCase = ((): WcCase => {
+  const requested = params.get('case');
+  return requested !== null && requested in WC_CASES
+    ? (requested as WcCase)
+    : 'default';
+})();
+
+/** What both panels get before the case's own delta — spelled once per side. */
+function wcBaseOptions(t: number): PlayerOptions {
+  return {
+    height: AB_PANEL.height,
+    width: AB_PANEL.width,
+    theme,
+    mode,
+    controls: true,
+    autoPlay: false,
+    initialT: t,
+  };
+}
+function wcBaseAttrs(t: number): Record<string, string> {
+  return {
+    height: String(AB_PANEL.height),
+    width: String(AB_PANEL.width),
+    theme,
+    mode,
+    controls: 'true',
+    'auto-play': 'false',
+    'initial-t': String(t),
+  };
+}
+
+/**
+ * Readiness for the WC gate, and the reason it cannot be the usual
+ * publish-during-render.
+ *
+ * The element mounts on a MICROTASK (coalesced), panel A mounts synchronously in
+ * its effect. Declaring the page ready during render would leave the gate leaning
+ * on `waitForAbReady`'s 400ms buffer: a cell that captured an empty panel B would
+ * read as a rendering difference, and the day the buffer stopped being enough the
+ * flake would look like a regression. So `ready` starts false and only the panels
+ * themselves flip it, panel B off the element's own `dataflow-player:mounted`.
+ */
+const wcReady = new Set<string>();
+function signalWcPanelReady(panelId: string): void {
+  wcReady.add(panelId);
+  if (wcReady.size < 2) return;
+  const w = window as unknown as { __AB__?: { ready?: boolean } };
+  if (w.__AB__) w.__AB__.ready = true;
+}
+function reportWcProblem(message: string): void {
+  const w = window as unknown as { __AB__?: { error?: string } };
+  if (w.__AB__) w.__AB__.error = message;
+  console.error(`[wc-gate] ${message}`);
+}
+
+/**
+ * Panel A: `mountPlayer`, called by hand.
+ *
+ * Deliberately NOT `VanillaPlayerPanel` with an extra prop. That component is
+ * what the self-test's `chrome` config mounts, and that gate is required to stay
+ * at 120/120 — so it is left byte-for-byte alone and this one, which needs
+ * per-case options, lives beside it.
+ */
+function MountPlayerPanel({ spec, t }: { spec: DataFlowSpec; t: number }) {
+  const slotRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const container = slotRef.current;
+    if (!container) return;
+    const player = mountPlayer(container, spec, {
+      ...wcBaseOptions(t),
+      ...WC_CASES[wcCase].options,
+    });
+    signalWcPanelReady('a');
+    return () => player.destroy();
+  }, [spec, t]);
+  return <div ref={slotRef} />;
+}
+
+/** Panel B: the same request, written as `<dataflow-player>` attributes. */
+function ElementPlayerPanel({ spec, t }: { spec: DataFlowSpec; t: number }) {
+  const slotRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const container = slotRef.current;
+    if (!container) return;
+    const el = document.createElement(
+      'dataflow-player'
+    ) as DataFlowPlayerElement;
+    for (const [name, value] of Object.entries({
+      ...wcBaseAttrs(t),
+      ...WC_CASES[wcCase].attrs,
+    }))
+      el.setAttribute(name, value);
+    el.spec = spec;
+
+    const onMounted = (): void => {
+      // The event says the mount returned; this says it produced something. A
+      // signal without a player would let the gate compare an empty box and call
+      // it a rendering difference.
+      if (el.querySelector('.rdfa-player')) signalWcPanelReady('b');
+      else
+        reportWcProblem(
+          'dataflow-player:mounted fired with no .rdfa-player in the element'
+        );
+    };
+    el.addEventListener(MOUNTED_EVENT, onMounted, { once: true });
+    container.appendChild(el);
+
+    return () => {
+      el.removeEventListener(MOUNTED_EVENT, onMounted);
+      el.remove();
+    };
+  }, [spec, t]);
+  return <div ref={slotRef} />;
+}
+
+function WCApp() {
+  if (!spec) {
+    return (
+      <div className="harness-error">
+        Unknown demo: <code>{demoId}</code>. Available demos:{' '}
+        {Object.keys(catalog).sort().join(', ')}
+      </div>
+    );
+  }
+  const { timeline } = compile(spec);
+  const t = resolveFrozenT(timeline.durationMs);
+
+  (window as unknown as { __AB__: unknown }).__AB__ = {
+    demo: demoId,
+    t,
+    durationMs: timeline.durationMs,
+    case: wcCase,
+    panelB: 'dataflow-player',
+    // Flipped by the panels, not here — see `signalWcPanelReady`.
+    ready: false,
+  };
+
+  return (
+    <main className="harness ab-harness" data-theme={mode}>
+      <header className="harness-bar">
+        <h1>
+          web component — {demoId}{' '}
+          <span>
+            · t={Math.round(t)}ms · case={wcCase} · mountPlayer vs
+            &lt;dataflow-player&gt;
+          </span>
+        </h1>
+      </header>
+      <div className="ab-grid">
+        <ABPanel label="A — mountPlayer" panelId="a" bare>
+          <MountPlayerPanel spec={spec} t={t} />
+        </ABPanel>
+        <ABPanel label="B — <dataflow-player>" panelId="b" bare>
+          <ElementPlayerPanel spec={spec} t={t} />
+        </ABPanel>
+      </div>
+    </main>
+  );
+}
+
 // ─── Fluidity curve sampling ────────────────────────────────
 
 interface CurveSample {
@@ -853,6 +1064,8 @@ createRoot(document.getElementById('root')!).render(
     ) : (
       <VanillaBenchApp />
     )
+  ) : isWC ? (
+    <WCApp />
   ) : isMU ? (
     <MUApp />
   ) : isAB ? (

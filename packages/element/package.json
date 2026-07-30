@@ -1,0 +1,65 @@
+{
+  "name": "@dataflow-animator/element",
+  "version": "0.1.0",
+  "description": "<dataflow-player> custom element for @dataflow-animator/core: compiles a JSON specification into a deterministic, scrubbable animation of data flows, in any framework or none.",
+  "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "custom-element",
+    "web-component",
+    "animation",
+    "diagram",
+    "dataflow",
+    "teaching",
+    "visualization",
+    "vanilla",
+    "framework-agnostic"
+  ],
+  "author": "Pierre-Olivier Brillant",
+  "homepage": "https://github.com/PierreOlivierBrillant/react-dataflow-animator",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PierreOlivierBrillant/react-dataflow-animator.git",
+    "directory": "packages/element"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": [
+    "./dist/index.js"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && npm run typecheck && vite build && rollup -c rollup.dts.config.mjs",
+    "dev": "vite build --watch",
+    "lint": "eslint src",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "smoke:consumer": "node scripts/smoke-consumer.mjs"
+  },
+  "dependencies": {
+    "@dataflow-animator/core": "^0.1.0"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^3.2.4",
+    "eslint": "^10.3.0",
+    "jsdom": "^26.1.0",
+    "rollup": "^4.61.1",
+    "rollup-plugin-dts": "^6.4.1",
+    "typescript": "~6.0.2",
+    "vite": "^8.0.12",
+    "vitest": "^3.2.4"
+  }
+}

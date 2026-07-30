@@ -11,6 +11,15 @@
       "project": ["src/**/*.ts", "scripts/*.mjs"],
       "ignoreDependencies": ["react-icons"]
     },
+    "packages/element": {
+      "entry": [
+        "src/index.ts",
+        "src/**/*.test.ts",
+        "scripts/*.mjs",
+        "rollup.dts.config.mjs"
+      ],
+      "project": ["src/**/*.ts", "scripts/*.mjs"]
+    },
     "packages/react": {
       "entry": [
         "src/index.ts",

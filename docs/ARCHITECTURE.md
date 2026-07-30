@@ -11,11 +11,18 @@ See also [SPEC.md](./SPEC.md) (functional specification).
 2. **Compiler → IR → runtime separation.** `compile(spec)` produces a
    `Timeline` (dated clips + steps + duration), independent of the DOM. Rendering
    resolves geometry from actual measurements at render time.
-3. **Monorepo npm workspaces.** Two published packages
-   (`packages/core` → `@dataflow-animator/core`, `packages/react` →
-   `@dataflow-animator/react`), isolated from the documentation site
-   (`apps/docs`). The site consumes both as workspace dependencies: the React
-   binding for the components, the core for the stylesheet.
+3. **Monorepo npm workspaces.** Three published packages — `packages/core` →
+   `@dataflow-animator/core` (the engine, the renderer, the stylesheet),
+   `packages/react` → `@dataflow-animator/react` and `packages/element` →
+   `@dataflow-animator/element` (the bindings) — isolated from the documentation
+   site (`apps/docs`). The site consumes the React binding for its components and
+   the core for the stylesheet; it does not consume the element (yet).
+
+   Both bindings are thin, and deliberately so: they mount the core's player and
+   own nothing about how it draws. `packages/element` is under 400 lines of code
+   across three files, none of which renders anything — its whole job is to turn
+   attributes into `PlayerOptions` and manage a mount.
+
 4. **Framework-agnostic core (`@dataflow-animator/core`).** The spec types, the
    generated JSON Schema, the pure engine (`evaluate`/`compile`/layout/geometry/routing),
    TeX parsing, syntax highlighting, JSON export, the render-side pure helpers
@@ -29,16 +36,26 @@ See also [SPEC.md](./SPEC.md) (functional specification).
    React rule is what makes that possible — a `react` import here would leak into
    every downstream consumer regardless of framework.
 
-   `@dataflow-animator/react` **depends** on it: since step 3.2 the core is a
-   runtime dependency (`^0.1.0`), externalised from the React bundle rather than
-   inlined into it. One engine and one stylesheet on disk, not two — see
+   Every binding **depends** on it: since step 3.2 the core is a runtime
+   dependency (`^0.1.0`) of `@dataflow-animator/react`, and since step 3.3 of
+   `@dataflow-animator/element` too, externalised from their bundles rather than
+   inlined into them. One engine and one stylesheet on disk, however many
+   bindings — see
    [Two ways to consume the core](#two-ways-to-consume-the-core).
 
 5. **Scoped CSS** (`.rdfa-`) + CSS variables. The stylesheet lives in the core
    next to the renderer it styles, and is compiled into its `dist/styles.css`.
    It ships **once**: a consumer imports `@dataflow-animator/core/styles.css`
-   whichever binding they use, and the React package emits no CSS of its own. No
-   CSS framework imposed on the consumer.
+   whichever binding they use, and neither binding emits CSS of its own. No CSS
+   framework imposed on the consumer.
+
+   This is also why `<dataflow-player>` is a **light-DOM** custom element rather
+   than a Shadow DOM one: a global `.rdfa-*` stylesheet cannot cross a shadow
+   boundary, so encapsulating would have forced the element to carry its own copy
+   of the CSS — the exact duplication the decision above exists to prevent. The
+   consumer gains ordinary CSS selectors into the player as a side benefit.
+   Shadow DOM stays available as a later opt-in.
+
 6. **Browser rendering, no server markup**: since v3 the player MOUNTS the
    core's DOM renderer in a client effect, so nothing is emitted server-side
    beyond a sized placeholder (and `fallback`). No DOM is touched at module
@@ -129,6 +146,12 @@ packages/
       utils/styleMap.ts               CSSProperties → the core's kebab-case string map
       components/nodes/NodeView.tsx   isolated node preview, mounts renderNodeVisual
     scripts/validation-harness/       the visual gates — imports the core's DEEP subpaths
+  element/                           @dataflow-animator/element — the published custom element
+    src/                              imports the core's TOP-LEVEL barrel only, never a subpath
+      DataFlowPlayerElement.ts        the element + defineDataFlowPlayer; calls mountPlayer(this, …)
+      options.ts                      attributes → PlayerOptions (the boolean/absence rules)
+      index.ts                        public exports; importing it REGISTERS <dataflow-player>
+    scripts/smoke-consumer.mjs        the external consumer gate (packs and installs both tarballs)
 apps/
   docs/                              Docusaurus site
     docs/                            MDX content (intro, concepts, reference)
@@ -141,7 +164,8 @@ docs/
 ## Two ways to consume the core
 
 The core is consumed through **two different resolution paths that must never
-cross**. Every framework binding added after React will have to reproduce this.
+cross**. `@dataflow-animator/react` and `@dataflow-animator/element` both
+reproduce this, and every binding added after them has to as well.
 
 | consumer                                          | resolves `@dataflow-animator/core` via         | sees deep subpaths? |
 | ------------------------------------------------- | ---------------------------------------------- | ------------------- |
@@ -155,20 +179,26 @@ cross**. Every framework binding added after React will have to reproduce this.
   that is not part of the semver surface. A Vite alias (and a matching
   `tsconfig` `paths` entry) resolves them to source, which short-circuits
   `exports` entirely. This is the ONLY way the harness can work.
-- The **library build** must do the opposite: `packages/react/vite.config.ts` has
-  **no `resolve.alias` at all** and lists `@dataflow-animator/core` in
-  `rollupOptions.external`, so the published bundle imports the core instead of
-  copying it.
+- The **library builds** must do the opposite: `packages/react/vite.config.ts` and
+  `packages/element/vite.config.ts` have **no `resolve.alias` at all** and list
+  `@dataflow-animator/core` in `rollupOptions.external`, so the published bundles
+  import the core instead of copying it.
 
-The failure mode worth naming: putting an alias back into the library's Vite or
+Both bindings' own `src/` reach the core's **top-level barrel only**, never a
+subpath. A subpath resolves in this monorepo (the alias short-circuits `exports`)
+and fails for everyone who installs the package, since the published `exports`
+lists only `.`, `./styles.css` and `./schema.json`. The harness is the ONE
+exception, and only because it never ships.
+
+The failure mode worth naming: putting an alias back into a binding's Vite or
 rollup config silently re-inlines the whole engine and stylesheet into
 `dist/index.js`, multiplying what ships by ~80, **with every test still green** —
 the tests run through the alias either way. What catches it is not a unit test
 but the shape of the artefact:
 
 ```bash
-# The bundle imports EXACTLY three modules and inlines none of them.
-grep -oE 'from "[^"]+"' packages/react/dist/index.js | sort -u
+# The React bundle imports EXACTLY three modules and inlines none of them.
+grep -oE 'from ?"[^"]+"' packages/react/dist/index.js | sort -u
 #   from "@dataflow-animator/core"
 #   from "react"
 #   from "react/jsx-runtime"
@@ -181,14 +211,33 @@ grep -c createPlayerClock     packages/react/dist/index.js
 ls packages/react/dist   # index.js, index.d.ts, index.js.map — no style.css
 ```
 
-Do NOT use an `rdfa-` class name as the canary: `DataFlowPlayer.tsx` renders its
-own `rdfa-player` / `rdfa-stage rdfa-fallback` placeholder before mount, so those
-strings legitimately appear in this bundle and prove nothing.
+Do NOT use an `rdfa-` class name as the canary **for the React bundle**:
+`DataFlowPlayer.tsx` renders its own `rdfa-player` / `rdfa-stage rdfa-fallback`
+placeholder before mount, so those strings legitimately appear there and prove
+nothing.
+
+For the **element** bundle the probe is stronger, because that package renders no
+markup of its own — so `rdfa-` IS a valid canary, and the import list is a single
+entry:
+
+```bash
+grep -oE 'from ?"[^"]+"' packages/element/dist/index.js | sort -u
+#   from "@dataflow-animator/core"        ← and nothing else
+
+grep -c 'rdfa-'               packages/element/dist/index.js   # 0
+grep -c createPlayerClock     packages/element/dist/index.js   # 0
+grep -c requestAnimationFrame packages/element/dist/index.js   # 0
+
+ls packages/element/dist   # index.js (~6.5 kB), index.d.ts (~4.5 kB), index.js.map
+```
+
+`npm run smoke:consumer -w @dataflow-animator/element` runs every one of those
+checks, so the probe is a script rather than a paragraph someone has to remember.
 
 In-repo, `tsc` and vitest both resolve the core to its SOURCE, so there is no
 build-order coupling and a core edit is visible immediately. That leaves one
 thing unverified in-repo — whether the core's flattened `dist/index.d.ts` really
-exposes what `packages/react/src` imports — and it is checked where it belongs:
+exposes what each binding's `src` imports — and it is checked where it belongs:
 on the real tarballs, by the external consumer smoke test (see below).
 
 ## Adding a new component
@@ -223,16 +272,16 @@ on the real tarballs, by the external consumer smoke test (see below).
 Everything starts from the root via npm workspaces:
 
 ```bash
-npm run build       # full build (both packages, then the site)
-npm run build:lib   # the core package, then the React package
+npm run build       # full build (all three packages, then the site)
+npm run build:lib   # the core, then the React binding, then the element
 npm run build:docs  # only the site
 ```
 
 `build:lib` builds the core FIRST, and that build starts with `tsc` on
 `packages/core` with its OWN tsconfig: core sources are otherwise only
-typechecked as part of the react package's program (vitest does not typecheck),
-whose compiler options differ — errors valid only under core's stricter
-standalone view would stay invisible.
+typechecked as part of a binding's program (vitest does not typecheck), whose
+compiler options differ — errors valid only under core's stricter standalone view
+would stay invisible.
 
 ### The core package build (`packages/core`'s `build` script)
 
@@ -301,6 +350,44 @@ workspaces satisfies that range with the local symlink. `prismjs` is NOT a
 dependency here: no file in `src/` imports it, and the core already declares it,
 so it arrives transitively.
 
+### The element package build (`packages/element`'s `build` script)
+
+`rm -rf dist` → `tsc -p tsconfig.json` (`noEmit`) → `vite build` →
+`rollup -c rollup.dts.config.mjs`. Same shape and same reasons as the React
+binding's, minus the schema step (nothing here reads the schema) and with the
+core's `paths` pointing at `../core/src` so this program also typechecks every
+core file the element touches.
+
+Result in `packages/element/dist/`: `index.js` (~6.5 kB), `index.d.ts` (~4.5 kB),
+`index.js.map`. `exports` lists only `.` and `./package.json` — no
+`./styles.css`, because the CSS belongs to the core.
+
+Three things about this manifest are load-bearing:
+
+- **`"sideEffects": ["./dist/index.js"]`**, not `false`. Importing the barrel
+  REGISTERS `<dataflow-player>`; with `sideEffects: false` a bundler would be free
+  to drop a bare `import '@dataflow-animator/element'` entirely and the tag would
+  simply never exist. The React package can say `false` because its entry only
+  exports values.
+- **`@dataflow-animator/core` at `^0.1.0`** — a resolvable range, for the same
+  reason as above. `prismjs` is external in the Vite config even though nothing
+  here imports it, so a future indirect reach for it cannot get inlined.
+- **No `resolve.alias`** in `vite.config.ts`, with the comment explaining that the
+  absence is the point. See
+  [Two ways to consume the core](#two-ways-to-consume-the-core).
+
+The element's own design constraints are documented where they live, but two are
+worth naming here because they are easy to undo by accident:
+
+- `class X extends HTMLElement` evaluates its base **at import**, so the class
+  extends a conditional `ElementBase` instead — otherwise importing the package in
+  an SSR bundle throws on the import line, before anyone asks to mount anything.
+  `ssr.test.ts` runs in the `node` environment precisely to prove this, and no
+  mock can replace it.
+- `customElements.define` throws when a **constructor** is already registered, so
+  `defineDataFlowPlayer(tag)` registers a _subclass_ for any tag after the first.
+  Without that, the first call after the barrel's auto-registration would throw.
+
 ### Two non-additive lists to keep in sync
 
 Both the Vite watch config and the TS include list narrow to an explicit file
@@ -317,6 +404,8 @@ silently stops covering it:
   `src`. Ambient `.d.ts` files (e.g. Prism's typing) that live in core have
   no `import` statement pulling them in transitively through `paths`, so `tsc`
   only picks them up if they're named explicitly here.
+  `packages/element/tsconfig.json` carries the same pair of entries, for the same
+  reason.
 
 The core's own programs need the same care: `tsconfig.json` and
 `tsconfig.dts.json` both `include: ["src"]`, which covers
@@ -326,29 +415,63 @@ drop them silently.
 
 ## Tests and quality
 
-| Command (root)          | Effect                                                                                       |
-| ----------------------- | -------------------------------------------------------------------------------------------- |
-| `npm run lint`          | Lint workspaces that expose a lint script (`core`, the package, docs)                        |
-| `npm run format:check`  | Checks Prettier formatting                                                                   |
-| `npm run format:write`  | Applies Prettier                                                                             |
-| `npm test`              | vitest tests of `core` and of the package                                                    |
-| `npm run test:coverage` | Tests + per-workspace coverage report (`core` and the package each have their own threshold) |
-| `npm run deadcode`      | knip — dead code detection across all workspaces                                             |
-| `npm run check:schema`  | Verifies `packages/core/src/schema.generated.json` is committed & fresh                      |
-| `npm run build`         | Full build (both packages — the core's build typechecks it in isolation — + docs)            |
+| Command (root)          | Effect                                                                                 |
+| ----------------------- | -------------------------------------------------------------------------------------- |
+| `npm run lint`          | Lint workspaces that expose a lint script (`core`, both bindings, docs)                |
+| `npm run format:check`  | Checks Prettier formatting                                                             |
+| `npm run format:write`  | Applies Prettier                                                                       |
+| `npm test`              | vitest tests of `core`, `react` and `element`                                          |
+| `npm run test:coverage` | Tests + per-workspace coverage report (each package has its own threshold)             |
+| `npm run deadcode`      | knip — dead code detection across all workspaces                                       |
+| `npm run check:schema`  | Verifies `packages/core/src/schema.generated.json` is committed & fresh                |
+| `npm run build`         | Full build (all three packages — the core's build typechecks it in isolation — + docs) |
 
-On the package side, two vitest configurations coexist: `vitest.config.ts`
+On the React side, two vitest configurations coexist: `vitest.config.ts`
 (unit, under `src/**/*.test.{ts,tsx}`) and `vitest.integration.config.ts`
 (integration tests on demos). Both keep the source alias, which is how they can
-run without either package having been built. `packages/core` has its own
-`vitest.config.ts` with a separate coverage threshold, run independently —
-`npm test`/`npm run test:coverage` at the root fan out to both workspaces.
+run without either package having been built. `packages/core` and
+`packages/element` each have their own `vitest.config.ts` with a separate coverage
+threshold — `npm test`/`npm run test:coverage` at the root fan out to all three
+workspaces.
+
+`packages/element` runs in the `node` environment by DEFAULT and opts individual
+files into jsdom with a per-file directive. That is not a style choice:
+`ssr.test.ts` needs an environment where `HTMLElement` and `customElements` are
+genuinely absent, which is the only way to prove the package can be imported
+server-side. The cost is that v8 does not merge that file's coverage back into the
+jsdom run of the same source, which is why the branch threshold sits at 96 rather
+than 100 — the two uncovered arms are precisely the SSR halves.
 
 ### The external consumer smoke test
 
 Because everything in-repo resolves the core to source, no in-repo check proves
-the two tarballs actually work together once installed. That proof is a separate,
-manual step, and it is the one that matters before publishing:
+the tarballs actually work together once installed. For the element that proof is
+**scripted**:
+
+```bash
+npm run smoke:consumer -w @dataflow-animator/element   # add `-- --keep` to inspect the temp project
+```
+
+It builds and packs `@dataflow-animator/core` + `@dataflow-animator/element`,
+installs both from tarballs in a throwaway project outside the monorepo (with an
+`overrides` entry pinning the core to its local tarball, so npm never tries the
+registry), then runs:
+
+- the **publish-shape** checks — the artefact probe above, no `.css` in the
+  tarball, `dist/index.js` marked as having side effects, the core declared as a
+  real semver range, and a declaration that _references_ the core's types instead
+  of inlining them;
+- a **mount test** (vitest + jsdom) that imports the element and
+  `@dataflow-animator/core/styles.css` by name, places a `<dataflow-player>` with a
+  spec and checks it renders and then tears down — the only place the core's
+  published `exports` map is genuinely resolved;
+- `tsc --noEmit` with `skipLibCheck: false` on a consumer file that uses the
+  element, its properties and the re-exported spec types, which typechecks the
+  published declarations themselves.
+
+Run it before any publish, and publish the core BEFORE the bindings.
+
+For the React binding the same proof is still a manual step:
 
 ```bash
 npm pack -w @dataflow-animator/core -w @dataflow-animator/react --pack-destination /tmp/smoke
@@ -361,7 +484,8 @@ resolve it from the registry), import `DataFlowPlayer`, `NodeView`,
 `@dataflow-animator/react` plus `@dataflow-animator/core/styles.css`, and run
 `tsc --noEmit`. That single command exercises what nothing else does: the core's
 published `exports` map, its flattened declarations, and the React package's
-declared dependency range.
+declared dependency range. `packages/element/scripts/smoke-consumer.mjs` is the
+template for scripting it, and doing so is the obvious next cleanup.
 
 ## Deployment
 
@@ -369,6 +493,9 @@ declared dependency range.
 unit + integration tests and the library build (which typechecks core in
 isolation) on every push / PR, then builds and deploys the Docusaurus site on
 GitHub Pages on the `main` branch. It calls root scripts only, so it needed no
-change when the core gained a build of its own. The npm publication of both
-packages remains manual — verify each tarball with `npm pack --dry-run` first,
-and publish the core BEFORE the React binding, which now depends on it.
+change when the core gained a build of its own, nor when the element was added:
+`lint`, `test:coverage` and `build:lib` fan out to every workspace on their own.
+The npm publication of all three packages remains manual — verify each tarball
+with `npm pack --dry-run` first, run
+`npm run smoke:consumer -w @dataflow-animator/element`, and publish the core
+BEFORE the bindings, which depend on it.

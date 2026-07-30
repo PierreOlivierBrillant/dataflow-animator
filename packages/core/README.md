@@ -20,9 +20,12 @@ npm install @dataflow-animator/core
 > **ESM only.** No CommonJS entry point. Your bundler (Vite, esbuild, webpack…)
 > must support ES modules.
 
-Using React? Reach for
-[`react-dataflow-animator`](https://www.npmjs.com/package/react-dataflow-animator)
-instead — it wraps this package in a component.
+Using React? Reach for [`@dataflow-animator/react`](../react/README.md)
+instead — it wraps this package in a component. Anywhere else — plain HTML, Vue,
+Svelte, Angular — reach for
+[`@dataflow-animator/element`](../element/README.md), the `<dataflow-player>`
+custom element. Both bindings render through this package, so the stylesheet
+below is theirs too.
 
 ## Usage
 

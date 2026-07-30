@@ -18,6 +18,10 @@ packages/core/                      @dataflow-animator/core — the PUBLISHED fr
 packages/react/                     @dataflow-animator/react — the published React binding.
                                      DEPENDS on @dataflow-animator/core (externalised, not
                                      inlined): it ships neither the engine nor the CSS
+packages/element/                   @dataflow-animator/element — the published custom element
+                                     <dataflow-player>, LIGHT DOM. Same dependency pattern as
+                                     react: no engine, no CSS. Importing its barrel REGISTERS
+                                     the tag, so it is the one package with side effects
 apps/docs/                          Docusaurus site (demos, playground, API docs)
 docs/                               SPEC.md, ARCHITECTURE.md (internal references)
 ```
@@ -33,6 +37,7 @@ Read these files before any non-trivial modification:
 - [`docs/SEARCH.md`](./docs/SEARCH.md) — Algolia DocSearch indexing model (how playground examples are indexed; crawler `recordExtractor` reference).
 - [`apps/docs/docs/`](./apps/docs/docs/) — MDX user documentation (concepts, references).
 - [`packages/core/src/types.ts`](./packages/core/src/types.ts) and [`schema.ts`](./packages/core/src/schema.ts) — exact shape of the spec (source of truth; `packages/react/src/types.ts` re-exports them for the React binding).
+- [`packages/element/README.md`](./packages/element/README.md) — the custom element's public API (attributes, properties, events, the boolean/absence rule).
 
 ## Hard rules before every commit
 
@@ -67,13 +72,15 @@ npm run check:subicons   # generated sub-icon glyph data is fresh
   Precedent: `nodeColors`'s `nodeTint` returns `Record<string, string>` rather than
   `React.CSSProperties`; the React package casts at the call site instead. If a helper needs a
   React-specific type, it belongs in `packages/react/src`, not in core.
-- **Two public APIs, two semver surfaces.** `packages/core/src/index.ts` is as public as
-  `packages/react/src/index.ts`: no breaking change to either without a major
-  version and documentation. Anything added to the core's barrel is a promise — the renderer's
+- **Three public APIs, three semver surfaces.** `packages/core/src/index.ts` is as public as
+  `packages/react/src/index.ts` and `packages/element/src/index.ts`: no breaking change to any of
+  them without a major version and documentation. For the element, the ATTRIBUTE and PROPERTY names
+  are part of that surface too — renaming `auto-play` is a breaking change even though no TS type
+  moves. Anything added to the core's barrel is a promise — the renderer's
   plumbing (`el.ts`, `reconcile.ts`, `settle.ts`, `geometryTracker.ts`, the circuit router…) stays
   out of it deliberately, and the harness reaches it through the source alias, not a published
   subpath.
-- **`packages/react/src` imports the core's TOP-LEVEL barrel only.** Never
+- **Both bindings' `src` import the core's TOP-LEVEL barrel only.** Never
   `@dataflow-animator/core/dom/player` or any other subpath: those resolve in this monorepo (the
   alias short-circuits `exports`) and fail for everyone who installs the package, since the
   published `exports` lists only `.`, `./styles.css` and `./schema.json`. If the barrel is missing
@@ -137,26 +144,32 @@ Pitfalls already encountered in this repo — check them when you touch the affe
 - **rAF loops**: cap the time delta (inactive tab → huge `dt` upon return).
 - **Dual paths**: if a function has an optimized path and a fallback (e.g. `evaluate`), a test must prove their equivalence — the prod path is not necessarily the one tests exercise.
 - **npm publication**: before any `npm publish`, verify the tarball with `npm pack --dry-run` (LICENSE present, `files`/`exports` correct). Two packages ship now — check both.
-- **The core is consumed TWO ways, and they must not cross**: the harness/vitest/`tsc` resolve `@dataflow-animator/core` to `../core/src` through an alias (the only way to reach the deep subpaths the harness needs, which the published `exports` does not list); the LIBRARY BUILD externalises it instead — `packages/react/vite.config.ts` has NO `resolve.alias` on purpose. Re-adding one there silently re-inlines the whole engine into `dist/index.js` **with every test still green**. What catches it is the artefact: `grep -c "rdfa-stage" packages/react/dist/index.js` must be `0`. See ARCHITECTURE.md, "Two ways to consume the core".
-- **The stylesheet ships once, from the core**: `packages/core/src/styles/dataflow.css` → `@dataflow-animator/core/styles.css`. The React package emits no CSS and exposes no `./styles.css`; consumers (the docs site's `custom.css` included) import the core's. Edit the one source file; never fork it.
+- **The core is consumed TWO ways, and they must not cross**: the harness/vitest/`tsc` resolve `@dataflow-animator/core` to `../core/src` through an alias (the only way to reach the deep subpaths the harness needs, which the published `exports` does not list); the LIBRARY BUILDS externalise it instead — `packages/react/vite.config.ts` and `packages/element/vite.config.ts` have NO `resolve.alias` on purpose. Re-adding one there silently re-inlines the whole engine into `dist/index.js` **with every test still green**. What catches it is the artefact. For react the probe is the import list — `grep -c "rdfa-stage"` is a FALSE POSITIVE there, since `DataFlowPlayer.tsx` renders its own placeholder; for the element, which renders nothing of its own, `grep -c 'rdfa-' packages/element/dist/index.js` must be `0`. `npm run smoke:consumer -w @dataflow-animator/element` runs the whole probe. See ARCHITECTURE.md, "Two ways to consume the core".
+- **The stylesheet ships once, from the core**: `packages/core/src/styles/dataflow.css` → `@dataflow-animator/core/styles.css`. Neither binding emits CSS nor exposes a `./styles.css`; consumers (the docs site's `custom.css` included) import the core's. Edit the one source file; never fork it. This is also why `<dataflow-player>` is light DOM: a global stylesheet cannot cross a shadow boundary, so encapsulating would force the element to carry its own copy.
+- **The custom element's four easy-to-undo invariants** (`packages/element`):
+  - `"sideEffects": ["./dist/index.js"]`, never `false` — the barrel REGISTERS the tag, and `false` lets a bundler drop a bare `import '@dataflow-animator/element'` entirely;
+  - the class extends a conditional `ElementBase`, not `HTMLElement` directly — `extends` evaluates its base AT IMPORT, so a direct extend throws in any SSR bundle. `src/ssr.test.ts` runs in the `node` environment to prove it, which is why the package's default vitest environment is `node` and jsdom is opted into per file;
+  - `defineDataFlowPlayer(tag)` registers a SUBCLASS for any tag after the first — `customElements.define` throws when a constructor is already registered;
+  - **an absent boolean attribute is NOT `false`**, it is "unspecified" → the core's default. The core defaults `controls` to `true`, so writing no key into the options object is the whole mechanism. Never write a default in the wrapper; it would drift from the core's.
+- **The element mounts on a coalesced microtask, always** — the first mount included. Anything that reads the player after inserting the tag (a test, the pixel gate, a consumer) waits for the `dataflow-player:mounted` event, never a timeout: a timeout hides exactly the race it appears to fix.
 
 ## Available scripts (quick reference)
 
 Monorepo root:
 
-| Script                  | Effect                                                                                                            |
-| ----------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `npm run dev`           | Builds both libs, then watches core + react + the Docusaurus site (3 processes)                                   |
-| `npm run build`         | Full build (both packages + site)                                                                                 |
-| `npm run build:lib`     | Core package build (isolated typecheck included), then React package build                                        |
-| `npm run build:docs`    | Site build only                                                                                                   |
-| `npm run lint`          | ESLint on all workspaces that expose it                                                                           |
-| `npm run format:check`  | Checks Prettier formatting                                                                                        |
-| `npm run format:write`  | Applies Prettier                                                                                                  |
-| `npm test`              | vitest tests of `@dataflow-animator/core` and of `@dataflow-animator/react` (each has its own coverage threshold) |
-| `npm run test:coverage` | Same, with coverage thresholds                                                                                    |
-| `npm run deadcode`      | knip — dead code detection                                                                                        |
-| `npm run check:schema`  | Verifies core's generated JSON Schema is fresh                                                                    |
+| Script                  | Effect                                                                                                                                                                                       |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run dev`           | Builds the libs, then watches core + react + the Docusaurus site (3 processes). The element is absent on purpose: the site does not consume it, so there is nothing for a watcher to refresh |
+| `npm run build`         | Full build (all three packages + site)                                                                                                                                                       |
+| `npm run build:lib`     | Core build (isolated typecheck included), then react, then element                                                                                                                           |
+| `npm run build:docs`    | Site build only                                                                                                                                                                              |
+| `npm run lint`          | ESLint on all workspaces that expose it                                                                                                                                                      |
+| `npm run format:check`  | Checks Prettier formatting                                                                                                                                                                   |
+| `npm run format:write`  | Applies Prettier                                                                                                                                                                             |
+| `npm test`              | vitest tests of core, react and element (each has its own coverage threshold)                                                                                                                |
+| `npm run test:coverage` | Same, with coverage thresholds                                                                                                                                                               |
+| `npm run deadcode`      | knip — dead code detection                                                                                                                                                                   |
+| `npm run check:schema`  | Verifies core's generated JSON Schema is fresh                                                                                                                                               |
 
 Package (`packages/core/` — published as `@dataflow-animator/core`):
 
@@ -176,20 +189,38 @@ Package (`packages/core/` — published as `@dataflow-animator/core`):
 
 Package (`packages/react/` — published as `@dataflow-animator/react`):
 
-| Script                     | Effect                                      |
-| -------------------------- | ------------------------------------------- |
-| `npm run build`            | Typecheck + vite build + .d.ts declarations |
-| `npm run dev`              | vite build in watch mode                    |
-| `npm run lint`             | ESLint on src/                              |
-| `npm test`                 | Unit vitest tests                           |
-| `npm run test:coverage`    | Tests + coverage                            |
-| `npm run test:integration` | Integration tests on demos                  |
-| `npm run harness`          | Visual validation harness (Vite, :5199)     |
-| `npm run curves`           | Headless structural pass (`--demo <id>`)    |
-| `npm run test:visual`      | Playwright visual regression (goldens)      |
-| `npm run harness:selftest` | A/B gate calibration — must be 0.00%        |
-| `npm run harness:compare`  | A/B pixel diff, React vs vanilla renderer   |
-| `npm run harness:bench`    | Perf baseline of the player (per-frame)     |
+| Script                     | Effect                                                 |
+| -------------------------- | ------------------------------------------------------ |
+| `npm run build`            | Typecheck + vite build + .d.ts declarations            |
+| `npm run dev`              | vite build in watch mode                               |
+| `npm run lint`             | ESLint on src/                                         |
+| `npm test`                 | Unit vitest tests                                      |
+| `npm run test:coverage`    | Tests + coverage                                       |
+| `npm run test:integration` | Integration tests on demos                             |
+| `npm run harness`          | Visual validation harness (Vite, :5199)                |
+| `npm run curves`           | Headless structural pass (`--demo <id>`)               |
+| `npm run test:visual`      | Playwright visual regression (goldens)                 |
+| `npm run harness:selftest` | A/B gate calibration — must be 0.00%                   |
+| `npm run harness:element`  | `<dataflow-player>` vs `mountPlayer` — must be 0.0000% |
+| `npm run harness:compare`  | A/B pixel diff, React vs vanilla renderer              |
+| `npm run harness:bench`    | Perf baseline of the player (per-frame)                |
+
+Package (`packages/element/` — published as `@dataflow-animator/element`):
+
+| Script                   | Effect                                                                            |
+| ------------------------ | --------------------------------------------------------------------------------- |
+| `npm run build`          | rm -rf dist, typecheck, vite lib build, thin d.ts referencing the core            |
+| `npm run dev`            | vite build in watch mode                                                          |
+| `npm run lint`           | ESLint on src/                                                                    |
+| `npm run typecheck`      | Isolated tsc typecheck (core resolved to source via `paths`)                      |
+| `npm test`               | Unit vitest tests (`node` by default, jsdom opted into per file)                  |
+| `npm run test:coverage`  | Tests + coverage                                                                  |
+| `npm run smoke:consumer` | Packs core + element and installs both outside the monorepo. THE pre-publish gate |
+
+NB: the element's pixel gate lives in the REACT workspace
+(`npm run harness:element -w @dataflow-animator/react`), because that is where the whole A/B
+harness and its plumbing live. The harness is really a bench for the CORE, not for react — moving
+it out is a worthwhile cleanup, and a large diff in a package step 3.3 had to leave intact.
 
 ## Workflows to avoid
 

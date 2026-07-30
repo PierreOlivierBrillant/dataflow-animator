@@ -86,8 +86,8 @@ The contrast is most telling on a **short window** (little hold): the
 ## Tool 3 — the renderer's own gates
 
 The framework-agnostic DOM renderer (`@dataflow-animator/core/dom`) is now
-the only renderer; the React one it replaced was removed at step 2.6b. Two gates
-guard it, and it is worth being exact about **what each one proves**, because
+the only renderer; the React one it replaced was removed at step 2.6b. Three
+gates guard it, and it is worth being exact about **what each one proves**, because
 they replaced an A/B comparison against React whose job is finished — the proof
 that the two renderers agreed to the pixel is in the git history (200/200 A/B
 cells at 0.0000%), not in any file here.
@@ -96,6 +96,7 @@ cells at 0.0000%), not in any file here.
 | --------------- | ----------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------- |
 | mount-vs-update | `npm run harness:mountupdate` | the renderer is internally consistent: `mount(t)` == `mount(0)` then `update()` walked to `t` | yes — live DOM diff, no image               |
 | self-test       | `npm run harness:selftest`    | the measurement floor is zero: two independent mounts are pixel-identical                     | yes — 0.00% required                        |
+| element         | `npm run harness:element`     | the `<dataflow-player>` wrapper adds no pixel over a bare `mountPlayer`                       | yes — 0.0000% required                      |
 | reference grid  | `npm run test:visual`         | no regression over time: the render matches a frozen golden                                   | approximate — pixels, font/Chrome-dependent |
 
 ### mount-vs-update — the primary structural gate (`?mu=1`)
@@ -143,6 +144,47 @@ successive captures drifted even with `t` frozen. The fix is
 freeze the instant; `window.__AB__` exposes `{ demo, t, durationMs, chrome,
 ready }` plus `{ passes, converged }` from the settle loop.
 
+### element — the wrapper adds no pixel (`?wc=1`)
+
+```bash
+npm run harness:element -w @dataflow-animator/react
+```
+
+`element.ab.spec.ts` puts a bare `mountPlayer(container, spec, options)` in panel A
+and a `<dataflow-player>` carrying the equivalent attributes in panel B, at a
+frozen `t`. `@dataflow-animator/element` has no rendering of its own — its
+`connectedCallback` calls `mountPlayer` and the element itself is the container —
+so the requirement is **exactly 0.0000%**, and the self-test is what proves that
+floor is reachable at all. 60 cells, in two sweeps:
+
+- **frames** — every risk demo × the probe grid (0/25/50/75/100%) × both themes:
+  does the element reproduce the renderer across the whole timeline?
+- **options** — one demo, one attribute moved per cell (`controls="false"`,
+  `density`, `theme`, `exportable`): does the attribute→option mapping hold?
+  Without this sweep the gate would only prove the element calls `mountPlayer`
+  with the DEFAULTS.
+
+The A/B pair of each cell is declared in ONE table in `main.tsx` (`WC_CASES`),
+with the core's options and the element's attributes written side by side. Two
+values kept manually in sync is normally a smell in this repo; here it IS the
+gate — the human asserts "these two spellings are the same request", and the pixel
+diff proves the element's parsing agrees. Deriving B's attributes from A's options
+would test the element against itself.
+
+**Readiness is exact, not timed.** The element mounts on a coalesced microtask
+while panel A mounts synchronously, so `__AB__.ready` starts `false` and the
+panels flip it themselves — panel B from the element's own
+`dataflow-player:mounted` event. Leaning on `waitForAbReady`'s 400ms buffer would
+have meant a cell could capture an empty panel B and report it as a rendering
+difference; the day the buffer stopped being enough, the flake would have looked
+like a regression. Panel B also refuses to signal unless `.rdfa-player` is really
+there, and the spec asserts `toBeVisible()` on both panels as an independent
+second check.
+
+The gate has been falsified on purpose: dropping the `initial-t` mapping from
+`options.ts` moves `spa · 50% · light` to 1.9733% and the cell fails. A gate that
+cannot fail is not a gate.
+
 ### reference grid — visual non-regression (`test:visual`)
 
 ```bash
@@ -164,7 +206,7 @@ environment), exactly as it was before this step.
 
 ### Shared plumbing
 
-`selftest.ab.spec.ts` and `mountUpdate.ab.spec.ts` run under
+`selftest.ab.spec.ts`, `mountUpdate.ab.spec.ts` and `element.ab.spec.ts` run under
 `playwright.compare.config.ts` — its own port (5198, distinct from the
 interactive harness's 5199) and `reuseExistingServer: false` unconditionally, so
 a developer's running `npm run harness` session is never silently reused

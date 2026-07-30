@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "target": "es2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "types": [],
+    "skipLibCheck": true,
+    "strict": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "erasableSyntaxOnly": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "resolveJsonModule": true,
+    "noEmit": true,
+    // In-repo, everything resolves the core to its SOURCE: this program and
+    // vitest agree, so there is no build-order coupling (no need to have built
+    // `../core/dist` before typechecking) and a core edit is visible
+    // immediately. The PUBLISHED contract — does the core's flattened
+    // `dist/index.d.ts` really expose what `src/` imports? — is verified where it
+    // belongs, on the real tarballs, by `npm run smoke:consumer`.
+    "paths": {
+      "@dataflow-animator/core": ["../core/src/index.ts"]
+    }
+  },
+  // `../core/src/**/*.d.ts`: ambient module declarations (the Prism components
+  // typing, the `.css` module) live in the core workspace. `include` only
+  // resolves the ROOT file set for the program — files pulled in transitively via
+  // `paths` are added too, but a loose ambient `.d.ts` with no import is never
+  // reached that way, so it must be listed explicitly.
+  "include": ["src", "../core/src/**/*.d.ts"],
+  "exclude": ["src/**/*.test.ts"]
+}

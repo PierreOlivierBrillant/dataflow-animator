@@ -56,6 +56,35 @@ function printMountUpdate(rows: AbResultRow[]): void {
 }
 
 /**
+ * The custom element against the call it wraps.
+ *
+ * `<dataflow-player>` does nothing but `mountPlayer(this, spec, options)`, so
+ * anything other than 0.0000% means the wrapper is changing the picture — either
+ * its own box is interfering or an attribute is not landing as the option it
+ * claims to be. There is no tolerance to spend here.
+ */
+function printElement(rows: AbResultRow[]): void {
+  if (rows.length === 0) return;
+  const lines = [
+    '',
+    'mountPlayer vs <dataflow-player> — the custom element adds no pixel',
+    '',
+    'label'.padEnd(44) + 'diff',
+  ];
+  for (const r of rows) {
+    lines.push(r.label.padEnd(44) + `${(r.ratio * 100).toFixed(4)}%`);
+  }
+  const failing = rows.filter((r) => r.ratio !== 0);
+  lines.push(
+    '',
+    failing.length > 0
+      ? `${failing.length}/${rows.length} cell(s) DIFFER — the element is not a transparent wrapper.`
+      : `All ${rows.length} cell(s) at exactly 0.0000% — the element renders what mountPlayer renders.`
+  );
+  console.log(lines.join('\n'));
+}
+
+/**
  * Runs exactly once, in the main process, after every worker has finished —
  * unlike a `test.afterAll` inside a spec, immune to the per-worker module resets
  * that per-test failures trigger (see abResults.ts). It only prints the
@@ -64,4 +93,5 @@ function printMountUpdate(rows: AbResultRow[]): void {
 export default function globalTeardown(): void {
   printSelfTest(readAbResults('selftest'));
   printMountUpdate(readAbResults('mountupdate'));
+  printElement(readAbResults('element'));
 }
