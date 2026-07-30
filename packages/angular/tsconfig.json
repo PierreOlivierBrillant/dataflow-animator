@@ -1,0 +1,11 @@
+{
+  // Editors and tooling look for `tsconfig.json` by name. The real configurations
+  // are the two next to it, and they differ in exactly one thing that matters —
+  // how they resolve `@dataflow-animator/core`:
+  //
+  //   tsconfig.lib.json   the ng-packagr build → node_modules (the published core)
+  //   tsconfig.spec.json  the tests           → ../core/src   (the core's source)
+  //
+  // This file points at the test one, so opening a spec file in an editor behaves.
+  "extends": "./tsconfig.spec.json"
+}

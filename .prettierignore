@@ -2,6 +2,7 @@ node_modules
 dist
 build
 .docusaurus
+.angular
 coverage
 package-lock.json
 packages/core/src/schema.generated.json

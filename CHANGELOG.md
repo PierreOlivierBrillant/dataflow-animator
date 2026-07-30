@@ -1,8 +1,8 @@
 # Changelog
 
 All notable changes to `@dataflow-animator/core`, `@dataflow-animator/react`
-(formerly `react-dataflow-animator`) and `@dataflow-animator/element` are
-documented here.
+(formerly `react-dataflow-animator`), `@dataflow-animator/element` and
+`@dataflow-animator/angular` are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -11,6 +11,60 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
      (Stage, Controls, the JSX node/dynamic components, useClock…) was deleted
      from the source tree. None of it was exported, so there is no change for
      consumers and no version bump. -->
+
+## `@dataflow-animator/angular` 0.1.0
+
+**New package.** `<dfa-player>`, a standalone Angular component over
+`@dataflow-animator/core`. Angular was already reachable through
+`@dataflow-animator/element` and `CUSTOM_ELEMENTS_SCHEMA`; this is the native
+binding, with typed inputs and no schema opt-in.
+
+```ts
+import { DataFlowPlayerComponent } from '@dataflow-animator/angular';
+// and, once, globally — angular.json "styles" or a global @import:
+//   @dataflow-animator/core/styles.css
+
+@Component({
+  imports: [DataFlowPlayerComponent],
+  template: `<dfa-player [spec]="spec" [height]="420" theme="blueprint" />`,
+})
+export class DemoComponent {
+  readonly spec = { … };
+}
+```
+
+- **Requires Angular 22.** `@angular/core` and `@angular/common` are peer
+  dependencies at `^22.0.0`. Inputs are **signal inputs**, outputs are `output()`.
+- **The clock runs outside the Angular zone.** The core's animation loop schedules
+  a frame while playing; mounting inside the zone would trigger change detection
+  on every one of them. The mount goes through `NgZone.runOutsideAngular`, and a
+  test asserts the zone recorded at each `requestAnimationFrame` — not that the
+  call was made.
+- **SSR-safe.** Guarded by `isPlatformBrowser`: a server renders an empty host
+  element and touches no DOM.
+- **Light DOM**, and the host gets `display: contents` so `.rdfa-player` inherits
+  the containing block you gave the tag. Set an inline `display` to opt out.
+- **It ships neither the engine nor the CSS.** `@dataflow-animator/core` is a real
+  dependency at `^0.1.0`, external to the bundle — 13 kB packed, and a `.d.ts` that
+  references the core's types instead of copying them. Import
+  `@dataflow-animator/core/styles.css` once; **without the stylesheet nothing has a
+  size.**
+- **Every option of the core's player is an input** (`spec`, `theme`, `mode`,
+  `density`, `height`, `width`, `playerClass`, `speed`, `initialT`, `controls`,
+  `exportable`, `autoPlay`, `loop`, `debug`, `highlight`).
+- **An input you never bind means "unspecified", not `false`.** The core defaults
+  `controls` to `true`, so `<dfa-player [spec]="spec" />` shows the control bar —
+  bind `[controls]="false"` to hide it. Same for `exportable`, `autoPlay`, `loop`
+  and `debug`.
+- **Changing an input remounts the player**, as in the other bindings: several
+  changes in one change-detection pass coalesce into one remount, the new player
+  reopens at the previous instant and play state, and only the first mount honours
+  `initialT` / `autoPlay`. `spec` is keyed on its **structure**, so
+  `[spec]="buildSpec()"` does not remount on every pass.
+- **Two outputs**: `mounted` (after every mount, remounts included) and `error`
+  (a spec that could not be mounted — reported, never leaving a half-built player).
+- Selector `dfa-player`, deliberately not `dataflow-player`: that tag belongs to
+  the custom element, and a consumer may have both packages.
 
 ## `@dataflow-animator/element` 0.1.0
 

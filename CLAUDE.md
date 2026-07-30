@@ -22,6 +22,11 @@ packages/element/                   @dataflow-animator/element — the published
                                      <dataflow-player>, LIGHT DOM. Same dependency pattern as
                                      react: no engine, no CSS. Importing its barrel REGISTERS
                                      the tag, so it is the one package with side effects
+packages/angular/                   @dataflow-animator/angular — the published Angular binding,
+                                     the standalone <dfa-player>. Same dependency pattern again:
+                                     no engine, no CSS. The one package with a FOREIGN toolchain
+                                     — ng-packagr (Angular Package Format) instead of Vite, and
+                                     `ng test` instead of a bare vitest
 apps/docs/                          Docusaurus site (demos, playground, API docs)
 docs/                               SPEC.md, ARCHITECTURE.md (internal references)
 ```
@@ -38,6 +43,7 @@ Read these files before any non-trivial modification:
 - [`apps/docs/docs/`](./apps/docs/docs/) — MDX user documentation (concepts, references).
 - [`packages/core/src/types.ts`](./packages/core/src/types.ts) and [`schema.ts`](./packages/core/src/schema.ts) — exact shape of the spec (source of truth; `packages/react/src/types.ts` re-exports them for the React binding).
 - [`packages/element/README.md`](./packages/element/README.md) — the custom element's public API (attributes, properties, events, the boolean/absence rule).
+- [`packages/angular/README.md`](./packages/angular/README.md) — the Angular component's public API (selector, inputs, outputs, the same absence rule).
 
 ## Hard rules before every commit
 
@@ -53,6 +59,13 @@ npm run test:integration -w @dataflow-animator/react
 npm run check:schema
 npm run check:subicons   # generated sub-icon glyph data is fresh
 ```
+
+**If you touched `package.json` or the lockfile, run `npm ci` (not `npm install`)
+and rerun `test:coverage` before believing any of it.** `packages/angular` pins
+**vitest 4** while core/react/element are on **vitest 3** — npm nests the two
+correctly, but the package at risk from a re-hoist is never the one you edited, it
+is its neighbours. `npm ci` is what CI does; `npm install` can paper over a lock
+that `npm ci` would reject.
 
 ### What to do in case of failure
 
@@ -72,15 +85,17 @@ npm run check:subicons   # generated sub-icon glyph data is fresh
   Precedent: `nodeColors`'s `nodeTint` returns `Record<string, string>` rather than
   `React.CSSProperties`; the React package casts at the call site instead. If a helper needs a
   React-specific type, it belongs in `packages/react/src`, not in core.
-- **Three public APIs, three semver surfaces.** `packages/core/src/index.ts` is as public as
-  `packages/react/src/index.ts` and `packages/element/src/index.ts`: no breaking change to any of
+- **Four public APIs, four semver surfaces.** `packages/core/src/index.ts` is as public as
+  `packages/react/src/index.ts`, `packages/element/src/index.ts` and
+  `packages/angular/src/index.ts`: no breaking change to any of
   them without a major version and documentation. For the element, the ATTRIBUTE and PROPERTY names
   are part of that surface too — renaming `auto-play` is a breaking change even though no TS type
-  moves. Anything added to the core's barrel is a promise — the renderer's
+  moves. Same for the Angular component's SELECTOR, INPUT and OUTPUT names, and for its
+  `peerDependencies` range on `@angular/core`. Anything added to the core's barrel is a promise — the renderer's
   plumbing (`el.ts`, `reconcile.ts`, `settle.ts`, `geometryTracker.ts`, the circuit router…) stays
   out of it deliberately, and the harness reaches it through the source alias, not a published
   subpath.
-- **Both bindings' `src` import the core's TOP-LEVEL barrel only.** Never
+- **Every binding's `src` imports the core's TOP-LEVEL barrel only.** Never
   `@dataflow-animator/core/dom/player` or any other subpath: those resolve in this monorepo (the
   alias short-circuits `exports`) and fail for everyone who installs the package, since the
   published `exports` lists only `.`, `./styles.css` and `./schema.json`. If the barrel is missing
@@ -152,6 +167,29 @@ Pitfalls already encountered in this repo — check them when you touch the affe
   - `defineDataFlowPlayer(tag)` registers a SUBCLASS for any tag after the first — `customElements.define` throws when a constructor is already registered;
   - **an absent boolean attribute is NOT `false`**, it is "unspecified" → the core's default. The core defaults `controls` to `true`, so writing no key into the options object is the whole mechanism. Never write a default in the wrapper; it would drift from the core's.
 - **The element mounts on a coalesced microtask, always** — the first mount included. Anything that reads the player after inserting the tag (a test, the pixel gate, a consumer) waits for the `dataflow-player:mounted` event, never a timeout: a timeout hides exactly the race it appears to fix.
+- **The Angular package's own easy-to-undo invariants** (`packages/angular`):
+  - **`compilationMode: "partial"`** in `tsconfig.lib.json`. Its default with a hand-written
+    tsconfig is FULL mode, which makes ng-packagr write a `prepublishOnly` that hard-fails
+    `npm publish`. The probe is `ɵɵngDeclareComponent` present / `ɵɵdefineComponent` absent;
+  - **`NgZone.runOutsideAngular` around `mountPlayer`** — without it the rAF clock triggers change
+    detection every frame. `src/zone.spec.ts` proves it, and the proof only works because the test
+    uses `provideZoneChangeDetection()` and triggers CD inside `zone.run(...)`. Under the DEFAULT
+    TestBed the assertion passes with the call removed — green, proving nothing. Never assert on a
+    `runOutsideAngular` spy's call count either: Angular calls it itself;
+  - **`isPlatformBrowser` guards every DOM touch**, the `display: contents` fix-up included;
+  - **the spec input is keyed by `serializeSpec`, not by identity** — `[spec]="buildSpec()"` yields a
+    new object per change-detection pass, so keying on the object remounts forever;
+  - **no `styles:` on the component, ever.** A one-line `:host {}` would put CSS in the published
+    package and break "the stylesheet ships once, from the core";
+  - **`tsconfig.lib.json` has no `paths`** while `tsconfig.spec.json` does. That asymmetry IS the
+    dual consumption for this package (build → node_modules, tests → source). Adding a `paths` entry
+    to the lib config would hide the published `exports` from the only thing that exercises it;
+  - the JSDoc survives into the fesm bundle, so `grep rdfa-` and `grep "from '"` on it are FALSE
+    POSITIVES — probe quoted strings and line-anchored imports (`smoke-consumer.mjs` does).
+- **Two vitest majors coexist**: 4 in `packages/angular` (required by `@angular/build`), 3 everywhere
+  else. npm nests them correctly, but after any dependency change run `npm ci` and rerun
+  `test:coverage` on core, react AND element — the package a re-hoist breaks is a neighbour, not the
+  one you edited.
 
 ## Available scripts (quick reference)
 
@@ -216,6 +254,17 @@ Package (`packages/element/` — published as `@dataflow-animator/element`):
 | `npm test`               | Unit vitest tests (`node` by default, jsdom opted into per file)                  |
 | `npm run test:coverage`  | Tests + coverage                                                                  |
 | `npm run smoke:consumer` | Packs core + element and installs both outside the monorepo. THE pre-publish gate |
+
+Package (`packages/angular/` — published as `@dataflow-animator/angular`):
+
+| Script                   | Effect                                                                                                                  |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| `npm run build`          | rm -rf dist, then ng-packagr (APF): fesm2022 + a d.ts referencing the core                                              |
+| `npm run dev`            | ng-packagr in watch mode                                                                                                |
+| `npm run lint`           | ESLint on src/ (the root flat config — no angular-eslint, there are no templates)                                       |
+| `npm test`               | `ng test` — the `@angular/build:unit-test` builder, vitest 4 + jsdom                                                    |
+| `npm run test:coverage`  | Same, with coverage thresholds (declared in `angular.json`, not a vitest config)                                        |
+| `npm run smoke:consumer` | Packs core + angular, installs both in a real Angular CLI app, `ng build` AOT + a headless render. THE pre-publish gate |
 
 NB: the element's pixel gate lives in the REACT workspace
 (`npm run harness:element -w @dataflow-animator/react`), because that is where the whole A/B

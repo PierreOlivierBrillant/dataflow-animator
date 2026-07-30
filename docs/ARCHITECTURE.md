@@ -152,6 +152,15 @@ packages/
       options.ts                      attributes → PlayerOptions (the boolean/absence rules)
       index.ts                        public exports; importing it REGISTERS <dataflow-player>
     scripts/smoke-consumer.mjs        the external consumer gate (packs and installs both tarballs)
+  angular/                           @dataflow-animator/angular — the published Angular binding
+    src/                              imports the core's TOP-LEVEL barrel only, never a subpath
+      DataFlowPlayerComponent.ts      the standalone <dfa-player>; calls mountPlayer(host, …)
+      options.ts                      inputs → PlayerOptions (the "absent writes no key" rule)
+      index.ts                        public exports (no side effects — nothing to register)
+      spec-helpers.ts                 test-only fixtures, excluded from tsconfig.lib.json
+    ng-package.json                   the ng-packagr (Angular Package Format) build
+    angular.json                      ONLY the `ng test` builder — never used to build the package
+    scripts/smoke-consumer.mjs        the external consumer gate (packs, installs, `ng build` AOT)
 apps/
   docs/                              Docusaurus site
     docs/                            MDX content (intro, concepts, reference)
@@ -164,13 +173,14 @@ docs/
 ## Two ways to consume the core
 
 The core is consumed through **two different resolution paths that must never
-cross**. `@dataflow-animator/react` and `@dataflow-animator/element` both
-reproduce this, and every binding added after them has to as well.
+cross**. All three bindings reproduce this, and every binding added after them has
+to as well.
 
 | consumer                                          | resolves `@dataflow-animator/core` via         | sees deep subpaths? |
 | ------------------------------------------------- | ---------------------------------------------- | ------------------- |
-| harness, vitest, `tsc`                            | **source alias** → `../core/src`               | yes                 |
+| harness, vitest, `ng test`, `tsc`                 | **source alias** → `../core/src`               | yes                 |
 | the published library build (`vite`, `rollup -c`) | **external** → runtime dependency, not inlined | no (needs none)     |
+| the published library build (`ng-packagr`)        | **node_modules** → the core's own `exports`    | no (needs none)     |
 
 - The **harness** (`packages/react/scripts/validation-harness/`) imports
   `@dataflow-animator/core/dom/mount`, `/engine/timeline`, `/render/clipOpacity`…
@@ -183,8 +193,20 @@ reproduce this, and every binding added after them has to as well.
   `packages/element/vite.config.ts` have **no `resolve.alias` at all** and list
   `@dataflow-animator/core` in `rollupOptions.external`, so the published bundles
   import the core instead of copying it.
+- The **Angular build** reaches the same place by the third road, and its absence
+  of a `paths` entry in `tsconfig.lib.json` is the load-bearing part —
+  the mirror image of the missing `resolve.alias` next door. ng-packagr never
+  bundles a `dependency` (it only insists it be declared in
+  `allowedNonPeerDependencies`), so what the config decides is TYPE resolution:
+  with no alias, `tsconfig.lib.json` resolves the core through node_modules,
+  i.e. through its real `exports` map and its flattened `dist/index.d.ts`.
+  That makes the Angular build **the only thing in the repository that exercises
+  the core's published contract**, and it costs exactly one build-order
+  dependency — the core must be built first, which `build:lib` already
+  guarantees. `tsconfig.spec.json` takes the other road, so the tests keep the
+  usual source-alias behaviour with no build-order coupling.
 
-Both bindings' own `src/` reach the core's **top-level barrel only**, never a
+Every binding's own `src/` reaches the core's **top-level barrel only**, never a
 subpath. A subpath resolves in this monorepo (the alias short-circuits `exports`)
 and fails for everyone who installs the package, since the published `exports`
 lists only `.`, `./styles.css` and `./schema.json`. The harness is the ONE
@@ -233,6 +255,60 @@ ls packages/element/dist   # index.js (~6.5 kB), index.d.ts (~4.5 kB), index.js.
 
 `npm run smoke:consumer -w @dataflow-animator/element` runs every one of those
 checks, so the probe is a script rather than a paragraph someone has to remember.
+
+### The Angular package (ng-packagr / Angular Package Format)
+
+`npm run build -w @dataflow-animator/angular` is `ng-packagr -p ng-package.json -c
+tsconfig.lib.json`. Four things about it are not obvious and are easy to undo:
+
+1. **`compilationMode: "partial"` is mandatory**, in
+   `tsconfig.lib.json`'s `angularCompilerOptions`. Left at its default with a
+   hand-written tsconfig, ng-packagr compiles in FULL mode and writes a
+   `prepublishOnly` into the emitted manifest that hard-fails `npm publish`
+   ("Trying to publish a package that has been compiled in full compilation
+   mode"). Partial mode is what lets a consumer's own Angular version link the
+   component. The probe: `ɵɵngDeclareComponent` present, `ɵɵdefineComponent`
+   absent, no `scripts` in the emitted manifest.
+2. **The package is `dist/`, not the workspace root.** ng-packagr GENERATES the
+   published `package.json` (its own `exports`, `module`, `typings`,
+   devDependencies stripped) and copies `README.md` and `LICENSE` in. So the
+   package has no `files`/`exports` of its own, and `npm pack` must run in
+   `dist/` — unlike react and element, which pack from their workspace root.
+3. **`allowedNonPeerDependencies: ["@dataflow-animator/core"]`** in
+   `ng-package.json`. Without it ng-packagr refuses a runtime `dependency`
+   outright. Angular itself stays a peer dependency.
+4. **`angular.json` is not the build.** It exists only for `ng test`
+   (`@angular/build:unit-test`), which needs a build target to read its options
+   from — hence a target named `unit-test-build` rather than `build`, so nobody
+   mistakes it for the thing that produces the package.
+
+The artefact probe, adapted (and it needs adapting — see the last two lines):
+
+```bash
+cd packages/angular/dist
+grep -E "^import .* from '" fesm2022/*.mjs    # only @angular/{core,common}, @dataflow-animator/core, tslib
+grep -c "ɵɵngDeclareComponent" fesm2022/*.mjs # 1  (partial)
+grep -c "ɵɵdefineComponent"    fesm2022/*.mjs # 0  (not full)
+grep -c createPlayerClock      fesm2022/*.mjs # 0
+find . -name '*.css' | wc -l                  # 0
+```
+
+Two false positives are specific to this package, and both come from the same
+cause: **ng-packagr preserves JSDoc**, so the bundle contains this package's own
+prose. A bare `grep rdfa-` matches three doc comments, and a bare `grep "from '"`
+matches an import statement quoted in an example. Anchor the import probe to the
+start of a line, and use a QUOTED canary (`'rdfa-`) for the engine — a class name
+the renderer emits is a string literal, a class name in a comment is not. The
+React bundle has the same trap for a different reason (its pre-mount placeholder),
+so the rule generalises: probe the code, not the prose.
+
+`npm run smoke:consumer -w @dataflow-animator/angular` runs all of it, then does
+the thing only an external consumer can do: installs both tarballs into a real
+Angular CLI workspace and runs **`ng build` (AOT, production)**. That build is
+where the consumer's compiler links the partial-compiled component — the one step
+nothing in this repository can stand in for — and it finishes by rendering the
+built app headlessly to confirm a `.rdfa-player` with a real size, which also
+proves the core's `./styles.css` export resolved through `angular.json`.
 
 In-repo, `tsc` and vitest both resolve the core to its SOURCE, so there is no
 build-order coupling and a core edit is visible immediately. That leaves one

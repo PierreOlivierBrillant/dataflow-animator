@@ -1,0 +1,63 @@
+{
+  "$schema": "../../node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "projects": {
+    "angular": {
+      "projectType": "library",
+      "root": "",
+      "sourceRoot": "src",
+      "architect": {
+        // `@angular/build:unit-test` is Angular's own runner (vitest under the
+        // hood). It is here because JIT compilation CANNOT see signal inputs:
+        // without a real ngtsc pass the component definition has no inputs at
+        // all, every binding fails with NG0303, and a required input throws
+        // NG0950. So the tests need the Angular compiler, and this is the
+        // supported way to get it.
+        //
+        // `browsers` is omitted on purpose — that is what selects the Node/jsdom
+        // environment instead of launching a real browser.
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "buildTarget": "angular:unit-test-build",
+            "tsConfig": "tsconfig.spec.json",
+            "runner": "vitest",
+            // No `setupFiles`: the builder initialises the TestBed environment
+            // itself. Calling `initTestEnvironment` again from a setup file of our
+            // own throws "Cannot set base providers because it has already been
+            // called."
+            "include": ["src/**/*.spec.ts"],
+            "coverageInclude": ["src/**"],
+            "coverageExclude": ["src/**/*.spec.ts", "src/spec-helpers.ts"],
+            "coverageReporters": ["text"],
+            // Set at the measured value, and 100 across the board because the
+            // package is small enough that anything less means an untested piece
+            // of public API. Unlike the element, there is no SSR arm that the
+            // instrumented run cannot reach: the platform is faked with a
+            // provider, so `ssr.spec.ts` runs in the same environment as the rest.
+            "coverageThresholds": {
+              "statements": 100,
+              "lines": 100,
+              "functions": 100,
+              "branches": 100
+            }
+          }
+        },
+        // This target exists ONLY to hand the test builder its build options
+        // (`polyfills`, `tsConfig`) — the builder requires a build target and
+        // reads them from it. It is never invoked to produce anything: the
+        // published artefact comes from `npm run build`, which calls ng-packagr
+        // directly and never goes through `ng build`. Hence the explicit name
+        // rather than the default `build`, so nobody mistakes it for one.
+        "unit-test-build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "src/index.ts",
+            "tsConfig": "tsconfig.spec.json",
+            "polyfills": ["zone.js"]
+          }
+        }
+      }
+    }
+  }
+}

@@ -6,6 +6,8 @@
     { "path": "./packages/react/tsconfig.dts.json" },
     { "path": "./packages/element/tsconfig.json" },
     { "path": "./packages/element/tsconfig.dts.json" },
+    { "path": "./packages/angular/tsconfig.lib.json" },
+    { "path": "./packages/angular/tsconfig.spec.json" },
     { "path": "./apps/docs/tsconfig.json" }
   ]
 }

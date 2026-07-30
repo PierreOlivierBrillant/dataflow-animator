@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "types": [],
+    "skipLibCheck": true,
+    "strict": true,
+    "experimentalDecorators": true,
+    // The OTHER half of "two ways to consume the core". The tests resolve it to
+    // SOURCE, exactly like vitest and `tsc` do in the core, react and element
+    // workspaces: a core edit is visible immediately, with no need to have built
+    // `../core/dist` first. The published contract is checked where it belongs —
+    // on the real tarballs, by `npm run smoke:consumer`, and by the lib build,
+    // which resolves through node_modules instead (see tsconfig.lib.json).
+    "paths": {
+      "@dataflow-animator/core": ["../core/src/index.ts"]
+    }
+  },
+  // `../core/src/**/*.d.ts`: ambient module declarations (the Prism components
+  // typing, the `.css` module) live in the core workspace. `include` only resolves
+  // the ROOT file set — files pulled in transitively through `paths` are added
+  // too, but a loose ambient `.d.ts` with no import is never reached that way, so
+  // it has to be listed. Same trap as packages/element/tsconfig.json.
+  "include": ["src/**/*.ts", "../core/src/**/*.d.ts"]
+}

@@ -20,6 +20,14 @@
       ],
       "project": ["src/**/*.ts", "scripts/*.mjs"]
     },
+    // knip reads angular.json and ng-package.json itself, so the Angular
+    // toolchain needs no `ignoreDependencies` here — `src/index.ts` is inferred
+    // from ng-package.json's `entryFile` too. Only the specs and the smoke script
+    // have to be named.
+    "packages/angular": {
+      "entry": ["src/**/*.spec.ts", "scripts/*.mjs"],
+      "project": ["src/**/*.ts", "scripts/*.mjs"]
+    },
     "packages/react": {
       "entry": [
         "src/index.ts",

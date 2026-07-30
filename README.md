@@ -28,11 +28,14 @@ renderer and the stylesheet — comes along as a dependency; nothing extra to
 install. Note that the stylesheet is imported FROM the core, not from this
 package.
 
-No React? Two options, both published from this repository:
+No React? Three options, all published from this repository:
 
+- [`@dataflow-animator/angular`](./packages/angular/README.md) — the
+  `<dfa-player>` standalone component, with typed inputs, the clock kept out of
+  the Angular zone, and SSR support;
 - [`@dataflow-animator/element`](./packages/element/README.md) — the
   `<dataflow-player>` custom element (light DOM). One tag, works in plain HTML,
-  Vue, Svelte, Angular, Astro… and needs no build step from a CDN;
+  Vue, Svelte, Astro… and needs no build step from a CDN;
 - [`@dataflow-animator/core`](./packages/core/README.md) directly — it mounts on
   its own: `mountPlayer(container, spec, options)`.
 
@@ -185,8 +188,12 @@ packages/
                              core (it does not bundle it)
   element/                   @dataflow-animator/element — published on npm: the
                              <dataflow-player> custom element (light DOM), same
-                             dependency pattern as react. For plain HTML, Vue, Svelte,
-                             Angular — anything that renders a tag
+                             dependency pattern as react. For plain HTML, Vue, Svelte
+                             — anything that renders a tag
+  angular/                   @dataflow-animator/angular — published on npm: the
+                             <dfa-player> standalone component, same dependency
+                             pattern again. Built with ng-packagr (Angular Package
+                             Format), the one foreign toolchain in this repository
 apps/
   docs/                      Docusaurus site (demos, playground, API doc)
 docs/

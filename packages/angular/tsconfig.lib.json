@@ -1,0 +1,46 @@
+{
+  "compilerOptions": {
+    // ES2022 rather than the ES2023 the other packages use: the Angular Package
+    // Format names its bundle `fesm2022`, and the output has to actually be that.
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "types": [],
+    "skipLibCheck": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "declaration": true,
+    // Deliberately NOT `erasableSyntaxOnly` (which the core and the element both
+    // set): a decorator is not erasable syntax, so that flag would reject
+    // `@Component` outright.
+    "experimentalDecorators": true
+    // NO `paths` here, and that absence is load-bearing — the mirror image of the
+    // missing `resolve.alias` in the other bindings' Vite configs. THIS program is
+    // the published build: it resolves `@dataflow-animator/core` through
+    // node_modules, i.e. through the core's real `exports` map and its flattened
+    // `dist/index.d.ts`. That makes this the first thing in the repo that actually
+    // exercises the published contract (everything else short-circuits it via a
+    // source alias), at the cost of one build-order dependency — the core must be
+    // built first, which `build:lib` already guarantees.
+    //
+    // The TEST program takes the other path: see tsconfig.spec.json.
+  },
+  "angularCompilerOptions": {
+    // MANDATORY, not a preference. Left to its default with a hand-written
+    // tsconfig, ng-packagr compiles in FULL mode and writes a `prepublishOnly`
+    // into the emitted manifest that hard-fails `npm publish`:
+    // "Trying to publish a package that has been compiled in full compilation
+    // mode. This is not allowed." Partial mode is what lets a consumer's own
+    // Angular version link the library.
+    "compilationMode": "partial",
+    "strictTemplates": true
+  },
+  "include": ["src/**/*.ts"],
+  // Everything test-only. `spec-helpers.ts` in particular: ng-packagr would not
+  // bundle it (nothing in `index.ts` imports it), but this program would still
+  // compile it, and it imports `@angular/core/testing`.
+  "exclude": ["src/**/*.spec.ts", "src/spec-helpers.ts"]
+}
