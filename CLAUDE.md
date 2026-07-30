@@ -56,6 +56,7 @@ npm run deadcode         # knip: dead code / unused exports
 npm run test:coverage    # vitest + coverage thresholds
 npm run build            # build lib + site (typecheck included)
 npm run test:integration -w @dataflow-animator/react
+npm run test -w @dataflow-animator/docs   # docs unit tests (schema-validate every demo, both locales)
 npm run check:schema
 npm run check:subicons   # generated sub-icon glyph data is fresh
 ```

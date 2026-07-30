@@ -54,6 +54,12 @@ jobs:
       - name: Run Integration Tests
         run: npm run test:integration -w @dataflow-animator/react
 
+      # The docs workspace is not in the root test:coverage aggregate (it has no
+      # coverage config); run its unit tests explicitly so an i18n demo drifting
+      # out of schema is caught here instead of rotting unseen.
+      - name: Run Docs Tests
+        run: npm run test -w @dataflow-animator/docs
+
       # Also typechecks core in isolation (own tsconfig), which the deploy-only
       # full build would otherwise be the first to catch — on main, too late.
       - name: Build library

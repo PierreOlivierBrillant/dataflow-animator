@@ -15,7 +15,7 @@
     "build:docs": "npm run build -w @dataflow-animator/docs",
     "dev": "npm run build:lib && concurrently \"npm run dev -w @dataflow-animator/core\" \"npm run dev -w @dataflow-animator/react\" \"npm run dev -w @dataflow-animator/docs\"",
     "lint": "npm run lint --workspaces --if-present",
-    "test": "npm run test -w @dataflow-animator/core -w @dataflow-animator/react -w @dataflow-animator/element -w @dataflow-animator/angular",
+    "test": "npm run test -w @dataflow-animator/core -w @dataflow-animator/react -w @dataflow-animator/element -w @dataflow-animator/angular -w @dataflow-animator/docs",
     "test:coverage": "npm run test:coverage -w @dataflow-animator/core -w @dataflow-animator/react -w @dataflow-animator/element -w @dataflow-animator/angular",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,mdx,css}\"",
     "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,mdx,css}\"",
