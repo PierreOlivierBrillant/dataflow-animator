@@ -1,34 +1,42 @@
 # @dataflow-animator/react
 
-Composant React qui compile une spécification JSON en une animation
-déterministe et navigable de flux de données (client/serveur, requêtes
-SQL, microservices…).
+`<DataFlowPlayer>` — a React component that compiles a JSON specification into a
+deterministic, scrubbable animation of data flows (client/server, SQL queries,
+microservices, logic circuits…).
 
-- Aucune coordonnée à fournir — le moteur place les nœuds.
-- Lecteur intégré : lecture, pause, navigation par étapes, plein écran.
-- SSR-safe, utilisable directement dans Docusaurus, Next.js, Vite, etc.
-- Coloration syntaxique intégrée (Prism, remplaçable).
+- No coordinates to provide — the engine places the nodes.
+- Built-in player: play, pause, step navigation, fullscreen, keyboard shortcuts.
+- SSR-safe: usable as-is in Docusaurus, Next.js, Vite, Remix…
+- Built-in syntax highlighting (Prism, replaceable).
 
-Ce paquet est une **liaison React** au-dessus de
-[`@dataflow-animator/core`](../core/README.md), qui contient le moteur, le
-rendu DOM et la feuille de style. Le cœur est une dépendance : il s'installe
-tout seul, et c'est de lui que vient la CSS.
+This package is a **binding** over
+[`@dataflow-animator/core`](../core/README.md), which holds the engine, the DOM
+renderer and the stylesheet. It adds no rendering of its own — an effect calls
+`mountPlayer(host, spec, options)` and React never manages the player's children.
+
+Not using React? There is [`@dataflow-animator/angular`](../angular/README.md)
+for Angular, and [`@dataflow-animator/element`](../element/README.md) — the
+`<dataflow-player>` custom element — everywhere else. Or mount the core directly.
 
 ## Installation
 
 ```bash
-npm install @dataflow-animator/react
+npm install @dataflow-animator/react @dataflow-animator/core
 ```
 
-`react` et `react-dom` (≥ 18) sont attendus en `peerDependencies`.
-`@dataflow-animator/core` est une dépendance normale — rien à installer en plus.
+`react` and `react-dom` (≥ 18) are expected as `peerDependencies`. The core
+arrives on its own as a dependency; install it explicitly anyway, because you
+import its stylesheet by name.
 
-> **ESM uniquement.** Ce package ne fournit pas d'entrée CommonJS. Votre
-> bundler (Vite, Next.js, esbuild…) doit supporter les modules ES. Node.js
-> ≥ 12 avec `"type": "module"` ou un flag `--input-type=module` est requis
-> pour les usages hors bundler.
+> **ESM only.** No CommonJS entry point. Your bundler (Vite, Next.js, esbuild…)
+> must support ES modules. Outside a bundler, Node.js ≥ 12 with
+> `"type": "module"` (or `--input-type=module`) is required.
 
-## Utilisation
+## Usage
+
+Two imports: the component and the core's stylesheet. **The stylesheet is not
+optional** — without it the markup mounts and measures, but nothing has a size,
+a colour or a transition.
 
 ```tsx
 import { DataFlowPlayer } from '@dataflow-animator/react';
@@ -37,7 +45,7 @@ import '@dataflow-animator/core/styles.css';
 const spec = {
   direction: 'left-to-right',
   nodes: [
-    { id: 'browser', type: 'laptop', text: 'Navigateur', lane: 1 },
+    { id: 'browser', type: 'laptop', text: 'Browser', lane: 1 },
     { id: 'api', type: 'server', text: 'API', lane: 2 },
     { id: 'db', type: 'database', text: 'PostgreSQL', lane: 3 },
   ],
@@ -47,11 +55,7 @@ const spec = {
       kind: 'http_packet',
       packet_content: { header: 'GET /users' },
     },
-    {
-      id: 'sql',
-      kind: 'sql_request',
-      request_content: 'SELECT * FROM users',
-    },
+    { id: 'sql', kind: 'sql_request', request_content: 'SELECT * FROM users' },
   ],
   timeline: [
     { type: 'move', object: 'req', from: 'browser', to: 'api' },
@@ -64,59 +68,86 @@ export default function Example() {
 }
 ```
 
-## Concepts en une page
+## Concepts on one page
 
-Une **spec** décrit trois choses :
+A **spec** describes three things:
 
-1. **`nodes`** — les nœuds du diagramme (serveurs, clients, bases…).
-   Placement automatique selon `direction` (linéaire ou `circular`) et `lane`.
-2. **`packets`** — les payloads qui circuleront entre nœuds
-   (paquets HTTP, requêtes/réponses SQL).
-3. **`timeline`** — la chronologie : `move`, `arrow`, `parallel`, `loading`,
-   `set_content`, `comment`, `highlight`.
+1. **`nodes`** — the diagram's nodes (servers, clients, databases…). Placement
+   is automatic, from `direction` (linear, `circular`, `tree`, `circuit`, or
+   `graph` for your own coordinates) and `lane`.
+2. **`packets`** — the payloads that travel between nodes (HTTP packets, SQL
+   requests and responses).
+3. **`timeline`** — the chronology: `move`, `arrow`, `parallel`, `loading`,
+   `set_content`, `comment`, `highlight`…
 
-Le moteur compile la spec en une chronologie déterministe : le temps `t` (ms)
-est l'unique source de vérité, ce qui rend le seek, la navigation par étapes
-et le SSR triviaux.
+The engine compiles the spec into a deterministic timeline: the instant `t` (ms)
+is the single source of truth, which is what makes seeking, step navigation and
+SSR trivial.
 
-## Props principales du `<DataFlowPlayer>`
+## `<DataFlowPlayer>` props
 
-| Prop        | Type                                       | Défaut          | Description                                           |
-| ----------- | ------------------------------------------ | --------------- | ----------------------------------------------------- |
-| `spec`      | `DataFlowSpec`                             | —               | La spécification à animer.                            |
-| `height`    | `number \| string`                         | `420`           | Hauteur de la scène.                                  |
-| `autoPlay`  | `boolean`                                  | `false`         | Démarre la lecture automatiquement.                   |
-| `loop`      | `boolean`                                  | `false`         | Rejoue en boucle à la fin.                            |
-| `controls`  | `boolean`                                  | `true`          | Affiche la barre de contrôles.                        |
-| `theme`     | `'light' \| 'dark' \| 'auto'`              | `'auto'`        | Suit `prefers-color-scheme` et `[data-theme]` parent. |
-| `density`   | `'compact' \| 'comfortable' \| 'spacious'` | `'comfortable'` | Échelle visuelle.                                     |
-| `speed`     | `number`                                   | `1`             | Vitesse de lecture.                                   |
-| `highlight` | `Highlighter`                              | Prism           | Remplacer la coloration syntaxique.                   |
-| `debug`     | `boolean`                                  | `false`         | Overlay de debug de la timeline.                      |
+| Prop         | Type                                       | Default         | Description                                                 |
+| ------------ | ------------------------------------------ | --------------- | ----------------------------------------------------------- |
+| `spec`       | `DataFlowSpec`                             | —               | The specification to animate.                               |
+| `className`  | `string`                                   | —               | Extra CSS class on the root container.                      |
+| `style`      | `CSSProperties`                            | —               | Inline styles on the root container.                        |
+| `height`     | `number \| string`                         | `420`           | Scene height.                                               |
+| `width`      | `number \| string`                         | container width | Scene width.                                                |
+| `initialT`   | `number`                                   | `0`             | Instant the player opens at, in ms.                         |
+| `autoPlay`   | `boolean`                                  | `false`         | Starts playback automatically.                              |
+| `loop`       | `boolean`                                  | `false`         | Replays in a loop at the end.                               |
+| `controls`   | `boolean`                                  | `true`          | Displays the controls bar.                                  |
+| `exportable` | `boolean`                                  | `false`         | Adds a button that opens the JSON spec (copy / download).   |
+| `theme`      | `PlayerTheme`                              | `'default'`     | Visual palette; each has a light and a dark variant.        |
+| `mode`       | `'auto' \| 'light' \| 'dark'`              | `'auto'`        | Follows an ancestor `[data-theme]`, then the OS preference. |
+| `density`    | `'compact' \| 'comfortable' \| 'spacious'` | `'comfortable'` | Visual scale.                                               |
+| `speed`      | `number`                                   | `1`             | Playback speed.                                             |
+| `highlight`  | `Highlighter`                              | Prism           | Replaces the syntax highlighter.                            |
+| `debug`      | `boolean`                                  | `false`         | Timeline debug overlay.                                     |
+| `fallback`   | `ReactNode`                                | —               | Rendered on the server and until the player has mounted.    |
 
-## Extensibilité
+## Changing props: the player remounts
+
+Every option is read **once, when the player mounts** — that is the core's
+contract, and the custom element behaves the same way. Changing a prop therefore
+rebuilds the player, and:
+
+- the new player reopens at the **instant and play state** the previous one was
+  at, so editing options while scrubbing is invisible;
+- only the **first** mount honours `initialT` and `autoPlay`;
+- `spec` is keyed **structurally**, not by identity, so an inline
+  `spec={{ … }}` object rebuilt on every render does not remount anything.
+
+## Server-side rendering
+
+The renderer needs a DOM, so the server emits only `fallback` inside a correctly
+sized box. There is no hydration mismatch — there is nothing to match — but the
+static HTML holds only that placeholder, so use it for a poster, a caption or a
+skeleton.
+
+## Extensibility
 
 ```ts
 import { registerNodeIcon, registerSubIcon } from '@dataflow-animator/react';
 
-// Une icône est du MARKUP SVG (ou une fabrique `() => SVGElement`), pas un
-// ReactNode : le lecteur rend hors de React depuis la v3.
+// An icon is SVG MARKUP (or a `() => SVGElement` factory), not a ReactNode:
+// the player renders outside React since v3.
 registerNodeIcon('queue', '<svg viewBox="0 0 24 24">…</svg>');
 registerSubIcon('kafka', '<svg viewBox="0 0 24 24">…</svg>');
 ```
 
-Une sous-icône peut aussi être un **texte libre** (`'v2'`, `'API'`, `'JWT'`),
-automatiquement rendu en pastille.
+A sub-icon can also be **free text** (`'v2'`, `'API'`, `'JWT'`), rendered
+automatically as a badge.
 
-## Sans React ?
+## Without React?
 
-Le cœur se monte seul, sans aucun framework :
-`mountPlayer(container, spec, options)` — voir
+The core mounts on its own, with no framework at all:
+`mountPlayer(container, spec, options)` — see
 [`@dataflow-animator/core`](../core/README.md).
 
 ## Documentation
 
-Site complet (démos, playground, référence API) :
+Full site (demos, playground, API reference):
 <https://github.com/PierreOlivierBrillant/react-dataflow-animator>.
 
 ## Licence
