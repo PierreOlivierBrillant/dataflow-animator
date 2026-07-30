@@ -273,7 +273,7 @@ describe('attributes reach the core', () => {
   it('adds the JSON dialog button when exportable', async () => {
     const el = await mount({ exportable: '' });
     expect(
-      el.querySelector('[aria-label="Spécification JSON"]')
+      el.querySelector('[aria-label="JSON specification"]')
     ).not.toBeNull();
   });
 

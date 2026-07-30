@@ -35,19 +35,19 @@ describe('createControlsElement — accessibility surface', () => {
     const { ctl } = make();
 
     expect(buttons(ctl.el).map((b) => b.getAttribute('aria-label'))).toEqual([
-      'Recommencer depuis le début',
-      'Lecture',
-      'Étape précédente',
-      'Étape suivante',
-      'Barre de progression',
-      'Plein écran',
+      'Restart from the beginning',
+      'Play',
+      'Previous step',
+      'Next step',
+      'Progress bar',
+      'Fullscreen',
     ]);
   });
 
   it('places the export slot between the readout and full screen', () => {
     const clock = createPlayerClock({ durationMs: 1000 });
     const slot = document.createElement('button');
-    slot.setAttribute('aria-label', 'Spécification JSON');
+    slot.setAttribute('aria-label', 'JSON specification');
     const ctl = createControlsElement({
       clock,
       timeline: timeline([]),
@@ -57,7 +57,7 @@ describe('createControlsElement — accessibility surface', () => {
     applyControlsElement(ctl, clock, false);
 
     const labels = buttons(ctl.el).map((b) => b.getAttribute('aria-label'));
-    expect(labels.slice(-2)).toEqual(['Spécification JSON', 'Plein écran']);
+    expect(labels.slice(-2)).toEqual(['JSON specification', 'Fullscreen']);
   });
 
   it('mirrors every aria-label into a title, as React does', () => {
@@ -66,7 +66,7 @@ describe('createControlsElement — accessibility surface', () => {
     for (const btn of buttons(ctl.el)) {
       const label = btn.getAttribute('aria-label');
       // The scrub bar is the one control React gives no title.
-      if (label === 'Barre de progression') {
+      if (label === 'Progress bar') {
         expect(btn.hasAttribute('title')).toBe(false);
         continue;
       }
@@ -146,7 +146,7 @@ describe('applyControlsElement — the clock-driven state', () => {
 
   it('swaps the play button label and icon with the clock state', () => {
     const { ctl, clock } = make();
-    expect(ctl.playBtn.getAttribute('aria-label')).toBe('Lecture');
+    expect(ctl.playBtn.getAttribute('aria-label')).toBe('Play');
     const iconWhilePaused = ctl.playBtn.firstElementChild;
 
     clock.play();
@@ -162,7 +162,7 @@ describe('applyControlsElement — the clock-driven state', () => {
     applyControlsElement(ctl, clock, true);
 
     expect(ctl.fullscreenBtn.getAttribute('aria-label')).toBe(
-      'Quitter le plein écran'
+      'Exit fullscreen'
     );
   });
 
@@ -188,9 +188,9 @@ describe('createControlsElement — wiring', () => {
     const restart = vi.spyOn(clock, 'restart');
     const toggle = vi.spyOn(clock, 'toggle');
 
-    click(ctl.el, 'Recommencer depuis le début');
-    // Paused at rest, so the toggle is still labelled "Lecture".
-    click(ctl.el, 'Lecture');
+    click(ctl.el, 'Restart from the beginning');
+    // Paused at rest, so the toggle is still labelled "Play".
+    click(ctl.el, 'Play');
     expect(restart).toHaveBeenCalled();
     expect(toggle).toHaveBeenCalled();
   });
@@ -203,10 +203,10 @@ describe('createControlsElement — wiring', () => {
 
     clock.seek(600);
     seek.mockClear();
-    click(ctl.el, 'Étape précédente');
+    click(ctl.el, 'Previous step');
     expect(seek).toHaveBeenCalledWith(500);
 
-    click(ctl.el, 'Étape suivante');
+    click(ctl.el, 'Next step');
     expect(playTo).toHaveBeenCalledWith(750);
   });
 
@@ -241,7 +241,7 @@ describe('createControlsElement — wiring', () => {
   it('reports a full-screen request to its caller', () => {
     const { ctl, onToggleFullscreen } = make();
 
-    click(ctl.el, 'Plein écran');
+    click(ctl.el, 'Fullscreen');
 
     expect(onToggleFullscreen).toHaveBeenCalled();
   });

@@ -116,19 +116,22 @@ describe('mountPlayer — keyboard', () => {
     expect(event.defaultPrevented).toBe(true);
   });
 
-  // The arrows JUMP, where the "next" BUTTON plays to the stop. React's
-  // asymmetry, reproduced deliberately.
-  it('jumps between stops on the arrows, pausing first', () => {
+  // The keyboard mirrors the buttons: ArrowRight plays to the next stop like
+  // the "next" button, ArrowLeft jumps back like "prev".
+  it('plays to the next stop on ArrowRight and jumps back on ArrowLeft', () => {
     const { player } = mount();
+    const playTo = vi.spyOn(player.clock, 'playTo');
     const pause = vi.spyOn(player.clock, 'pause');
     const seek = vi.spyOn(player.clock, 'seek');
 
     // Compiled stops are [300, 1300].
+    // ArrowRight mirrors the "next" button: it PLAYS to the next stop.
     press(player.el, 'ArrowRight');
-    expect(pause).toHaveBeenCalled();
-    expect(seek).toHaveBeenCalledWith(300);
+    expect(playTo).toHaveBeenCalledWith(300);
 
+    // ArrowLeft mirrors "prev": pause, then jump back.
     press(player.el, 'ArrowLeft');
+    expect(pause).toHaveBeenCalled();
     expect(seek).toHaveBeenLastCalledWith(0);
   });
 
@@ -151,30 +154,28 @@ describe('mountPlayer — keyboard', () => {
 describe('mountPlayer — the export slot', () => {
   it('is absent unless the player is exportable', () => {
     expect(
-      mount().player.el.querySelector('[aria-label="Spécification JSON"]')
+      mount().player.el.querySelector('[aria-label="JSON specification"]')
     ).toBeNull();
   });
 
   it('opens and closes the JSON dialog', () => {
     const { player } = mount({ exportable: true });
     const open = player.el.querySelector(
-      'button[aria-label="Spécification JSON"]'
+      'button[aria-label="JSON specification"]'
     ) as HTMLButtonElement;
 
     open.click();
     const dialog = player.el.querySelector('.rdfa-dialog-overlay')!;
     expect(dialog).not.toBeNull();
 
-    (
-      dialog.querySelector('button[aria-label="Fermer"]') as HTMLElement
-    ).click();
+    (dialog.querySelector('button[aria-label="Close"]') as HTMLElement).click();
     expect(player.el.querySelector('.rdfa-dialog-overlay')).toBeNull();
   });
 
   it('does not stack dialogs when the button is pressed twice', () => {
     const { player } = mount({ exportable: true });
     const open = player.el.querySelector(
-      'button[aria-label="Spécification JSON"]'
+      'button[aria-label="JSON specification"]'
     ) as HTMLButtonElement;
 
     open.click();
@@ -185,7 +186,7 @@ describe('mountPlayer — the export slot', () => {
 });
 
 describe('mountPlayer — full screen', () => {
-  it('requests full screen on the root, and exits from anywhere', () => {
+  it('requests full screen on the root, and exits only when the root itself is full screen', () => {
     const { player } = mount();
     const request = vi.fn();
     player.el.requestFullscreen = request;
@@ -195,16 +196,25 @@ describe('mountPlayer — full screen', () => {
       configurable: true,
     });
     const btn = player.el.querySelector(
-      'button[aria-label="Plein écran"]'
+      'button[aria-label="Fullscreen"]'
     ) as HTMLButtonElement;
 
+    // Nothing full screen → request it on the root.
     btn.click();
-    expect(request).toHaveBeenCalled();
+    expect(request).toHaveBeenCalledTimes(1);
 
-    // Reproduced from React: ANY full-screen element makes the button exit,
-    // not only this player's own.
+    // ANOTHER element is full screen → not ours to collapse; request again.
     Object.defineProperty(document, 'fullscreenElement', {
       value: document.createElement('div'),
+      configurable: true,
+    });
+    btn.click();
+    expect(exit).not.toHaveBeenCalled();
+    expect(request).toHaveBeenCalledTimes(2);
+
+    // THIS player is the full-screen element → now exit.
+    Object.defineProperty(document, 'fullscreenElement', {
+      value: player.el,
       configurable: true,
     });
     btn.click();
@@ -221,7 +231,7 @@ describe('mountPlayer — full screen', () => {
     document.dispatchEvent(new Event('fullscreenchange'));
 
     expect(
-      player.el.querySelector('button[aria-label="Quitter le plein écran"]')
+      player.el.querySelector('button[aria-label="Exit fullscreen"]')
     ).not.toBeNull();
   });
 });
@@ -231,7 +241,7 @@ describe('mountPlayer — teardown', () => {
     const { container, player } = mount({ exportable: true });
     (
       player.el.querySelector(
-        'button[aria-label="Spécification JSON"]'
+        'button[aria-label="JSON specification"]'
       ) as HTMLElement
     ).click();
 

@@ -181,6 +181,19 @@ point for a consumer with no framework, and the common dependency every wrapper
 will be built on. Until now it was a private, source-only workspace that
 `react-dataflow-animator` inlined at build time.
 
+### Fixed
+
+The player chrome, carried verbatim through the migration to keep the pixel
+gate, is cleaned up now that it is no longer measured against React:
+
+- the hardcoded French labels (`aria-label`/`title`) are now English;
+- `ArrowRight` **plays** to the next stop, mirroring the "next" button, instead
+  of jumping (the keyboard now matches the buttons);
+- the JSON dialog is a proper modal: `Escape` closes it, `Tab` is trapped in its
+  buttons, and focus moves in on open and back to the opener on close;
+- the fullscreen toggle exits only when **this** player is the fullscreen
+  element, not whenever any element is.
+
 ### Added
 
 - **A public API** (`packages/core/src/index.ts`): `mountPlayer` / `mountStage`
@@ -289,19 +302,10 @@ rely on the player being server-rendered.
 - Icon glyph geometry now ships inside the published bundle, so the icon packs'
   attribution ships with it — see `LICENSE`.
 
-### Known issues (unchanged from v2, deliberately)
-
-Fixing these would move pixels the migration gate pins, so they are carried over
-verbatim and left for a follow-up:
-
-- the player's chrome has hardcoded French labels (`Lecture`, `Étape suivante`,
-  `Plein écran`…);
-- `ArrowRight` **jumps** to the next stop while the next-step _button_ **plays**
-  to it;
-- the JSON dialog closes on backdrop or button only — no `Escape`, no focus
-  trap;
-- the fullscreen toggle exits fullscreen whenever _any_ element is fullscreen,
-  not only this player.
+The four chrome "known issues" carried through the migration (French labels, the
+`ArrowRight` asymmetry, the un-trapped JSON dialog, the over-eager fullscreen
+toggle) are resolved in the `@dataflow-animator/core` 0.1.0 line above, before
+any release — see its **Fixed** section.
 
 ## [2.0.0]
 

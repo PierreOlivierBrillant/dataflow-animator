@@ -37,7 +37,7 @@ describe('createJsonDialog — accessibility surface', () => {
 
     expect(dialog.el.getAttribute('role')).toBe('dialog');
     expect(dialog.el.getAttribute('aria-modal')).toBe('true');
-    expect(dialog.el.getAttribute('aria-label')).toBe('Spécification JSON');
+    expect(dialog.el.getAttribute('aria-label')).toBe('JSON specification');
   });
 
   it('keeps the backdrop out of the tab order', () => {
@@ -46,7 +46,7 @@ describe('createJsonDialog — accessibility surface', () => {
 
     // Clickable but not tabbable: it is a dismissal target, not a stop.
     expect(backdrop.getAttribute('tabindex')).toBe('-1');
-    expect(backdrop.getAttribute('aria-label')).toBe('Fermer la fenêtre');
+    expect(backdrop.getAttribute('aria-label')).toBe('Close the dialog');
   });
 
   it('offers download, copy and close in that focus order', () => {
@@ -56,9 +56,9 @@ describe('createJsonDialog — accessibility surface', () => {
     );
 
     expect(tabbable.map((b) => b.getAttribute('aria-label'))).toEqual([
-      'Télécharger le JSON',
-      'Copier',
-      'Fermer',
+      'Download the JSON',
+      'Copy',
+      'Close',
     ]);
   });
 
@@ -66,7 +66,7 @@ describe('createJsonDialog — accessibility surface', () => {
     const { dialog } = make();
 
     expect(dialog.el.querySelector('.rdfa-dialog-title')!.textContent).toBe(
-      'Spécification JSON'
+      'JSON specification'
     );
   });
 
@@ -83,7 +83,7 @@ describe('createJsonDialog — wiring', () => {
     const { dialog, onClose } = make();
 
     (dialog.el.querySelector('.rdfa-dialog-backdrop') as HTMLElement).click();
-    byLabel(dialog.el, 'Fermer').click();
+    byLabel(dialog.el, 'Close').click();
 
     expect(onClose).toHaveBeenCalledTimes(2);
   });
@@ -91,7 +91,7 @@ describe('createJsonDialog — wiring', () => {
   it('downloads on demand', () => {
     const { dialog, onDownload } = make();
 
-    byLabel(dialog.el, 'Télécharger le JSON').click();
+    byLabel(dialog.el, 'Download the JSON').click();
 
     expect(onDownload).toHaveBeenCalled();
   });
@@ -99,13 +99,13 @@ describe('createJsonDialog — wiring', () => {
   it('confirms a copy for 1.5s, then reverts', async () => {
     vi.useFakeTimers();
     const { dialog } = make();
-    const btn = byLabel(dialog.el, 'Copier');
+    const btn = byLabel(dialog.el, 'Copy');
 
     btn.click();
     await vi.advanceTimersByTimeAsync(0);
 
     expect(
-      dialog.el.querySelector('button[aria-label="Copié"]')
+      dialog.el.querySelector('button[aria-label="Copied"]')
     ).not.toBeNull();
     expect(
       dialog.el
@@ -115,9 +115,7 @@ describe('createJsonDialog — wiring', () => {
 
     await vi.advanceTimersByTimeAsync(1500);
 
-    expect(
-      dialog.el.querySelector('button[aria-label="Copier"]')
-    ).not.toBeNull();
+    expect(dialog.el.querySelector('button[aria-label="Copy"]')).not.toBeNull();
   });
 
   // Reproduced from React rather than repaired: the title does NOT follow the
@@ -126,22 +124,22 @@ describe('createJsonDialog — wiring', () => {
     vi.useFakeTimers();
     const { dialog } = make();
 
-    byLabel(dialog.el, 'Copier').click();
+    byLabel(dialog.el, 'Copy').click();
     await vi.advanceTimersByTimeAsync(0);
 
     expect(
       dialog.el.querySelector('.rdfa-copy-btn')!.getAttribute('title')
-    ).toBe('Copier dans le presse-papier');
+    ).toBe('Copy to clipboard');
   });
 
   it('stays un-confirmed when the copy is refused', async () => {
     const { dialog } = make({ onCopy: () => Promise.reject(new Error('no')) });
 
-    byLabel(dialog.el, 'Copier').click();
+    byLabel(dialog.el, 'Copy').click();
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(dialog.el.querySelector('button[aria-label="Copié"]')).toBeNull();
+    expect(dialog.el.querySelector('button[aria-label="Copied"]')).toBeNull();
   });
 });
 
@@ -149,7 +147,7 @@ describe('createJsonDialog — teardown', () => {
   it('detaches and cancels a pending confirmation timer', async () => {
     vi.useFakeTimers();
     const { dialog } = make();
-    byLabel(dialog.el, 'Copier').click();
+    byLabel(dialog.el, 'Copy').click();
     await vi.advanceTimersByTimeAsync(0);
 
     dialog.destroy();
@@ -158,5 +156,63 @@ describe('createJsonDialog — teardown', () => {
     // exactly what an explicit handle exists to prevent.
     expect(() => vi.advanceTimersByTime(1500)).not.toThrow();
     expect(document.querySelector('.rdfa-dialog-overlay')).toBeNull();
+  });
+});
+
+describe('createJsonDialog — modal behaviour', () => {
+  const press = (el: Element, key: string, shiftKey = false): KeyboardEvent => {
+    const event = new KeyboardEvent('keydown', {
+      key,
+      shiftKey,
+      bubbles: true,
+      cancelable: true,
+    });
+    el.dispatchEvent(event);
+    return event;
+  };
+
+  it('closes on Escape', () => {
+    const { dialog, onClose } = make();
+    const event = press(dialog.el, 'Escape');
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(event.defaultPrevented).toBe(true);
+  });
+
+  it('moves focus into the dialog on open', async () => {
+    const { dialog } = make();
+    await Promise.resolve(); // let the queued focus land
+
+    expect(document.activeElement).toBe(byLabel(dialog.el, 'Close'));
+  });
+
+  it('traps Tab within its buttons', async () => {
+    const { dialog } = make();
+    await Promise.resolve();
+    const download = byLabel(dialog.el, 'Download the JSON');
+    const close = byLabel(dialog.el, 'Close');
+
+    // On the last button, Tab wraps to the first.
+    close.focus();
+    press(close, 'Tab');
+    expect(document.activeElement).toBe(download);
+
+    // On the first, Shift+Tab wraps to the last.
+    download.focus();
+    press(download, 'Tab', true);
+    expect(document.activeElement).toBe(close);
+  });
+
+  it('restores focus to the opener on destroy', async () => {
+    const opener = document.createElement('button');
+    document.body.appendChild(opener);
+    opener.focus();
+
+    const { dialog } = make();
+    await Promise.resolve();
+    expect(document.activeElement).not.toBe(opener);
+
+    dialog.destroy();
+    expect(document.activeElement).toBe(opener);
   });
 });

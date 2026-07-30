@@ -169,13 +169,11 @@ export function createGeometryTracker(stage: HTMLElement): GeometryTracker {
       stage
         .querySelectorAll<HTMLElement>('[data-node-id]')
         .forEach((el) => ro?.observe(el));
-      // NOTE — no MutationObserver, unlike the React hook. There it exists
-      // solely to catch a node revealed at RUNTIME by a `set_visible`, which
-      // enters the DOM without resizing anything and would otherwise never be
-      // measured. This renderer builds every node up front for a frozen `t` and
-      // never adds or removes one afterwards, so such an observer would have
-      // nothing to catch — while creating a re-entrancy hazard against our own
-      // DOM writes. Revisit at step 2.5, when playback lands.
+      // NOTE — no MutationObserver, unlike the React hook. During playback
+      // `set_visible` does add and remove nodes at runtime, but the mount loop
+      // re-observes the node set on every reconciliation, so this tracker never
+      // has to watch for it — and an observer here would create a re-entrancy
+      // hazard against our own DOM writes. Deliberately driven, not observed.
     },
 
     disconnect() {

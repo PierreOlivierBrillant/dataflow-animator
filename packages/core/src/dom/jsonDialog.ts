@@ -8,16 +8,13 @@ import { h, s, setAttrIfChanged, type Child } from './el';
  * dialog opens and destroyed when it closes, so there is no `create`/`apply`
  * split. The only thing that mutates is the transient "copied" state.
  *
- * REPRODUCED WARTS — three behaviours are ported as they are, not fixed, because
- * this step is a port and changing them is a product decision:
+ * It is a proper modal: `Escape` closes it, `Tab` is trapped inside its
+ * buttons, focus moves in on open and is restored to the opener on close, and
+ * its timer is cleared on teardown.
  *
- *  - no `Escape` handler, no focus trap, no focus restoration on close;
- *  - the copy button's `title` stays "Copier dans le presse-papier" while its
- *    `aria-label` swaps to "Copié" — so the two disagree for 1.5s;
- *  - the copied-state timer is not cleared on teardown. Here it at least cannot
- *    outlive the DOM it writes to, since `destroy` clears it — see below.
- *
- * All three, and the hardcoded French labels, are flagged in the step report.
+ * One documented quirk remains: the copy button's `title` stays "Copy to
+ * clipboard" while its `aria-label` swaps to "Copied" for COPIED_MS, so the two
+ * disagree for that window.
  */
 
 export interface JsonDialogOptions {
@@ -89,16 +86,23 @@ export function createJsonDialog(
 ): JsonDialogElement {
   const { json, highlight, onCopy, onDownload, onClose } = options;
 
+  // Restored when the dialog is destroyed, so closing returns the user to
+  // whatever opened it (the JSON button in the controls bar).
+  const opener =
+    typeof document !== 'undefined'
+      ? (document.activeElement as HTMLElement | null)
+      : null;
+
   const backdrop = h('button', {
     type: 'button',
     class: 'rdfa-dialog-backdrop',
-    'aria-label': 'Fermer la fenêtre',
+    'aria-label': 'Close the dialog',
     tabindex: '-1',
   });
   backdrop.addEventListener('click', onClose);
 
   const title = h('span', { class: 'rdfa-dialog-title' }, [
-    'Spécification JSON',
+    'JSON specification',
   ]);
 
   const downloadBtn = h(
@@ -106,8 +110,8 @@ export function createJsonDialog(
     {
       type: 'button',
       class: 'rdfa-btn',
-      'aria-label': 'Télécharger le JSON',
-      title: 'Télécharger le JSON',
+      'aria-label': 'Download the JSON',
+      title: 'Download the JSON',
     },
     [downloadIcon()]
   );
@@ -118,9 +122,9 @@ export function createJsonDialog(
     {
       type: 'button',
       class: 'rdfa-btn rdfa-copy-btn',
-      'aria-label': 'Copier',
+      'aria-label': 'Copy',
       // Constant, unlike the aria-label — reproduced, see the header note.
-      title: 'Copier dans le presse-papier',
+      title: 'Copy to clipboard',
     },
     [copyIcon()]
   );
@@ -132,7 +136,7 @@ export function createJsonDialog(
       'class',
       `rdfa-btn rdfa-copy-btn${copied ? ' rdfa-copied' : ''}`
     );
-    setAttrIfChanged(copyBtn, 'aria-label', copied ? 'Copié' : 'Copier');
+    setAttrIfChanged(copyBtn, 'aria-label', copied ? 'Copied' : 'Copy');
     copyBtn.replaceChildren(copied ? checkIcon() : copyIcon());
   };
   copyBtn.addEventListener('click', () => {
@@ -151,8 +155,8 @@ export function createJsonDialog(
     {
       type: 'button',
       class: 'rdfa-btn',
-      'aria-label': 'Fermer',
-      title: 'Fermer',
+      'aria-label': 'Close',
+      title: 'Close',
     },
     [closeIcon()]
   );
@@ -169,7 +173,7 @@ export function createJsonDialog(
       class: 'rdfa-dialog-overlay',
       role: 'dialog',
       'aria-modal': 'true',
-      'aria-label': 'Spécification JSON',
+      'aria-label': 'JSON specification',
     },
     [
       backdrop,
@@ -185,6 +189,35 @@ export function createJsonDialog(
     ]
   );
 
+  // Tab cycles within these; the backdrop is `tabindex="-1"` and stays out.
+  const focusable: HTMLElement[] = [downloadBtn, copyBtn, closeBtn];
+  el.addEventListener('keydown', (event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      onClose();
+      return;
+    }
+    if (event.key !== 'Tab') return;
+    const active = document.activeElement;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && active === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && active === last) {
+      event.preventDefault();
+      first.focus();
+    } else if (active === null || !focusable.includes(active as HTMLElement)) {
+      // Focus escaped the buttons (or never entered) — pull it back in.
+      event.preventDefault();
+      first.focus();
+    }
+  });
+
+  // Move focus into the dialog once the caller has appended it. The append is
+  // synchronous right after this returns, so a microtask lands after it.
+  queueMicrotask(() => closeBtn.focus());
+
   return {
     el,
     destroy() {
@@ -192,6 +225,7 @@ export function createJsonDialog(
       // there is no reason to reproduce a callback firing into a detached tree.
       clearTimeout(copiedTimer);
       el.remove();
+      opener?.focus?.();
     },
   };
 }

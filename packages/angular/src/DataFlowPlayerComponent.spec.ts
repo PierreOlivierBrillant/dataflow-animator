@@ -139,7 +139,7 @@ describe('input → option mapping, as seen in the rendered player', () => {
   });
 
   it('adds the JSON spec button only for `exportable`', () => {
-    const jsonButton = '[aria-label="Spécification JSON"]';
+    const jsonButton = '[aria-label="JSON specification"]';
 
     const before = mount();
     expect(before.nativeElement.querySelector(jsonButton)).toBeNull();

@@ -113,8 +113,8 @@ function jsonButton(onOpen: () => void): HTMLButtonElement {
     {
       type: 'button',
       class: 'rdfa-btn',
-      'aria-label': 'Spécification JSON',
-      title: 'Spécification JSON',
+      'aria-label': 'JSON specification',
+      title: 'JSON specification',
     },
     [svg]
   );
@@ -180,10 +180,9 @@ export function mountPlayer(
 
   let isFullscreen = false;
   const toggleFullscreen = (): void => {
-    // Reproduced from React, including the asymmetry: this exits full screen
-    // whenever ANY element is full screen, not only when it is this player.
-    // Flagged in the step report.
-    if (document.fullscreenElement) void document.exitFullscreen();
+    // Exit only when THIS player is the fullscreen element: another player (or
+    // any other element) being fullscreen is not ours to collapse.
+    if (document.fullscreenElement === root) void document.exitFullscreen();
     else void root.requestFullscreen?.();
   };
 
@@ -245,11 +244,10 @@ export function mountPlayer(
       event.preventDefault();
       clock.toggle();
     } else if (event.key === 'ArrowRight') {
-      // NOTE — the keyboard JUMPS to the next stop where the "next" button
-      // PLAYS to it. That asymmetry is React's; reproduced, not repaired.
+      // Mirrors the "next" button: PLAY to the next stop (playTo animates
+      // forward). ArrowLeft mirrors "prev" — a backward jump — below.
       event.preventDefault();
-      clock.pause();
-      clock.seek(nextStop(timeline, clock.t));
+      clock.playTo(nextStop(timeline, clock.t));
     } else if (event.key === 'ArrowLeft') {
       event.preventDefault();
       clock.pause();

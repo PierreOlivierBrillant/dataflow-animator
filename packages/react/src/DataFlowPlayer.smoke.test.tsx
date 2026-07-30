@@ -75,8 +75,8 @@ describe('DataFlowPlayer (montage réel)', () => {
     expect(screen.getByText('Serveur')).toBeTruthy();
 
     // Controls (is_navigable).
-    expect(screen.getByLabelText('Lecture')).toBeTruthy();
-    expect(screen.getByLabelText('Étape suivante')).toBeTruthy();
+    expect(screen.getByLabelText('Play')).toBeTruthy();
+    expect(screen.getByLabelText('Next step')).toBeTruthy();
 
     // set_content active at t=0 -> code terminal with Prism highlighting.
     expect(container.querySelector('.rdfa-terminal')).toBeTruthy();
@@ -96,16 +96,16 @@ describe('DataFlowPlayer (montage réel)', () => {
     const { container } = render(<DataFlowPlayer spec={spec} />);
 
     await waitFor(() => expect(player(container)).not.toBeNull());
-    expect(screen.queryByLabelText('Spécification JSON')).toBeNull();
+    expect(screen.queryByLabelText('JSON specification')).toBeNull();
   });
 
   it('ouvre la fenêtre JSON colorée quand exportable', async () => {
     render(<DataFlowPlayer spec={spec} exportable />);
 
     await waitFor(() =>
-      expect(screen.getByLabelText('Spécification JSON')).toBeTruthy()
+      expect(screen.getByLabelText('JSON specification')).toBeTruthy()
     );
-    fireEvent.click(screen.getByLabelText('Spécification JSON'));
+    fireEvent.click(screen.getByLabelText('JSON specification'));
 
     const dialog = screen.getByRole('dialog');
     const code = dialog.querySelector('.rdfa-dialog-code');

@@ -32,7 +32,7 @@ export function createDebugOverlay(timeline: Timeline): DebugOverlayElement {
   const stepValue = document.createTextNode('');
   const activeValue = document.createTextNode('');
   const stepLine = h('div', {}, [
-    h('b', {}, ['étape']),
+    h('b', {}, ['step']),
     stepValue,
     h('b', {}, ['clips actifs']),
     activeValue,

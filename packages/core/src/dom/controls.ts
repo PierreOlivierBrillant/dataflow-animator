@@ -117,7 +117,7 @@ export function createControlsElement(
 ): ControlsElement {
   const { clock, timeline, onToggleFullscreen, exportSlot } = options;
 
-  const restartBtn = button('Recommencer depuis le début', [restartIcon()]);
+  const restartBtn = button('Restart from the beginning', [restartIcon()]);
   restartBtn.addEventListener('click', () => clock.restart());
 
   // Label and icon are written by `apply`, which runs before the bar is ever
@@ -125,16 +125,16 @@ export function createControlsElement(
   const playBtn = h('button', { type: 'button', class: 'rdfa-btn' });
   playBtn.addEventListener('click', () => clock.toggle());
 
-  const prevBtn = button('Étape précédente', [ICONS.prev()]);
+  const prevBtn = button('Previous step', [ICONS.prev()]);
   prevBtn.addEventListener('click', () => {
     clock.pause();
     clock.seek(prevStop(timeline, clock.t));
   });
 
-  // NOTE — deliberately NOT symmetric with `prev`, and not a slip: the React
-  // "next" button PLAYS to the stop where "prev" jumps to it. Reproduced as-is;
-  // flagged in the step report.
-  const nextBtn = button('Étape suivante', [ICONS.next()]);
+  // NOT symmetric with `prev`, by nature: `playTo` animates forward, so "next"
+  // plays to the stop; a backward `playTo` would just jump, so "prev" seeks.
+  // The keyboard mirrors this pair (ArrowRight plays, ArrowLeft jumps).
+  const nextBtn = button('Next step', [ICONS.next()]);
   nextBtn.addEventListener('click', () => {
     clock.playTo(nextStop(timeline, clock.t));
   });
@@ -159,7 +159,7 @@ export function createControlsElement(
     {
       type: 'button',
       class: 'rdfa-timeline',
-      'aria-label': 'Barre de progression',
+      'aria-label': 'Progress bar',
     },
     [track]
   );
@@ -204,7 +204,7 @@ export function applyControlsElement(
   const ratio = durationMs > 0 ? clamp(t / durationMs, 0, 1) : 0;
 
   if (ctl.playing !== playing) {
-    const label = playing ? 'Pause' : 'Lecture';
+    const label = playing ? 'Pause' : 'Play';
     setAttrIfChanged(ctl.playBtn, 'aria-label', label);
     setAttrIfChanged(ctl.playBtn, 'title', label);
     ctl.playBtn.replaceChildren(playing ? ICONS.pause() : ICONS.play());
@@ -212,7 +212,7 @@ export function applyControlsElement(
   }
 
   if (ctl.fullscreen !== isFullscreen) {
-    const label = isFullscreen ? 'Quitter le plein écran' : 'Plein écran';
+    const label = isFullscreen ? 'Exit fullscreen' : 'Fullscreen';
     setAttrIfChanged(ctl.fullscreenBtn, 'aria-label', label);
     setAttrIfChanged(ctl.fullscreenBtn, 'title', label);
     ctl.fullscreenBtn.replaceChildren(
