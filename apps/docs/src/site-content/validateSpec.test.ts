@@ -1,16 +1,24 @@
 import { describe, it, expect } from 'vitest';
 import { validateSpec } from './validateSpec';
 import { clientServer } from './demos/clientServer';
-import { demos } from './demos';
+import { demos, getSpec } from './demos';
+import type { Locale } from '../i18n/translations';
+
+// Since the site went bilingual, a demo spec is a builder `(locale) => spec`,
+// not a spec. validateSpec takes the RESOLVED spec — spreading the builder
+// would silently yield `{}` and make every assertion below vacuous.
+const baseSpec = clientServer('en');
+
+const locales: Locale[] = ['en', 'fr'];
 
 describe('validateSpec — validation de schéma', () => {
   it('retourne un tableau vide pour une spec valide', () => {
-    expect(validateSpec(clientServer)).toEqual([]);
+    expect(validateSpec(baseSpec)).toEqual([]);
   });
 
   it("signale un type d'action inconnu avec la liste des valeurs acceptées", () => {
     const spec = {
-      ...clientServer,
+      ...baseSpec,
       timeline: [{ type: 'mov', object: 'req', from: 'browser', to: 'api' }],
     };
     const errors = validateSpec(spec);
@@ -23,7 +31,7 @@ describe('validateSpec — validation de schéma', () => {
 
   it('signale un type de nœud invalide avec la liste des valeurs acceptées', () => {
     const spec = {
-      ...clientServer,
+      ...baseSpec,
       nodes: [{ id: 'x', type: 'pc', lane: 1 }],
     };
     const errors = validateSpec(spec);
@@ -37,7 +45,7 @@ describe('validateSpec — validation de schéma', () => {
 
   it('signale un champ required manquant avec le nom du champ', () => {
     const spec = {
-      ...clientServer,
+      ...baseSpec,
       nodes: [{ type: 'laptop', lane: 1 }],
     };
     const errors = validateSpec(spec);
@@ -48,7 +56,7 @@ describe('validateSpec — validation de schéma', () => {
 
   it('signale un type incorrect avec le type attendu', () => {
     const spec = {
-      ...clientServer,
+      ...baseSpec,
       nodes: [{ id: 'x', type: 'laptop', lane: '1' }],
     };
     const errors = validateSpec(spec);
@@ -62,10 +70,13 @@ describe('validateSpec — validation de schéma', () => {
 });
 
 describe('validateSpec — toutes les démos de la galerie sont valides', () => {
-  it.each(demos.map((d) => [d.id, d.spec] as const))(
-    'la démo « %s » passe le schéma et la validation des références',
-    (_id, spec) => {
-      expect(validateSpec(spec)).toEqual([]);
+  // Both locales: a translation can introduce its own invalid content.
+  it.each(
+    demos.flatMap((d) => locales.map((locale) => [d.id, locale, d] as const))
+  )(
+    'la démo « %s » (%s) passe le schéma et la validation des références',
+    (_id, locale, demo) => {
+      expect(validateSpec(getSpec(demo, locale))).toEqual([]);
     }
   );
 });
@@ -73,7 +84,7 @@ describe('validateSpec — toutes les démos de la galerie sont valides', () => 
 describe('validateSpec — duration, icon, language', () => {
   it('signale une duration négative', () => {
     const spec = {
-      ...clientServer,
+      ...baseSpec,
       timeline: [
         {
           type: 'move',
@@ -92,7 +103,7 @@ describe('validateSpec — duration, icon, language', () => {
 
   it('signale une duration nulle', () => {
     const spec = {
-      ...clientServer,
+      ...baseSpec,
       timeline: [
         {
           type: 'move',
@@ -111,7 +122,7 @@ describe('validateSpec — duration, icon, language', () => {
 
   it('signale une duration non entière', () => {
     const spec = {
-      ...clientServer,
+      ...baseSpec,
       timeline: [
         {
           type: 'move',
@@ -130,7 +141,7 @@ describe('validateSpec — duration, icon, language', () => {
 
   it("n'émet pas d'erreur pour une duration entière positive", () => {
     const spec = {
-      ...clientServer,
+      ...baseSpec,
       timeline: [
         {
           type: 'move',
@@ -147,7 +158,7 @@ describe('validateSpec — duration, icon, language', () => {
 
   it('signale un language inconnu dans packet_content', () => {
     const spec = {
-      ...clientServer,
+      ...baseSpec,
       packets: [
         {
           id: 'req',
@@ -168,7 +179,7 @@ describe('validateSpec — duration, icon, language', () => {
 
   it("n'émet pas d'erreur pour un language supporté", () => {
     const spec = {
-      ...clientServer,
+      ...baseSpec,
       packets: [
         {
           id: 'req',
@@ -189,7 +200,7 @@ describe('validateSpec — duration, icon, language', () => {
 
   it("n'émet pas d'erreur pour une icône libre (texte)", () => {
     const spec = {
-      ...clientServer,
+      ...baseSpec,
       nodes: [{ id: 'browser', type: 'laptop', lane: 1, icon: 'v2' }],
     };
     expect(validateSpec(spec).filter((e) => e.path.includes('icon'))).toEqual(
@@ -201,7 +212,7 @@ describe('validateSpec — duration, icon, language', () => {
 describe('validateSpec — validation des références croisées', () => {
   it('signale un ID dynamique inconnu dans move.object avec les IDs disponibles', () => {
     const spec = {
-      ...clientServer,
+      ...baseSpec,
       timeline: [{ type: 'move', object: 'ghost', from: 'browser', to: 'api' }],
     };
     const errors = validateSpec(spec);
@@ -214,7 +225,7 @@ describe('validateSpec — validation des références croisées', () => {
 
   it('signale un ID statique inconnu dans move.from avec les IDs disponibles', () => {
     const spec = {
-      ...clientServer,
+      ...baseSpec,
       timeline: [{ type: 'move', object: 'req', from: 'nowhere', to: 'api' }],
     };
     const errors = validateSpec(spec);
@@ -226,7 +237,7 @@ describe('validateSpec — validation des références croisées', () => {
 
   it('signale un ID inconnu dans connections.from', () => {
     const spec = {
-      ...clientServer,
+      ...baseSpec,
       connections: [{ from: 'ghost', to: 'api' }],
     };
     const errors = validateSpec(spec);
@@ -238,7 +249,7 @@ describe('validateSpec — validation des références croisées', () => {
 
   it("signale un wait_for qui pointe vers un ID d'action inexistant", () => {
     const spec = {
-      ...clientServer,
+      ...baseSpec,
       timeline: [
         {
           type: 'move',
@@ -256,7 +267,7 @@ describe('validateSpec — validation des références croisées', () => {
   });
 
   it('ne signale aucune erreur de référence pour la spec clientServer', () => {
-    const refErrors = validateSpec(clientServer).filter((e) =>
+    const refErrors = validateSpec(baseSpec).filter((e) =>
       e.message.startsWith('ID inconnu')
     );
     expect(refErrors).toEqual([]);
