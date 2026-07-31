@@ -67,8 +67,8 @@ const spec: DataFlowSpec = {
 const player = (container: HTMLElement) =>
   container.querySelector('.rdfa-player');
 
-describe('DataFlowPlayer (montage réel)', () => {
-  it('rend les nœuds, les contrôles et le contenu coloré sans planter', async () => {
+describe('DataFlowPlayer (real mount)', () => {
+  it('renders nodes, controls and highlighted content without crashing', async () => {
     const { container } = render(<DataFlowPlayer spec={spec} />);
 
     await waitFor(() => expect(screen.getByText('IDE')).toBeTruthy());
@@ -83,7 +83,7 @@ describe('DataFlowPlayer (montage réel)', () => {
     expect(container.querySelector('.rdfa-code .token')).toBeTruthy();
   });
 
-  it('respecte controls=false', async () => {
+  it('honours controls=false', async () => {
     const { container } = render(
       <DataFlowPlayer spec={spec} controls={false} />
     );
@@ -92,14 +92,14 @@ describe('DataFlowPlayer (montage réel)', () => {
     expect(container.querySelector('.rdfa-controls')).toBeNull();
   });
 
-  it('n’affiche pas le bouton JSON par défaut', async () => {
+  it('does not show the JSON button by default', async () => {
     const { container } = render(<DataFlowPlayer spec={spec} />);
 
     await waitFor(() => expect(player(container)).not.toBeNull());
     expect(screen.queryByLabelText('JSON specification')).toBeNull();
   });
 
-  it('ouvre la fenêtre JSON colorée quand exportable', async () => {
+  it('opens the highlighted JSON dialog when exportable', async () => {
     render(<DataFlowPlayer spec={spec} exportable />);
 
     await waitFor(() =>
@@ -114,8 +114,8 @@ describe('DataFlowPlayer (montage réel)', () => {
   });
 });
 
-describe('DataFlowPlayer — options passées au cœur', () => {
-  it('ouvre le player à initialT plutôt qu’à 0', async () => {
+describe('DataFlowPlayer — options forwarded to the core', () => {
+  it('opens the player at initialT rather than at 0', async () => {
     // Past a whole second: the controls bar rounds, so a smaller instant would
     // still read "0s" and the assertion would prove nothing.
     const { container } = render(
@@ -127,7 +127,7 @@ describe('DataFlowPlayer — options passées au cœur', () => {
     expect(container.querySelector('.rdfa-time')?.textContent).toMatch(/^1s/);
   });
 
-  it('applique width et height à la racine', async () => {
+  it('applies width and height to the root', async () => {
     const { container } = render(
       <DataFlowPlayer spec={spec} width={480} height={320} />
     );
@@ -138,7 +138,7 @@ describe('DataFlowPlayer — options passées au cœur', () => {
     expect(root.style.height).toBe('320px');
   });
 
-  it('convertit style camelCase en propriétés CSS', async () => {
+  it('converts camelCase style into CSS properties', async () => {
     const { container } = render(
       <DataFlowPlayer spec={spec} style={{ backgroundColor: 'rgb(1, 2, 3)' }} />
     );
@@ -149,7 +149,7 @@ describe('DataFlowPlayer — options passées au cœur', () => {
     );
   });
 
-  it('fait descendre density jusqu’au stage, spacious compris', async () => {
+  it('forwards density down to the stage, spacious included', async () => {
     const scaleOf = async (density: 'compact' | 'spacious') => {
       const { container, unmount } = render(
         <DataFlowPlayer spec={spec} density={density} />
@@ -165,7 +165,7 @@ describe('DataFlowPlayer — options passées au cœur', () => {
     expect(await scaleOf('spacious')).not.toBe(await scaleOf('compact'));
   });
 
-  it('journalise les avertissements de compilation en mode debug', async () => {
+  it('logs compilation warnings in debug mode', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const { container } = render(
       <DataFlowPlayer
@@ -195,13 +195,13 @@ describe('DataFlowPlayer — options passées au cœur', () => {
   });
 });
 
-describe('DataFlowPlayer — cycle de vie du montage', () => {
+describe('DataFlowPlayer — mount lifecycle', () => {
   /**
    * The regression this guards: callers routinely build the spec inline, so a
    * naive `useEffect(…, [spec])` would tear the player down and remeasure on
    * every render of the enclosing page.
    */
-  it('ne remonte pas quand une spec structurellement identique est repassée', async () => {
+  it('does not remount when a structurally identical spec is passed again', async () => {
     const { container, rerender } = render(<DataFlowPlayer spec={spec} />);
     await waitFor(() => expect(player(container)).not.toBeNull());
     const before = player(container);
@@ -211,7 +211,7 @@ describe('DataFlowPlayer — cycle de vie du montage', () => {
     expect(player(container)).toBe(before);
   });
 
-  it('remonte et conserve l’instant courant quand la spec change vraiment', async () => {
+  it('remounts and keeps the current instant when the spec really changes', async () => {
     const { container, rerender } = render(
       <DataFlowPlayer spec={spec} initialT={1200} />
     );
@@ -238,7 +238,7 @@ describe('DataFlowPlayer — cycle de vie du montage', () => {
     expect(container.querySelector('.rdfa-time')?.textContent).toMatch(/^1s/);
   });
 
-  it('ne laisse rien derrière lui au démontage', async () => {
+  it('leaves nothing behind on unmount', async () => {
     const { container, unmount } = render(<DataFlowPlayer spec={spec} />);
     await waitFor(() => expect(player(container)).not.toBeNull());
 
@@ -248,7 +248,7 @@ describe('DataFlowPlayer — cycle de vie du montage', () => {
   });
 
   // What StrictMode does to every consumer, twice.
-  it('supporte montage → démontage → remontage', async () => {
+  it('supports mount → unmount → remount', async () => {
     const first = render(<DataFlowPlayer spec={spec} />);
     await waitFor(() => expect(player(first.container)).not.toBeNull());
     first.unmount();
