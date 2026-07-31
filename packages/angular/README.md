@@ -176,7 +176,7 @@ detection pass.
 
 ## Documentation
 
-- [Concepts and full spec reference](https://pierreolivierbrillant.github.io/react-dataflow-animator/)
+- [Concepts and full spec reference](https://pierreolivierbrillant.github.io/dataflow-animator/)
 - [`docs/SPEC.md`](../../docs/SPEC.md) — the functional specification
 - [`@dataflow-animator/core`](../core/README.md) — engine, renderer, stylesheet
 

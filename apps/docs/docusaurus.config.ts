@@ -6,10 +6,10 @@ const config = {
     'Animations de flux de données pilotées par JSON pour React et Docusaurus.',
   favicon: 'img/logo.svg',
   url: 'https://pierreolivierbrillant.github.io',
-  baseUrl: '/react-dataflow-animator/',
+  baseUrl: '/dataflow-animator/',
   trailingSlash: true,
   organizationName: 'PierreOlivierBrillant',
-  projectName: '@dataflow-animator/react',
+  projectName: 'dataflow-animator',
   onBrokenLinks: 'throw',
   markdown: {
     hooks: {
@@ -81,6 +81,58 @@ const config = {
         },
       };
     },
+    // The workspace libs are consumed through npm symlinks, so webpack resolves
+    // them to `packages/*/dist` — a real path OUTSIDE node_modules, and being
+    // outside node_modules is the ONLY thing Docusaurus' babel-loader `exclude`
+    // looks at. The linked dist was therefore transpiled as if it were site
+    // source, by `@babel/preset-env` in LOOSE mode, where `[...iterable]`
+    // becomes `[].concat(iterable)`: correct for an array, silently wrong for a
+    // Set or a Map — `[].concat(new Set([f]))` yields `[theSet]`, not `[f]`.
+    // That is what crashed the player on every page holding one ("_e37 is not a
+    // function": the clock's listener Set came back as a one-element array
+    // holding the Set itself, and calling it threw on the first frame).
+    // An npm consumer never hits this, since their copy IS in node_modules and
+    // is excluded. So the fix belongs here, and it is the same fix in kind:
+    // consume the built dist as-is, exactly like a published package.
+    function skipBabelForLinkedLibsPlugin() {
+      const linkedDistRe = /[\\/]packages[\\/](?:core|react)[\\/]dist[\\/]/;
+      return {
+        name: 'skip-babel-for-linked-libs',
+        configureWebpack(config?: {
+          module?: { rules?: unknown[] };
+        }): Record<string, never> {
+          type JsRule = { test?: unknown; exclude?: (p: string) => boolean };
+          const rules = config?.module?.rules;
+          // knip — and any static analyzer that walks the config — invokes the
+          // plugin lifecycles with no real webpack config, just to discover
+          // entry points. Nothing to patch then, and nothing wrong either.
+          if (!Array.isArray(rules) || rules.length === 0) {
+            return {};
+          }
+          const jsRule = rules.find(
+            (rule): rule is JsRule =>
+              typeof rule === 'object' &&
+              rule !== null &&
+              String((rule as JsRule).test) === String(/\.[jt]sx?$/i) &&
+              typeof (rule as JsRule).exclude === 'function'
+          );
+          // Loud on drift: if Docusaurus reshapes its JS rule, a silent no-op
+          // here would bring the loose-mode miscompilation back at runtime.
+          if (!jsRule) {
+            throw new Error(
+              "skip-babel-for-linked-libs: Docusaurus' JS rule (test /\\.[jt]sx?$/i " +
+                'with a function `exclude`) was not found — the babel-loose ' +
+                'workaround no longer applies, re-check it against the current ' +
+                'Docusaurus version.'
+            );
+          }
+          const baseExclude = jsRule.exclude!;
+          jsRule.exclude = (modulePath: string) =>
+            linkedDistRe.test(modulePath) || baseExclude(modulePath);
+          return {};
+        },
+      };
+    },
   ],
   themeConfig: {
     metadata: [
@@ -98,7 +150,7 @@ const config = {
         { to: '/examples', label: 'Exemples', position: 'left' },
         { to: '/playground', label: 'Playground', position: 'left' },
         {
-          href: 'https://github.com/PierreOlivierBrillant/react-dataflow-animator',
+          href: 'https://github.com/PierreOlivierBrillant/dataflow-animator',
           label: 'GitHub',
           position: 'right',
         },
@@ -124,7 +176,7 @@ const config = {
             },
             {
               label: 'GitHub',
-              href: 'https://github.com/PierreOlivierBrillant/react-dataflow-animator',
+              href: 'https://github.com/PierreOlivierBrillant/dataflow-animator',
             },
           ],
         },

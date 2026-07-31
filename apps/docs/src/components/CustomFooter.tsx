@@ -86,7 +86,7 @@ function FooterCopyright({
       </p>
       <div className="flex items-center gap-4">
         <a
-          href="https://github.com/PierreOlivierBrillant/react-dataflow-animator"
+          href="https://github.com/PierreOlivierBrillant/dataflow-animator"
           target="_blank"
           rel="noopener noreferrer"
           aria-label={repoAria}

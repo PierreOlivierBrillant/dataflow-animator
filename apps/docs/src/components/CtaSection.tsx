@@ -54,7 +54,7 @@ export function CtaSection() {
             <ArrowRight size={15} />
           </Link>
           <a
-            href="https://github.com/PierreOlivierBrillant/react-dataflow-animator"
+            href="https://github.com/PierreOlivierBrillant/dataflow-animator"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm no-underline transition-all hover:bg-slate-900/[0.06] dark:hover:bg-white/[0.07] border border-slate-900/15 dark:border-white/10 text-slate-700 dark:text-white/85 font-sans"

@@ -290,7 +290,7 @@ content).
 ## Documentation
 
 Full site (demos, playground, API reference):
-<https://github.com/PierreOlivierBrillant/react-dataflow-animator>.
+<https://github.com/PierreOlivierBrillant/dataflow-animator>.
 
 ## Licence
 

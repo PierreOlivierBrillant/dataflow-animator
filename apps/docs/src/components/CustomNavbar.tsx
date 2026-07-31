@@ -12,18 +12,18 @@ import { LanguageSwitcher } from './LanguageSwitcher';
 import { ThemeToggle } from './ThemeToggle';
 import { useTranslation } from '../i18n';
 
-const GITHUB_URL =
-  'https://github.com/PierreOlivierBrillant/react-dataflow-animator';
+const GITHUB_URL = 'https://github.com/PierreOlivierBrillant/dataflow-animator';
 
 export function CustomNavbar() {
   const t = useTranslation();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation().pathname;
-  const isHome =
-    location === '/' ||
-    location.endsWith('/react-dataflow-animator') ||
-    location.endsWith('/react-dataflow-animator/');
+  // Derived, never hardcoded: `useBaseUrl('/')` already carries baseUrl AND the
+  // locale prefix, so the transparent navbar follows the home page of BOTH
+  // locales and survives a baseUrl rename.
+  const home = useBaseUrl('/');
+  const isHome = location === home || `${location}/` === home;
   const isSolid = !isHome || scrolled;
 
   useEffect(() => {
@@ -176,7 +176,7 @@ interface NavLinkProps {
 function NavLink({ to, label, icon, exact = false }: NavLinkProps) {
   const currentPath = useLocation().pathname;
   // `to` is relative to the site root; useLocation returns the real pathname,
-  // including baseUrl (/react-dataflow-animator/...). So we compare on the same basis.
+  // including baseUrl (/dataflow-animator/...). So we compare on the same basis.
   const target = useBaseUrl(to);
 
   const isActive = exact

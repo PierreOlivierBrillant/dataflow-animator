@@ -77,7 +77,7 @@ recordExtractor: ({ $, url, helpers }) => {
       return record;
     });
 
-  const pathname = url.pathname; // e.g. "/react-dataflow-animator/fr/playground/"
+  const pathname = url.pathname; // e.g. "/dataflow-animator/fr/playground/"
 
   // ── /playground → one rich record per example (deep-linked ?demo=<id>) ────
   if (/\/playground\/?$/.test(pathname)) {

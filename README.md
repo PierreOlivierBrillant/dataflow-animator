@@ -1,6 +1,6 @@
 # React DataFlow Animator
 
-[![CI](https://github.com/PierreOlivierBrillant/react-dataflow-animator/actions/workflows/ci-cd.yml/badge.svg?branch=main)](https://github.com/PierreOlivierBrillant/react-dataflow-animator/actions/workflows/ci-cd.yml)
+[![CI](https://github.com/PierreOlivierBrillant/dataflow-animator/actions/workflows/ci-cd.yml/badge.svg?branch=main)](https://github.com/PierreOlivierBrillant/dataflow-animator/actions/workflows/ci-cd.yml)
 [![npm version](https://img.shields.io/npm/v/@dataflow-animator/react.svg)](https://www.npmjs.com/package/@dataflow-animator/react)
 [![npm downloads](https://img.shields.io/npm/dm/@dataflow-animator/react.svg)](https://www.npmjs.com/package/@dataflow-animator/react)
 [![bundle size](https://img.shields.io/bundlephobia/minzip/@dataflow-animator/react)](https://bundlephobia.com/package/@dataflow-animator/react)
