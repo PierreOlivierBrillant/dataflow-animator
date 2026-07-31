@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
+import Prism from 'prismjs/components/prism-core.js';
 import { escapeHtml, highlightCode } from './highlight';
+
+describe('Prism auto-highlight opt-out', () => {
+  // Without this flag Prism rewrites every `<pre><code class="language-*">` of
+  // the HOST page on DOMContentLoaded, which breaks hydration on SSR hosts.
+  it('leaves the host page code blocks alone', () => {
+    expect(Prism.manual).toBe(true);
+  });
+});
 
 describe('escapeHtml', () => {
   it('échappe &, < et > dans le bon ordre', () => {

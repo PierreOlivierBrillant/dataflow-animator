@@ -18,6 +18,15 @@ import 'prismjs/components/prism-http.js';
 
 import type { Highlighter } from '../types';
 
+// In a browser, Prism highlights EVERY `<pre><code class="language-*">` of the
+// host page on DOMContentLoaded. Importing this module would therefore rewrite
+// code blocks the host owns and never handed to us — which breaks hydration on
+// any SSR host that renders its own (a Docusaurus site emits React error #418
+// on every page embedding a player). We only ever call `Prism.highlight`
+// explicitly, so opt out. The auto-highlight callback re-reads this flag when
+// it fires, so assigning it at module evaluation is early enough.
+Prism.manual = true;
+
 /** Common aliases -> Prism identifiers. */
 const ALIASES: Record<string, string> = {
   js: 'javascript',

@@ -193,6 +193,11 @@ gate, is cleaned up now that it is no longer measured against React:
   buttons, and focus moves in on open and back to the opener on close;
 - the fullscreen toggle exits only when **this** player is the fullscreen
   element, not whenever any element is.
+- **SSR hydration**: importing the core no longer lets Prism auto-highlight the
+  host page's own `<pre><code>` blocks on `DOMContentLoaded` (it now sets
+  `Prism.manual`). On a server-rendered host — a Docusaurus/Next site embedding
+  a player — that rewrote markup React had already sent, throwing React error
+  #418; explicit `highlightCode` calls are unaffected.
 
 ### Added
 
