@@ -1,9 +1,9 @@
 # Functional Specification — React DataFlow Animator
 
 > Functional source of truth of the library. The complete **JSON Schema** (types,
-> enumerations, default values) lives in the code: [`packages/react-dataflow-animator/src/schema.ts`](../packages/react-dataflow-animator/src/schema.ts)
+> enumerations, default values) lives in the code: [`packages/core/src/schema.ts`](../packages/core/src/schema.ts)
 > and feeds the "API Documentation" page of the site. The corresponding **TypeScript types**
-> are in [`packages/react-dataflow-animator/src/types.ts`](../packages/react-dataflow-animator/src/types.ts).
+> are in [`packages/core/src/types.ts`](../packages/core/src/types.ts).
 
 ## 1. Overview
 
@@ -41,7 +41,7 @@ Displayed according to the `controls` prop (default: `true`):
 ## 3. Spatial rendering engine (Layout Engine)
 
 Positions nodes **without (x, y) coordinates as input**, using relative ratios to
-the container (pure CSS placement). See [`packages/react-dataflow-animator/src/engine/layout.ts`](../packages/react-dataflow-animator/src/engine/layout.ts).
+the container (pure CSS placement). See [`packages/core/src/engine/layout.ts`](../packages/core/src/engine/layout.ts).
 
 - **Linear grids** (`left-to-right`, `right-to-left`, `top-to-bottom`,
   `bottom-to-top`): `lane` = position along the flow; nodes of the same lane
@@ -211,7 +211,7 @@ not to overflow.
 
 Connections are drawn between the actual `BoundingClientRect` of the nodes (measured
 client-side). Arrows and packets stop at a **margin** of a few pixels from the
-node (`NODE_GAP`). See [`packages/react-dataflow-animator/src/engine/geometry.ts`](../packages/react-dataflow-animator/src/engine/geometry.ts).
+node (`NODE_GAP`). See [`packages/core/src/engine/geometry.ts`](../packages/core/src/engine/geometry.ts).
 
 - **Bidirectional shifting (path shifting)**: the compiler scans the entire spec
   (permanent connections + `move`/`arrow` actions). If a segment A↔B is used in
@@ -227,7 +227,7 @@ node (`NODE_GAP`). See [`packages/react-dataflow-animator/src/engine/geometry.ts
   transverse position to reduce crossings (`PORT_SPACING`). The decision is
   per-node-face (a link converges at the end whose node merges) and is
   independent of the intra-pair spreading above, which always applies. See
-  [`packages/react-dataflow-animator/src/engine/portOffsets.ts`](../packages/react-dataflow-animator/src/engine/portOffsets.ts).
+  [`packages/core/src/engine/portOffsets.ts`](../packages/core/src/engine/portOffsets.ts).
 - **Outline anchoring on round nodes (`ports`)**: cardinal N/S/E/W anchoring
   fits boxes, not discs — an edge meeting a `circle` at an angle would leave a
   visible gap. A round node therefore anchors each edge on its **outline**,
@@ -239,7 +239,7 @@ node (`NODE_GAP`). See [`packages/react-dataflow-animator/src/engine/geometry.ts
   N/E/S/W on the disc). The intra-pair bidirectional spread still applies (as a
   tangential nudge). Non-round nodes ignore `ports`. Implemented in
   `ellipseAttach` / `connection` in
-  [`geometry.ts`](../packages/react-dataflow-animator/src/engine/geometry.ts);
+  [`geometry.ts`](../packages/core/src/engine/geometry.ts);
   bezier handles leave along the radial normal (`pathShapes.ts`).
 
 - **Named terminals on components (`"node:pin"`)**: electrical component symbols
@@ -248,7 +248,7 @@ node (`NODE_GAP`). See [`packages/react-dataflow-animator/src/engine/geometry.ts
   `move` / `flow` step) targets one with the `"node:pin"` endpoint syntax
   (`"R1:a"`, `"battery:+"`); a bare `"node"` keeps the ordinary face/outline
   anchoring. The terminal map per type lives in
-  [`packages/react-dataflow-animator/src/engine/pins.ts`](../packages/react-dataflow-animator/src/engine/pins.ts);
+  [`packages/core/src/engine/pins.ts`](../packages/core/src/engine/pins.ts);
   the anchor (position + outward normal) is computed by `pinAttach` in
   `geometry.ts` and **rotates with the node** — so a vertical resistor
   (`rotation: 90`) has its `a` / `b` terminals top and bottom, and its wires leave
@@ -258,7 +258,7 @@ node (`NODE_GAP`). See [`packages/react-dataflow-animator/src/engine/geometry.ts
 ## 5. Animation engine and actions
 
 The timeline compiles an array of ordered actions. See
-[`packages/react-dataflow-animator/src/engine/compiler.ts`](../packages/react-dataflow-animator/src/engine/compiler.ts).
+[`packages/core/src/engine/compiler.ts`](../packages/core/src/engine/compiler.ts).
 
 1. **move**: moves a dynamic object (packet/request) from `from` to `to`;
    interpolation over `duration` ms; follows the shifted lane if bidirectional.
@@ -375,7 +375,7 @@ API reference generated from the JSON Schema). Built via
 
 Every **prose** field of a spec accepts a LaTeX subset between `$…$`, the same
 delimiters GitHub markdown uses — `"$B_{in}$"` renders B with an "in" subscript.
-Implemented in [`packages/react-dataflow-animator/src/tex/`](../packages/react-dataflow-animator/src/tex/),
+Implemented in [`packages/core/src/tex/`](../packages/core/src/tex/),
 with no external dependency: each command resolves to a literal character, so no
 math font is downloaded.
 
@@ -459,7 +459,7 @@ clamp(0, (0.62 − l) × 1000, 1) 0 0)` (black/white according to luminance). `-
 - **`language`: TS ↔ schema divergence (intentional).** The TypeScript type is
   `HighlightLanguage | (string & {})` — any string is valid at
   compile time so as not to break consumers. But the script
-  `packages/react-dataflow-animator/scripts/schema-patches.mjs` removes the free
+  `packages/core/scripts/schema-patches.mjs` removes the free
   `{type:string}` branch from the generated schema and keeps only the `$ref` to
   `HighlightLanguage`. Consequence: a language outside the enum passes the
   TypeScript compiler but is rejected by Ajv. This is intended: the schema is stricter
