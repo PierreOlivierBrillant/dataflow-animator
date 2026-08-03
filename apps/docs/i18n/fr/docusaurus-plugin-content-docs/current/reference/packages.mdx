@@ -1,0 +1,233 @@
+---
+title: Paquets et liaisons
+slug: /reference/packages
+---
+
+La suite, c'est **un moteur et trois liaisons fines**. Tout ce qui dessine — le
+compilateur, le moteur de rendu DOM en mode retenu, la feuille de style, les
+registres d'icônes, la coloration syntaxique — vit dans
+`@dataflow-animator/core`. Une liaison n'ajoute que la colle propre à son
+framework : elle dépend du cœur, elle n'en embarque pas une copie.
+
+C'est pour cela que les trois rendent les mêmes pixels. Le dépôt contient une
+barrière au pixel qui monte une spec via `mountPlayer` et via
+`<dataflow-player>` côte à côte, sur 60 configurations, et exige un écart de
+**0,0000 %**.
+
+| Paquet                       | Vous écrivez            | À choisir quand                                                      |
+| ---------------------------- | ----------------------- | -------------------------------------------------------------------- |
+| `@dataflow-animator/core`    | `mountPlayer(el, spec)` | aucun framework, ou vous écrivez votre propre liaison                |
+| `@dataflow-animator/react`   | `<DataFlowPlayer>`      | React 18 ou 19 — Next.js, Docusaurus, Vite…                          |
+| `@dataflow-animator/element` | `<dataflow-player>`     | HTML brut, Vue, Svelte, Astro, Rails, Django… ou un CDN sans build   |
+| `@dataflow-animator/angular` | `<dfa-player>`          | Angular 22, avec des entrées typées et sans `CUSTOM_ELEMENTS_SCHEMA` |
+
+L'installation et un exemple minimal pour chacun sont sur la page
+[Installation](../installation.mdx).
+
+:::info Une seule feuille de style, quelle que soit la liaison
+
+`@dataflow-animator/core/styles.css` est la seule CSS de la suite. Aucune
+liaison n'en émet, aucune ne la réexporte — vous l'importez du cœur, par son
+nom, une fois. Une page peut charger plusieurs liaisons : elle n'aura toujours
+qu'un moteur et qu'une feuille de style.
+
+:::
+
+## Ce que toutes les liaisons partagent
+
+Ces comportements viennent du cœur : ils sont donc identiques en React, en
+Angular, dans l'élément personnalisé et dans un simple appel à `mountPlayer`.
+
+**Les options sont lues une fois, au montage.** En changer une reconstruit le
+lecteur. Trois choses rendent cela invisible :
+
+- plusieurs changements faits dans le même tick sont fusionnés en **une seule**
+  reconstruction ;
+- le nouveau lecteur rouvre à **l'instant et à l'état de lecture** du
+  précédent : changer une option en plein scrubbing ne saute pas ;
+- seul le **premier** montage honore `initialT` et `autoPlay`. Ensuite, c'est la
+  position reprise qui gagne.
+
+**Le chrome est localisable.** Chaque chaîne visible de la barre de contrôle et
+de la fenêtre JSON — `aria-label`, infobulles, titre de la fenêtre — se
+remplace clé par clé via `labels`, les défauts anglais étant résolus dans le
+cœur. Voir [Localiser le chrome](./components.mdx#labels).
+
+**Le lecteur se pilote au clavier** dès que `controls` est actif :
+
+| Touche   | Ce qu'elle fait                                                  |
+| -------- | ---------------------------------------------------------------- |
+| `Espace` | lecture / pause — sur la scène, pas sur un bouton qui a le focus |
+| `→`      | joue jusqu'à l'arrêt suivant, comme le bouton « étape suivante » |
+| `←`      | met en pause et saute à l'arrêt précédent                        |
+| `Échap`  | ferme la fenêtre JSON                                            |
+
+Deux exclusions découlent du fait que les raccourcis vivent sur la racine du
+lecteur. `Espace` **active** déjà un bouton qui a le focus : il ne reste donc un
+raccourci que si le focus n'est sur rien d'activable — sinon appuyer sur
+« étape suivante » basculerait la lecture. Et aucun raccourci ne se déclenche
+depuis la fenêtre JSON, qui est modale et dont le contenu défile avec les
+flèches.
+
+**Les registres sont globaux.** `registerNodeIcon` et `registerSubIcon` mutent
+un registre au niveau module, partagé par tous les lecteurs de la page.
+Appelez-les une fois au démarrage de l'application, jamais par composant.
+
+**Rien n'est rendu côté serveur.** Importer l'un de ces paquets sur un serveur
+est inerte ; le lecteur se monte côté client. Voir
+[SSR et hydratation](../installation.mdx#ssr-et-hydratation).
+
+## React — `<DataFlowPlayer>`
+
+Le tableau complet des props, les thèmes, `exportable`, les icônes
+personnalisées et la coloration syntaxique sont sur
+[Composants et API JavaScript](./components.mdx). Deux points méritent d'être
+répétés ici :
+
+- `spec` et `labels` sont comparés **structurellement**, pas par identité : un
+  objet littéral inline ne provoque donc aucun remontage ;
+- `NodeView` rend le visuel d'un seul nœud hors de toute scène — pratique pour
+  une légende.
+
+## Élément personnalisé — `<dataflow-player>`
+
+Light DOM, pas de shadow root : les sélecteurs CSS ordinaires atteignent son
+intérieur, ce qui est aussi ce qui permet à la feuille de style globale du cœur
+de s'appliquer.
+
+Toutes les options du lecteur sont accessibles. La règle est mécanique : une
+option camelCase devient un **attribut kebab-case**, et la propriété garde le
+nom camelCase (`auto-play` / `autoPlay`). Trois entrées échappent à la règle, et
+les trois y sont contraintes :
+
+| Attribut       | Propriété     | Pourquoi c'est différent                                  |
+| -------------- | ------------- | --------------------------------------------------------- |
+| `player-class` | `playerClass` | `className` désigne déjà la liste de classes de l'élément |
+| —              | `highlight`   | une fonction ne tient pas dans un attribut                |
+| —              | `labels`      | un objet non plus                                         |
+
+### Un attribut booléen absent ne vaut pas `false` {#absence-is-not-false}
+
+Cet élément ne suit **pas** la convention HTML habituelle, et il ne le peut
+pas : le cœur donne `true` par défaut à `controls`, et un attribut absent
+signifie « non spécifié » — c'est donc le défaut du cœur qui s'applique.
+
+| Vous écrivez                                                    | Vous obtenez                                     |
+| --------------------------------------------------------------- | ------------------------------------------------ |
+| rien                                                            | **le défaut du cœur** — les contrôles restent là |
+| `controls` · `controls=""` · `controls="true"` · `controls="1"` | `true`                                           |
+| `controls="false"` · `controls="0"`                             | `false`                                          |
+| n'importe quoi d'autre                                          | un avertissement console, puis le défaut         |
+
+**Pour masquer la barre de contrôle, écrivez `controls="false"`.** Retirer
+l'attribut ne suffit pas.
+
+### Le montage est observable
+
+Le montage est **toujours différé d'une microtâche**, premier montage compris.
+C'est ce qui vous permet de poser plusieurs attributs à la suite et d'obtenir un
+lecteur au lieu de quatre, et ce qui fait fonctionner `createElement` →
+`append` → `.spec = …`. Cela veut aussi dire que vous ne pouvez pas lire le
+lecteur juste après avoir inséré la balise : attendez l'événement, jamais un
+délai.
+
+```js
+const player = document.querySelector('dataflow-player');
+player.addEventListener('dataflow-player:mounted', () => {
+  // .rdfa-player existe maintenant
+});
+```
+
+| Événement                 | Quand                                                                   |
+| ------------------------- | ----------------------------------------------------------------------- |
+| `dataflow-player:mounted` | après chaque montage réussi, remontages compris. `detail: { warnings }` |
+| `dataflow-player:error`   | l'attribut `spec` n'a pas pu être lu. `detail: { error }`               |
+
+Un attribut `spec` illisible ne change rien : le lecteur monté reste exactement
+tel quel, et l'erreur est signalée en console et par événement. Une faute de
+frappe en cours d'édition ne vide pas votre page.
+
+### Style, et une seconde balise
+
+L'élément efface sa propre boîte avec un `display: contents` inline : ainsi
+`.rdfa-player` hérite du contexte de mise en page que vous avez donné à la
+balise — c'est ce qui fait fonctionner `height="100%"` et le placement en flex.
+Posez vous-même un `display` inline pour vous en dispenser.
+
+```css
+dataflow-player .rdfa-player {
+  border-radius: 12px;
+}
+```
+
+Importer le paquet enregistre la balise. `defineDataFlowPlayer(tag)` enregistre
+une **sous-classe** sous tout nom supplémentaire — `customElements.define` lève
+une erreur quand un constructeur est déjà enregistré, ce n'est donc pas un
+détail que l'on peut sauter :
+
+```js
+import { defineDataFlowPlayer } from '@dataflow-animator/element';
+
+defineDataFlowPlayer('lesson-player');
+```
+
+Le paquet augmente `HTMLElementTagNameMap` : `document.querySelector('dataflow-player')`
+est donc typé sans cast.
+
+## Angular — `<dfa-player>`
+
+Un composant standalone avec **une entrée typée par option du lecteur** — pas de
+`CUSTOM_ELEMENTS_SCHEMA`, pas d'attributs stringly-typed :
+
+```html
+<dfa-player [spec]="spec" [height]="420" theme="blueprint" />
+```
+
+| Sortie    | Charge utile                      | Quand                                                 |
+| --------- | --------------------------------- | ----------------------------------------------------- |
+| `mounted` | `{ warnings: readonly string[] }` | après chaque montage, remontages compris              |
+| `error`   | `{ error: unknown }`              | la spec n'a pas pu être montée (également journalisé) |
+
+Le lecteur se monte à la première passe de détection de changement, pas dans le
+constructeur : `mounted` est donc la façon de savoir qu'il est là.
+
+Trois propriétés valent la peine d'être connues :
+
+- **l'horloge d'animation tourne hors de la zone Angular** : un lecteur en
+  lecture ne déclenche donc jamais de détection de changement sur une frame ;
+- `spec` et `labels` sont indexés sur leur **structure** : `[spec]="buildSpec()"`
+  — un objet neuf à chaque passe — ne provoque donc aucun remontage ;
+- une entrée que vous ne liez pas retombe sur **le défaut du cœur**, qui n'est
+  pas `false` : `controls` vaut `true`, liez donc `[controls]="false"` pour
+  masquer la barre.
+
+`playerClass` plutôt que `class`, pour la même raison que l'élément a
+`player-class` : `class` sur la balise désigne déjà la liste de classes de
+l'élément hôte.
+
+## Le cœur seul — `mountPlayer`
+
+```ts
+import { mountPlayer } from '@dataflow-animator/core';
+import '@dataflow-animator/core/styles.css';
+
+const player = mountPlayer(container, spec, { height: 420, autoPlay: true });
+```
+
+| Membre de la poignée | Ce que c'est                                                   |
+| -------------------- | -------------------------------------------------------------- |
+| `el`                 | l'élément racine `.rdfa-player`                                |
+| `clock`              | `play` / `pause` / `seek` / `playTo` / `subscribe`             |
+| `warnings`           | ce que le compilateur avait à dire de la spec                  |
+| `destroy()`          | relâche chaque écouteur, observateur et frame d'animation pris |
+
+Les options sont les props React moins celles propres à React (`fallback`,
+`style`, `className` → `playerClass`), avec les mêmes défauts — le tableau de
+[Composants et API JavaScript](./components.mdx) s'applique.
+
+Pour un diagramme sans chrome, `mountStage(container, spec, t, options)` renvoie
+une poignée dont vous pilotez `update(t)` ; `createPlayerClock` est exporté pour
+que vous n'ayez pas à réimplémenter la sémantique de lecture. C'est ainsi que
+vous écririez une liaison pour un framework qui n'en a pas encore — et le moteur
+pur (`compile`, `evaluate`, `computeLayout`) est exporté lui aussi, sans DOM et
+utilisable côté serveur.

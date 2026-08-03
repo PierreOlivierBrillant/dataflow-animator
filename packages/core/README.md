@@ -137,8 +137,11 @@ over every built-in. A sub-icon can also be **free text** (`'v2'`, `'API'`,
 
 ## Documentation
 
-Full site (demos, playground, API reference):
-<https://github.com/PierreOlivierBrillant/dataflow-animator>.
+- [Full site](https://pierreolivierbrillant.github.io/dataflow-animator/) —
+  concepts, demos, interactive playground, API reference
+- [Packages and bindings](https://pierreolivierbrillant.github.io/dataflow-animator/docs/reference/packages)
+  — the four surfaces side by side
+- [`docs/SPEC.md`](../../docs/SPEC.md) — the functional specification
 
 ## Licence
 

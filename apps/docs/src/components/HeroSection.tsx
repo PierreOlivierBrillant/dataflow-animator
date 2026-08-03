@@ -8,6 +8,10 @@ import { useLocale, useTranslation } from '../i18n';
 
 const INSTALL_CMD = 'npm install @dataflow-animator/react';
 
+// Framework names — language invariants, so they stay out of the dictionary
+// (only the `Works with` lead-in is translated).
+const TARGETS = ['React', 'Angular', 'Web Components', 'Vanilla JS'];
+
 export function HeroSection() {
   const t = useTranslation();
   const locale = useLocale();
@@ -117,6 +121,25 @@ export function HeroSection() {
               {copied ? <Check size={13} /> : <Copy size={13} />}
             </span>
           </motion.button>
+
+          {/* The suite is four packages: say so where the install command is,
+              or the React one above reads as the only way in. */}
+          <motion.div
+            className="flex flex-wrap items-center gap-2 mt-4 text-xs font-sans text-slate-500 dark:text-white/40"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.44 }}
+          >
+            <span>{t.hero.targetsLabel}</span>
+            {TARGETS.map((target) => (
+              <span
+                key={target}
+                className="px-2 py-0.5 rounded-md border border-slate-900/10 dark:border-white/10 bg-slate-900/[0.03] dark:bg-white/[0.03] text-slate-600 dark:text-white/55"
+              >
+                {target}
+              </span>
+            ))}
+          </motion.div>
         </div>
 
         {/* Right: Demo */}

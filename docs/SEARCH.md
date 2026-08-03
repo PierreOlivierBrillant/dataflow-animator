@@ -17,10 +17,12 @@ update the dashboard _and_ this file in the same change.
 | everything else | Default DocSearch extraction.                                                                                  |
 
 Rationale: examples are the most searched-for content, but both `/examples`
-(the gallery) and `/playground` render the same 26 demos. We index them **once**,
-from the playground, so a search result lands directly on the runnable example
-(`/playground?demo=<id>`, read on mount by `playground.tsx`). `/examples` stays
-findable as a page but does not produce 26 duplicate tile records.
+(the gallery) and `/playground` render the same demos (45 at the time of
+writing — the count comes from the `demos` table, so treat every figure here as
+indicative). We index them **once**, from the playground, so a search result
+lands directly on the runnable example (`/playground?demo=<id>`, read on mount
+by `playground.tsx`). `/examples` stays findable as a page but does not produce
+one duplicate tile record per demo.
 
 ## How the playground feeds the crawler
 
@@ -116,8 +118,9 @@ recordExtractor: ({ $, url, helpers }) => {
     }));
   }
 
-  // ── /examples → page record only. The 26 tiles are <h3>, so DROP lvl2..lvl6
-  //    (your default selectors include `h3`, which would index every tile). ──
+  // ── /examples → page record only. The example tiles are <h3>, so DROP
+  //    lvl2..lvl6 (your default selectors include `h3`, which would index
+  //    every tile). ──
   if (/\/examples\/?$/.test(pathname)) {
     return withLang(
       helpers.docsearch({
@@ -167,6 +170,7 @@ Notes:
   `attributesForFaceting` (they are, since the docs records use them).
 - The playground records are hand-built (not via `helpers.docsearch`). Before a
   full reindex, run `…/playground/` and `…/fr/playground/` through the crawler's
-  URL tester and confirm **26 records each**, with the right `?demo=<id>` URL.
+  URL tester and confirm **one record per demo** on each (45 today), with the
+  right `?demo=<id>` URL.
 - After saving the config, **trigger a reindex** (or wait for the next scheduled
   crawl) for the changes to take effect.

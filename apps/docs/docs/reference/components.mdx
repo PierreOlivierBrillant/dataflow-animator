@@ -8,10 +8,20 @@ import { themeExample } from './_components/themes';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-This page covers the **JavaScript/TypeScript surface** of the package: the
-`<DataFlowPlayer>` component and its props, icon registration, and syntax
+This page covers the **JavaScript/TypeScript surface** of the React binding:
+the `<DataFlowPlayer>` component and its props, icon registration, and syntax
 highlighting. For the shape of the JSON specification (`spec`), see the
 [API Reference (JSON spec)](./api.mdx).
+
+:::note Not using React?
+
+The same options exist in the three other packages —
+`<dataflow-player>` (custom element), `<dfa-player>` (Angular) and
+`mountPlayer` (the core, no framework). The prop table below is the reference
+for all of them; what differs is only how you pass them. See
+[Packages and bindings](./packages.mdx).
+
+:::
 
 ```tsx
 import { DataFlowPlayer } from '@dataflow-animator/react';

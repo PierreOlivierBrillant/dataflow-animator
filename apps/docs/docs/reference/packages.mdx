@@ -1,0 +1,226 @@
+---
+title: Packages and bindings
+slug: /reference/packages
+---
+
+The suite is **one engine and three thin bindings**. Everything that draws —
+the compiler, the retained-mode DOM renderer, the stylesheet, the icon
+registries, the syntax highlighter — lives in `@dataflow-animator/core`. A
+binding adds nothing but the glue its framework needs: it depends on the core,
+it does not bundle a copy of it.
+
+That is why the three of them render the same pixels. The repository holds a
+pixel gate that mounts a spec through `mountPlayer` and through
+`<dataflow-player>` side by side, across 60 configurations, and requires a
+**0.0000%** difference.
+
+| Package                      | You write               | Reach for it when                                                     |
+| ---------------------------- | ----------------------- | --------------------------------------------------------------------- |
+| `@dataflow-animator/core`    | `mountPlayer(el, spec)` | no framework, or you are writing a binding of your own                |
+| `@dataflow-animator/react`   | `<DataFlowPlayer>`      | React 18 or 19 — Next.js, Docusaurus, Vite…                           |
+| `@dataflow-animator/element` | `<dataflow-player>`     | plain HTML, Vue, Svelte, Astro, Rails, Django… or a CDN with no build |
+| `@dataflow-animator/angular` | `<dfa-player>`          | Angular 22, with typed inputs and no `CUSTOM_ELEMENTS_SCHEMA`         |
+
+Installation and a minimal example for each of them are on the
+[Installation](../installation.mdx) page.
+
+:::info One stylesheet, whichever binding
+
+`@dataflow-animator/core/styles.css` is the only CSS in the suite. No binding
+emits any, and none re-exports it — you import it from the core by name, once.
+A page may load several bindings and it still gets one engine and one
+stylesheet.
+
+:::
+
+## What every binding shares
+
+These behaviours come from the core, so they are identical in React, Angular,
+the custom element and a bare `mountPlayer` call.
+
+**Options are read once, at mount.** Changing one rebuilds the player. Three
+things make that invisible:
+
+- several changes made in the same tick coalesce into **one** rebuild;
+- the new player reopens at the **instant and play state** the previous one was
+  at, so changing an option mid-scrub does not jump;
+- only the **first** mount honours `initialT` and `autoPlay`. Afterwards the
+  resumed position wins.
+
+**The chrome is localisable.** Every user-visible string of the control bar and
+the JSON dialog — `aria-label`s, tooltips, the dialog heading — is overridable
+key by key through `labels`, with English defaults resolved in the core. See
+[Localising the chrome](./components.mdx#labels).
+
+**The player is keyboard-operable** whenever `controls` is on:
+
+| Key     | What it does                                             |
+| ------- | -------------------------------------------------------- |
+| `Space` | play / pause — over the stage, not over a focused button |
+| `→`     | plays to the next stop, like the "next step" button      |
+| `←`     | pauses and jumps back to the previous stop               |
+| `Esc`   | closes the JSON dialog                                   |
+
+Two exclusions follow from the shortcuts living on the player's root. `Space`
+already **activates** a focused button, so it stays a shortcut only when the
+focus is on nothing activatable — otherwise pressing "next step" would toggle
+playback instead. And no shortcut fires from inside the JSON dialog, which is
+modal and whose content scrolls with the arrows.
+
+**The registries are global.** `registerNodeIcon` and `registerSubIcon` mutate
+a module-level registry shared by every player on the page. Call them once at
+application startup, never per component.
+
+**Nothing renders on the server.** Importing any of these packages on a server
+is inert; the player mounts on the client. See
+[SSR and hydration](../installation.mdx#ssr-and-hydration).
+
+## React — `<DataFlowPlayer>`
+
+The full prop table, themes, `exportable`, custom icons and syntax highlighting
+are on [Components and JavaScript API](./components.mdx). Two things worth
+repeating here:
+
+- `spec` and `labels` are compared **structurally**, not by identity, so an
+  inline object literal does not remount anything;
+- `NodeView` renders a single node's visual outside any stage — handy for a
+  legend.
+
+## Custom element — `<dataflow-player>`
+
+Light DOM, no shadow root: ordinary CSS selectors reach inside it, which is
+also what lets the core's global stylesheet apply.
+
+Every option of the player is reachable. The rule is mechanical: a camelCase
+option becomes a **kebab-case attribute**, and the property keeps the camelCase
+name (`auto-play` / `autoPlay`). Three entries break the rule, and all three
+are forced:
+
+| Attribute      | Property      | Why it differs                                         |
+| -------------- | ------------- | ------------------------------------------------------ |
+| `player-class` | `playerClass` | `className` already means the element's own class list |
+| —              | `highlight`   | a function cannot live in an attribute                 |
+| —              | `labels`      | neither can an object                                  |
+
+### An absent boolean attribute is not `false` {#absence-is-not-false}
+
+This element does **not** follow the usual HTML convention, and it cannot: the
+core defaults `controls` to `true`, and an absent attribute means
+"unspecified", so the core's default applies.
+
+| You write                                                       | You get                                   |
+| --------------------------------------------------------------- | ----------------------------------------- |
+| nothing                                                         | **the core's default** — controls stay on |
+| `controls` · `controls=""` · `controls="true"` · `controls="1"` | `true`                                    |
+| `controls="false"` · `controls="0"`                             | `false`                                   |
+| anything else                                                   | a console warning, then the default       |
+
+**To hide the control bar, write `controls="false"`.** Removing the attribute
+does not do it.
+
+### Mounting is observable
+
+Mounting is **always deferred by one microtask**, the first mount included.
+That is what lets you set several attributes in a row and get one player
+instead of four, and what makes `createElement` → `append` → `.spec = …` work.
+It also means you cannot read the player straight after inserting the tag —
+wait for the event, never for a timeout:
+
+```js
+const player = document.querySelector('dataflow-player');
+player.addEventListener('dataflow-player:mounted', () => {
+  // .rdfa-player exists now
+});
+```
+
+| Event                     | When                                                                    |
+| ------------------------- | ----------------------------------------------------------------------- |
+| `dataflow-player:mounted` | after every successful mount, remounts included. `detail: { warnings }` |
+| `dataflow-player:error`   | the `spec` attribute could not be read. `detail: { error }`             |
+
+An unreadable `spec` attribute changes nothing: the mounted player is left
+exactly as it is, and the error is reported on the console and as an event. A
+typo mid-edit does not blank your page.
+
+### Styling, and a second tag name
+
+The element removes its own box with an inline `display: contents`, so
+`.rdfa-player` inherits the layout context you gave the tag — which is what
+makes `height="100%"` and flex placement work. Set an inline `display`
+yourself to opt out.
+
+```css
+dataflow-player .rdfa-player {
+  border-radius: 12px;
+}
+```
+
+Importing the package registers the tag. `defineDataFlowPlayer(tag)` registers
+a **subclass** under any additional name — `customElements.define` throws when
+a constructor is already registered, so this is not a detail you can skip:
+
+```js
+import { defineDataFlowPlayer } from '@dataflow-animator/element';
+
+defineDataFlowPlayer('lesson-player');
+```
+
+The package augments `HTMLElementTagNameMap`, so
+`document.querySelector('dataflow-player')` is typed with no cast.
+
+## Angular — `<dfa-player>`
+
+A standalone component with **one typed input per player option** — no
+`CUSTOM_ELEMENTS_SCHEMA`, no stringly-typed attributes:
+
+```html
+<dfa-player [spec]="spec" [height]="420" theme="blueprint" />
+```
+
+| Output    | Payload                           | When                                        |
+| --------- | --------------------------------- | ------------------------------------------- |
+| `mounted` | `{ warnings: readonly string[] }` | after every mount, remounts included        |
+| `error`   | `{ error: unknown }`              | the spec could not be mounted (also logged) |
+
+The player mounts on the first change detection pass, not in the constructor,
+so `mounted` is how you know it is there.
+
+Three properties are worth knowing:
+
+- **the animation clock runs outside the Angular zone**, so a playing player
+  never triggers change detection on a frame;
+- `spec` and `labels` are keyed on their **structure**, so
+  `[spec]="buildSpec()"` — a fresh object on every pass — does not remount
+  anything;
+- an input you never bind falls through to **the core's default**, which is not
+  `false`: `controls` is `true`, so bind `[controls]="false"` to hide the bar.
+
+`playerClass` rather than `class`, for the same reason the element has
+`player-class`: `class` on the tag already means the host element's own class
+list.
+
+## The core on its own — `mountPlayer`
+
+```ts
+import { mountPlayer } from '@dataflow-animator/core';
+import '@dataflow-animator/core/styles.css';
+
+const player = mountPlayer(container, spec, { height: 420, autoPlay: true });
+```
+
+| Handle member | What it is                                                    |
+| ------------- | ------------------------------------------------------------- |
+| `el`          | the `.rdfa-player` root element                               |
+| `clock`       | `play` / `pause` / `seek` / `playTo` / `subscribe`            |
+| `warnings`    | what the compiler had to say about the spec                   |
+| `destroy()`   | releases every listener, observer and animation frame it took |
+
+The options are the React props minus the React-only ones (`fallback`,
+`style`, `className` → `playerClass`), with the same defaults — the table on
+[Components and JavaScript API](./components.mdx) applies.
+
+For a diagram with no chrome, `mountStage(container, spec, t, options)` returns
+a handle whose `update(t)` you drive; `createPlayerClock` is exported so you do
+not have to reimplement playback semantics. Both are how you would build a
+binding for a framework that has none yet — and the pure engine (`compile`,
+`evaluate`, `computeLayout`) is exported too, DOM-free and server-safe.

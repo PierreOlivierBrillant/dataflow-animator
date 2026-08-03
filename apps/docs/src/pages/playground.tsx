@@ -169,7 +169,7 @@ function PlaygroundContent() {
       }
       setParseError(null);
       const { validateSpec } = await import('../site-content/validateSpec');
-      const errors = validateSpec(parsed);
+      const errors = validateSpec(parsed, t.playground.specErrors);
       setSchemaErrors(errors);
       setMonacoRefMarkers(errors, parsed, editorRef.current, monacoRef.current);
       if (errors.length === 0) {
@@ -177,7 +177,9 @@ function PlaygroundContent() {
       }
     }, 350);
     return () => clearTimeout(tid);
-  }, [jsonText]);
+    // `t` is a module-level dictionary picked by locale, so these are stable
+    // references, not per-render objects.
+  }, [jsonText, t.playground.invalidJson, t.playground.specErrors]);
 
   const handleTemplateChange = (key: string) => {
     setDemoId(key);

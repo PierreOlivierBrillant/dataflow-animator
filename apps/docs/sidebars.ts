@@ -1,6 +1,6 @@
 const sidebars = {
   docsSidebar: [
-    // Les classes `menu-icon-*` posent un pictogramme via mask CSS (cf. custom.css).
+    // The `menu-icon-*` classes draw a pictogram through a CSS mask (see custom.css).
     { type: 'doc', id: 'intro', className: 'menu-icon-intro' },
     { type: 'doc', id: 'installation', className: 'menu-icon-installation' },
     {
@@ -20,7 +20,12 @@ const sidebars = {
       type: 'category',
       label: 'Reference',
       className: 'menu-icon-reference',
-      items: ['reference/actions', 'reference/components', 'reference/api'],
+      items: [
+        'reference/actions',
+        'reference/packages',
+        'reference/components',
+        'reference/api',
+      ],
     },
   ],
 };

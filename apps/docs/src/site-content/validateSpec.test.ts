@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { validateSpec } from './validateSpec';
 import { clientServer } from './demos/clientServer';
 import { demos, getSpec } from './demos';
+import { fr } from '../i18n/fr';
 import type { Locale } from '../i18n/translations';
 
 // Since the site went bilingual, a demo spec is a builder `(locale) => spec`,
@@ -25,7 +26,7 @@ describe('validateSpec — schema validation', () => {
     expect(errors.length).toBeGreaterThan(0);
     const err = errors.find((e) => e.path.includes('type'));
     expect(err).toBeDefined();
-    expect(err!.message).toMatch(/valeurs acceptées/);
+    expect(err!.message).toMatch(/accepted values/);
     expect(err!.message).toContain('"move"');
   });
 
@@ -39,7 +40,7 @@ describe('validateSpec — schema validation', () => {
       (e) => e.path.includes('/nodes') && e.path.includes('type')
     );
     expect(err).toBeDefined();
-    expect(err!.message).toMatch(/valeurs acceptées/);
+    expect(err!.message).toMatch(/accepted values/);
     expect(err!.message).toContain('"laptop"');
   });
 
@@ -64,7 +65,7 @@ describe('validateSpec — schema validation', () => {
       (e) => e.path.includes('/nodes') && e.path.includes('lane')
     );
     expect(err).toBeDefined();
-    expect(err!.message).toMatch(/type incorrect/);
+    expect(err!.message).toMatch(/wrong type/);
     expect(err!.message).toContain('number');
   });
 });
@@ -136,7 +137,7 @@ describe('validateSpec — duration, icon, language', () => {
     const errors = validateSpec(spec);
     const err = errors.find((e) => e.path.includes('duration'));
     expect(err).toBeDefined();
-    expect(err!.message).toMatch(/entier/);
+    expect(err!.message).toMatch(/integer/);
   });
 
   it('emits no error for a positive integer duration', () => {
@@ -174,7 +175,7 @@ describe('validateSpec — duration, icon, language', () => {
       (e) => e.path.includes('language') || e.message.includes('rust')
     );
     expect(err).toBeDefined();
-    expect(err!.message).toMatch(/valeurs acceptées|valeur invalide/);
+    expect(err!.message).toMatch(/accepted values|invalid value/);
   });
 
   it('emits no error for a supported language', () => {
@@ -219,7 +220,7 @@ describe('validateSpec — cross-reference validation', () => {
     const err = errors.find((e) => e.path === '/timeline/0/object');
     expect(err).toBeDefined();
     expect(err!.message).toContain('"ghost"');
-    expect(err!.message).toMatch(/IDs disponibles/);
+    expect(err!.message).toMatch(/available IDs/);
     expect(err!.message).toContain('"req"');
   });
 
@@ -268,8 +269,42 @@ describe('validateSpec — cross-reference validation', () => {
 
   it('reports no reference error for the clientServer spec', () => {
     const refErrors = validateSpec(baseSpec).filter((e) =>
-      e.message.startsWith('ID inconnu')
+      e.message.startsWith('unknown ID')
     );
     expect(refErrors).toEqual([]);
+  });
+});
+
+// The playground renders in both locales from one component, so the wording
+// has to come from the caller. English is the module's default; anything the
+// caller supplies must win, on the schema branch AND the reference branch —
+// those build their messages in two different places.
+describe('validateSpec — localised wording', () => {
+  it('uses the caller messages instead of the English defaults', () => {
+    const spec = {
+      ...baseSpec,
+      nodes: [{ type: 'laptop', lane: 1 }],
+      timeline: [
+        { type: 'move', object: 'req', from: 'ghost_node', to: 'api' },
+      ],
+    };
+
+    const errors = validateSpec(spec, fr.playground.specErrors);
+
+    const missing = errors.find((e) => e.path.startsWith('/nodes'));
+    expect(missing!.message).toMatch(/champ obligatoire manquant/);
+
+    const unknownRef = errors.find((e) => e.path === '/timeline/0/from');
+    expect(unknownRef!.message).toMatch(/ID inconnu/);
+    expect(unknownRef!.message).toContain('"ghost_node"');
+  });
+
+  it('falls back to English for any key the caller leaves out', () => {
+    const spec = { ...baseSpec, nodes: [{ type: 'laptop', lane: 1 }] };
+
+    const errors = validateSpec(spec, { unknownError: 'boom' });
+
+    const missing = errors.find((e) => e.path.startsWith('/nodes'));
+    expect(missing!.message).toMatch(/required field missing/);
   });
 });

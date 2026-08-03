@@ -472,7 +472,7 @@ footer__link-item > svg {
   font-size: 10px;
 }
 
-/* Playground React Dataflow Animator Overrides */
+/* Playground DataFlow Animator overrides */
 .rdfa-controls {
   background: transparent !important;
   border-top: 1px solid var(--rdfa-hairline) !important;

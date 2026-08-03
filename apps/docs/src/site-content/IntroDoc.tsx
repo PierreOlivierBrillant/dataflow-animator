@@ -15,10 +15,41 @@ export function IntroDoc() {
     <>
       <div className="docs-lead">
         <p>
-          <code>@dataflow-animator/react</code>
+          <strong>DataFlow Animator</strong>
           {intro.leadPost}
         </p>
       </div>
+
+      <Heading as="h2" id="packages">
+        {intro.packagesTitle}
+      </Heading>
+      <p>{intro.packagesIntro}</p>
+      <table>
+        <thead>
+          <tr>
+            <th>{intro.packagesCols.pkg}</th>
+            <th>{intro.packagesCols.api}</th>
+            <th>{intro.packagesCols.role}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {intro.packages.map((pkg) => (
+            <tr key={pkg.pkg}>
+              <td>
+                <code>{pkg.pkg}</code>
+              </td>
+              <td>
+                <code>{pkg.api}</code>
+              </td>
+              <td>{pkg.desc}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p>
+        {intro.packagesOutro}{' '}
+        <Link to="/docs/reference/packages">{intro.packagesLink}</Link>
+      </p>
 
       <Heading as="h2" id="overview">
         {intro.overviewTitle}

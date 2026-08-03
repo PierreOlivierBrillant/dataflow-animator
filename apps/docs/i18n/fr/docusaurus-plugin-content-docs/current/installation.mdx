@@ -4,26 +4,37 @@ title: Installation
 slug: /installation
 ---
 
-## Installation
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
-```bash
-npm install @dataflow-animator/react
-```
+Choisissez votre framework ci-dessous. Les quatre chemins montent le **même**
+moteur, le même rendu DOM et la même feuille de style — tout vient de
+[`@dataflow-animator/core`](https://www.npmjs.com/package/@dataflow-animator/core),
+et chaque liaison n'est qu'une fine couche au-dessus de son appel à
+`mountPlayer`.
 
-`react` et `react-dom` (≥ 18) sont attendus en `peerDependencies`.
+:::warning La feuille de style n'est pas optionnelle
 
-[`@dataflow-animator/core`](https://www.npmjs.com/package/@dataflow-animator/core)
-— le moteur, le rendu DOM et la feuille de style — s'installe avec lui, en
-dépendance. Vous ne l'installez jamais vous-même, mais c'est **de lui que vous
-importez la feuille de style** : le paquet React n'embarque aucune CSS.
+Aucune liaison n'embarque de CSS : vous importez toujours
+`@dataflow-animator/core/styles.css`, exactement une fois, n'importe où dans
+votre application. Sans elle, le balisage se monte et se mesure, mais rien n'a
+de taille, de couleur ni de transition — vous obtenez une boîte vide
+silencieuse.
 
-:::tip Sans React ?
-Le cœur se monte tout seul, dans n'importe quelle page :
-`mountPlayer(container, spec, options)`. Le paquet React est une fine liaison
-au-dessus de cet appel exact.
 :::
 
-## Utilisation minimale
+## Installer et utiliser {#install}
+
+<Tabs groupId="framework" queryString>
+  <TabItem value="react" label="React" default>
+
+```bash
+npm install @dataflow-animator/react @dataflow-animator/core
+```
+
+`react` et `react-dom` (≥ 18) sont attendus en `peerDependencies`. Le cœur
+arrive tout seul, en dépendance ; installez-le explicitement quand même,
+puisque vous importez sa feuille de style par son nom.
 
 ```tsx
 import { DataFlowPlayer } from '@dataflow-animator/react';
@@ -49,6 +60,138 @@ export default function Example() {
   return <DataFlowPlayer spec={spec} />;
 }
 ```
+
+  </TabItem>
+  <TabItem value="element" label="Élément personnalisé">
+
+```bash
+npm install @dataflow-animator/element @dataflow-animator/core
+```
+
+Le cœur arrive tout seul, en dépendance ; installez-le explicitement quand
+même, puisque vous importez sa feuille de style par son nom. Importer le paquet
+**enregistre la balise** — cet import est toute l'installation.
+
+```js
+import '@dataflow-animator/element';
+import '@dataflow-animator/core/styles.css';
+```
+
+```html
+<dataflow-player
+  height="420"
+  spec='{
+    "direction": "left-to-right",
+    "nodes": [
+      { "id": "browser", "type": "laptop", "text": "Navigateur", "lane": 1 },
+      { "id": "api", "type": "server", "text": "API", "lane": 2 }
+    ],
+    "packets": [
+      { "id": "req", "kind": "http_packet", "packet_content": { "header": "GET /users" } }
+    ],
+    "timeline": [{ "type": "move", "object": "req", "from": "browser", "to": "api" }]
+  }'
+></dataflow-player>
+```
+
+Au-delà d'une petite spec, affectez plutôt la **propriété** `spec` avec un vrai
+objet : vous évitez d'échapper du JSON dans un attribut — et c'est aussi ce que
+font pour vous `:spec="spec"` en Vue et `spec={spec}` en Svelte :
+
+```js
+document.querySelector('dataflow-player').spec = spec;
+```
+
+  </TabItem>
+  <TabItem value="angular" label="Angular">
+
+```bash
+npm install @dataflow-animator/angular @dataflow-animator/core
+```
+
+Nécessite **Angular 22** ; `@angular/core` et `@angular/common` sont des
+dépendances de pair. Déclarez la feuille de style globalement dans
+`angular.json` :
+
+```json title="angular.json"
+"styles": ["@dataflow-animator/core/styles.css", "src/styles.css"]
+```
+
+Puis importez le composant standalone :
+
+```ts
+import { Component } from '@angular/core';
+import {
+  DataFlowPlayerComponent,
+  type DataFlowSpec,
+} from '@dataflow-animator/angular';
+
+@Component({
+  selector: 'app-demo',
+  imports: [DataFlowPlayerComponent],
+  template: `<dfa-player [spec]="spec" [height]="420" />`,
+})
+export class DemoComponent {
+  readonly spec: DataFlowSpec = {
+    direction: 'left-to-right',
+    nodes: [
+      { id: 'browser', type: 'laptop', text: 'Navigateur', lane: 1 },
+      { id: 'api', type: 'server', text: 'API', lane: 2 },
+    ],
+    packets: [
+      {
+        id: 'req',
+        kind: 'http_packet',
+        packet_content: { header: 'GET /users' },
+      },
+    ],
+    timeline: [{ type: 'move', object: 'req', from: 'browser', to: 'api' }],
+  };
+}
+```
+
+  </TabItem>
+  <TabItem value="core" label="Sans framework">
+
+```bash
+npm install @dataflow-animator/core
+```
+
+`mountPlayer` construit le lecteur complet — scène, barre de contrôle et
+horloge — dans le conteneur que vous lui donnez :
+
+```ts
+import { mountPlayer } from '@dataflow-animator/core';
+import '@dataflow-animator/core/styles.css';
+
+const player = mountPlayer(document.getElementById('diagram'), spec, {
+  height: 420,
+  autoPlay: true,
+});
+
+// Plus tard, quand le conteneur disparaît :
+player.destroy();
+```
+
+`mountPlayer` renvoie une poignée : `el` (la racine `.rdfa-player`), `clock`
+(`play` / `pause` / `seek` / `playTo` / `subscribe`), `warnings` (ce que le
+compilateur avait à dire de votre spec) et `destroy()`, qui relâche chaque
+écouteur, observateur et frame d'animation qu'il avait pris.
+
+Le diagramme sans la barre de contrôle ? `mountStage()` vous rend une poignée
+dont vous pilotez `update(t)` vous-même, et `createPlayerClock` est exporté pour
+que vous n'ayez pas à réimplémenter sa sémantique de lecture.
+
+  </TabItem>
+</Tabs>
+
+:::tip Vue, Svelte, Astro, Rails, Django…
+
+Tout ce qui rend une balise HTML peut utiliser l'élément personnalisé — c'est
+tout son intérêt. Voir [Paquets et liaisons](./reference/packages.mdx) pour la
+comparaison complète des quatre surfaces.
+
+:::
 
 ## Dans Docusaurus
 
@@ -85,6 +228,34 @@ export default function Page() {
 }
 ```
 
+## Depuis un CDN, sans étape de build
+
+Il n'existe volontairement **aucun bundle autonome** : en livrer un reviendrait
+à livrer une seconde copie du moteur, ce que ce découpage cherche précisément à
+éviter. Un CDN qui réécrit les spécificateurs de modules nus (esm.sh, jspm) se
+suffit à lui-même :
+
+```html
+<link
+  rel="stylesheet"
+  href="https://esm.sh/@dataflow-animator/core/styles.css"
+/>
+<script type="module">
+  import 'https://esm.sh/@dataflow-animator/element';
+</script>
+
+<dataflow-player id="player" height="420"></dataflow-player>
+<script type="module">
+  document.getElementById('player').spec = {
+    /* … */
+  };
+</script>
+```
+
+Une import map fonctionne aussi, et garde une seule copie du cœur pour tous les
+modules qui la demandent — la recette est dans le
+[README de l'élément](https://github.com/PierreOlivierBrillant/dataflow-animator/blob/main/packages/element/README.md).
+
 ## Auto-complétion JSON dans VS Code {#autocomplete-json-vscode}
 
 Ajoutez cette configuration dans `.vscode/settings.json` pour activer
@@ -109,19 +280,22 @@ publiquement, il peut également être référencé depuis le
 
 ## SSR et hydratation
 
-Le player ne rend **aucun balisage côté serveur**. Il monte un moteur de rendu
-DOM framework-agnostique dans un effet client : le HTML statique ne contient
-qu'un placeholder aux bonnes dimensions, et le diagramme apparaît à
-l'hydratation. Aucune divergence d'hydratation possible — il n'y a rien à faire
-correspondre — et importer le paquet côté serveur reste sûr : rien ne touche au
-DOM au niveau module.
+Le lecteur ne rend **aucun balisage côté serveur**, quelle que soit la liaison.
+Il monte un moteur de rendu DOM framework-agnostique dans un effet client : le
+HTML statique ne contient qu'un emplacement aux bonnes dimensions, et le
+diagramme apparaît à l'hydratation. Aucune divergence d'hydratation possible —
+il n'y a rien à faire correspondre — et importer l'un de ces paquets côté
+serveur reste sûr : rien ne touche au DOM au niveau module.
 
 Ce que cela coûte : une page prérendue affiche une boîte vide à l'emplacement du
-diagramme. Utilisez `fallback` pour mettre quelque chose d'utile dans le HTML
-statique — une image d'aperçu, une légende, un squelette :
+diagramme. En React, utilisez `fallback` pour mettre quelque chose d'utile dans
+le HTML statique — une image d'aperçu, une légende, un squelette :
 
 ```tsx
 <DataFlowPlayer spec={spec} fallback={<div>Chargement de l'animation…</div>} />
 ```
 
-`NodeView` se comporte de la même façon.
+`NodeView` se comporte de la même façon. `<dataflow-player>` et `<dfa-player>`
+sont client-only au même sens : ils ne rendent rien tant qu'ils n'ont pas
+atteint un navigateur, donc placez une image d'aperçu ou une légende autour de
+la balise s'il vous faut du contenu statique.

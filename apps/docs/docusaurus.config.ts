@@ -1,9 +1,9 @@
 import { themes as prismThemes } from 'prism-react-renderer';
 
 const config = {
-  title: 'React DataFlow Animator',
+  title: 'DataFlow Animator',
   tagline:
-    'Animations de flux de données pilotées par JSON pour React et Docusaurus.',
+    'JSON-driven data flow animations for React, Angular, custom elements — or no framework at all.',
   favicon: 'img/logo.svg',
   url: 'https://pierreolivierbrillant.github.io',
   baseUrl: '/dataflow-animator/',
@@ -144,10 +144,14 @@ const config = {
       respectPrefersColorScheme: true,
     },
     image: 'img/logo.svg',
+    // Labels here are the SOURCE language (English). `CustomNavbar` renders its
+    // own links from the i18n dictionary; the footer keeps this config for
+    // structure (order, hrefs) and re-translates each label through
+    // `footer.labels` — so every label below must exist as a key there.
     navbar: {
       items: [
         { to: '/docs/intro', label: 'Documentation', position: 'left' },
-        { to: '/examples', label: 'Exemples', position: 'left' },
+        { to: '/examples', label: 'Examples', position: 'left' },
         { to: '/playground', label: 'Playground', position: 'left' },
         {
           href: 'https://github.com/PierreOlivierBrillant/dataflow-animator',
@@ -163,20 +167,43 @@ const config = {
           title: 'SITE',
           items: [
             { label: 'Documentation', to: '/docs/intro' },
-            { label: 'Exemples', to: '/examples' },
+            { label: 'Examples', to: '/examples' },
             { label: 'Playground', to: '/playground' },
           ],
         },
+        // One npm entry per published package: the suite is four packages, and
+        // the footer is the only place that lists them all.
         {
-          title: 'PROJET',
+          title: 'PACKAGES',
           items: [
             {
-              label: 'npm',
+              label: '@dataflow-animator/core',
+              href: 'https://www.npmjs.com/package/@dataflow-animator/core',
+            },
+            {
+              label: '@dataflow-animator/react',
               href: 'https://www.npmjs.com/package/@dataflow-animator/react',
             },
             {
+              label: '@dataflow-animator/element',
+              href: 'https://www.npmjs.com/package/@dataflow-animator/element',
+            },
+            {
+              label: '@dataflow-animator/angular',
+              href: 'https://www.npmjs.com/package/@dataflow-animator/angular',
+            },
+          ],
+        },
+        {
+          title: 'PROJECT',
+          items: [
+            {
               label: 'GitHub',
               href: 'https://github.com/PierreOlivierBrillant/dataflow-animator',
+            },
+            {
+              label: 'Changelog',
+              href: 'https://github.com/PierreOlivierBrillant/dataflow-animator/blob/main/CHANGELOG.md',
             },
           ],
         },
@@ -190,6 +217,9 @@ const config = {
     algolia: {
       appId: 'O5PT29Z2XG',
       apiKey: '6ab54371d9c7838ec9038b1e45831c11',
+      // The IDENTIFIER of the index in the Algolia dashboard, not a displayed
+      // title: it kept the site's former name on purpose. Renaming it here
+      // without renaming the index there points search at nothing.
       indexName: 'React Dataflow Animator documentation website',
       searchPagePath: 'search',
       contextualSearch: true,

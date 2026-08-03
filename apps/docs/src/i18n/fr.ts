@@ -9,6 +9,7 @@
  * real `<code>` rendering.
  */
 import type { PlayerLabels } from '@dataflow-animator/react';
+import type { SpecErrorMessages } from '../site-content/validateSpec';
 
 export const fr = {
   nav: {
@@ -25,16 +26,19 @@ export const fr = {
   },
   home: {
     pageTitle: 'Accueil',
-    pageDescription: 'Animations de flux de données pour React et Docusaurus.',
+    pageDescription:
+      'Animations de flux de données pilotées par JSON, pour React, Angular, les éléments personnalisés — ou sans framework.',
   },
   hero: {
     titlePre: 'Vos architectures, ',
     titleHighlight: 'animées',
     titlePost: ' en JSON.',
     subtitle:
-      "Un composant React qui transforme une spécification JSON en animation déterministe et navigable. Idéal pour vos démonstrations d'architecture, tutoriels et documentation interactive.",
+      "Un moteur qui transforme une spécification JSON en animation déterministe et navigable, avec une liaison par framework. Idéal pour vos démonstrations d'architecture, tutoriels et documentation interactive.",
     ctaPlayground: 'Essayer dans le terrain de jeu',
     ctaDocs: 'Documentation',
+    // The target names are language invariants — only the lead-in is translated.
+    targetsLabel: 'Fonctionne avec',
   },
   showcase: {
     eyebrow: 'Démonstrations',
@@ -74,12 +78,12 @@ export const fr = {
       {
         title: 'Contenu riche',
         description:
-          "Les nœuds peuvent afficher du code avec coloration syntaxique, du texte formaté ou des images. Le contenu mute en cours d'animation.",
+          "Les nœuds peuvent afficher du code avec coloration syntaxique, du texte formaté ou des images, et un badge `subicon` pour la techno (React, PostgreSQL, Node…). Le contenu mute en cours d'animation.",
       },
       {
-        title: 'Sous-icônes technos',
+        title: 'Sans framework',
         description:
-          "Ajoutez un badge `subicon` pour afficher une technologie connue (React, PostgreSQL, Node…) ou n'importe quelle icône personnalisée.",
+          'Un moteur, trois liaisons fines : `<DataFlowPlayer>` en React, `<dfa-player>` en Angular, `<dataflow-player>` partout ailleurs. Le cœur se monte aussi tout seul.',
       },
     ],
   },
@@ -96,22 +100,54 @@ export const fr = {
     taglineLine1: "Animations d'architecture",
     taglineLine2: 'pilotées par JSON.',
     repoAria: 'Dépôt GitHub du projet',
-    // Footer labels/columns come from the Docusaurus config (FR).
-    // We translate them again on display via this table, keeping the config
-    // as the source for structure (hrefs/order).
+    // Footer labels/columns come from the Docusaurus config, in the SOURCE
+    // language (English). We translate them again on display via this table,
+    // keeping the config as the source for structure (hrefs/order). A label
+    // with no entry here is displayed as-is — which is what the package names
+    // want, since they are invariants.
     labels: {
       SITE: 'SITE',
-      PROJET: 'PROJET',
+      PACKAGES: 'PAQUETS',
+      PROJECT: 'PROJET',
       Documentation: 'Documentation',
-      Exemples: 'Exemples',
+      Examples: 'Exemples',
       Playground: 'Playground',
-      npm: 'npm',
       GitHub: 'GitHub',
+      Changelog: 'Notes de version',
     } as Record<string, string>,
   },
   intro: {
     leadPost:
       ' compile une spécification JSON en animation déterministe et navigable de flux de données.',
+    packagesTitle: 'Un moteur, quatre paquets',
+    packagesIntro:
+      "Le moteur, le rendu DOM et la feuille de style vivent dans le cœur. Chaque liaison n'ajoute que la colle propre à son framework : elle ne recopie ni le moteur ni la CSS.",
+    packagesCols: { pkg: 'Paquet', api: 'API', role: 'Rôle' },
+    packages: [
+      {
+        pkg: '@dataflow-animator/core',
+        api: 'mountPlayer()',
+        desc: 'Le moteur, le rendu DOM et la feuille de style. Se monte seul, sans framework.',
+      },
+      {
+        pkg: '@dataflow-animator/react',
+        api: '<DataFlowPlayer>',
+        desc: 'La liaison React (18 ou 19).',
+      },
+      {
+        pkg: '@dataflow-animator/element',
+        api: '<dataflow-player>',
+        desc: "L'élément personnalisé : HTML brut, Vue, Svelte, Astro… et un CDN sans build.",
+      },
+      {
+        pkg: '@dataflow-animator/angular',
+        api: '<dfa-player>',
+        desc: 'Le composant standalone Angular (22).',
+      },
+    ],
+    packagesOutro:
+      'La feuille de style est toujours celle du cœur, quelle que soit la liaison — et elle est obligatoire.',
+    packagesLink: 'Comparer les quatre surfaces →',
     overviewTitle: 'Aperçu',
     overviewIntro: 'Vous décrivez :',
     overviewItems: [
@@ -148,6 +184,10 @@ export const fr = {
         rest: ' Un moteur de rendu DOM en mode retenu mute la frame sur place au lieu de la re-rendre — environ 6× moins de temps de script par frame. Il se monte côté client : le diagramme apparaît à l’hydratation.',
       },
       {
+        strong: 'Indépendant du framework.',
+        rest: ' Le cœur n’importe aucun framework. React, Angular et l’élément personnalisé montent exactement le même rendu — l’égalité est vérifiée au pixel près dans le dépôt.',
+      },
+      {
         strong: 'Extensible.',
         rest: ' Icônes de nœuds, sous-icônes technos et coloration syntaxique sont enregistrables / remplaçables.',
       },
@@ -157,7 +197,12 @@ export const fr = {
       {
         to: '/docs/installation',
         label: 'Installation',
-        desc: ' — démarrer en 5 lignes.',
+        desc: ' — démarrer en 5 lignes, dans votre framework.',
+      },
+      {
+        to: '/docs/reference/packages',
+        label: 'Paquets et liaisons',
+        desc: ' — React, Angular, élément personnalisé, ou le cœur seul.',
       },
       {
         to: '/docs/concepts/nodes',
@@ -197,7 +242,7 @@ export const fr = {
       {
         to: '/docs/reference/components',
         label: 'Composants et API JavaScript',
-        desc: ' — props de <DataFlowPlayer>, icônes, coloration syntaxique.',
+        desc: ' — props React de <DataFlowPlayer>, icônes, coloration syntaxique.',
       },
       {
         to: '/docs/reference/api',
@@ -261,6 +306,28 @@ export const fr = {
     loadingEditor: "Chargement de l'éditeur...",
     invalidJson: 'JSON invalide :',
     emptyState: "Entrez une spec JSON valide pour voir l'animation.",
+    // The playground's schema errors. `validateSpec` holds the English
+    // defaults and takes these as overrides, key by key — same contract as the
+    // player's `labels`, and for the same reason: both locales render the same
+    // component.
+    specErrors: {
+      oneOf: (values: string) =>
+        `valeur invalide — valeurs acceptées : ${values}`,
+      expected: (value: string) => `valeur invalide — attendu : "${value}"`,
+      oneOfTruncated: (values: string, rest: number) =>
+        `valeur invalide — valeurs acceptées : ${values}, … (+${rest} autres)`,
+      missingField: (field: string) =>
+        `champ obligatoire manquant : "${field}"`,
+      wrongType: (type: string) => `type incorrect — attendu : ${type}`,
+      tooSmall: (limit: number) => `valeur trop petite — minimum : ${limit}`,
+      mustBeInteger: 'doit être un entier',
+      mustBeMultipleOf: (factor: number) =>
+        `doit être un multiple de ${factor}`,
+      unknownError: 'erreur inconnue',
+      unknownId: (id: string, available: string) =>
+        `ID inconnu : "${id}" — IDs disponibles : ${available}`,
+      unknownIdNoList: (id: string) => `ID inconnu : "${id}"`,
+    } satisfies SpecErrorMessages,
   },
   // The player chrome, injected into every <DataFlowPlayer> the site renders
   // (see src/components/DataFlowPlayer.tsx). `satisfies` keeps the keys in step

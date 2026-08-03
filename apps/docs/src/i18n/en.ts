@@ -16,16 +16,18 @@ export const en: Messages = {
   },
   home: {
     pageTitle: 'Home',
-    pageDescription: 'Data flow animations for React and Docusaurus.',
+    pageDescription:
+      'JSON-driven data flow animations for React, Angular, custom elements — or no framework at all.',
   },
   hero: {
     titlePre: 'Your architectures, ',
     titleHighlight: 'animated',
     titlePost: ' in JSON.',
     subtitle:
-      'A React component that turns a JSON specification into a deterministic, navigable animation. Perfect for your architecture demos, tutorials and interactive documentation.',
+      'An engine that turns a JSON specification into a deterministic, navigable animation, with one thin binding per framework. Perfect for your architecture demos, tutorials and interactive documentation.',
     ctaPlayground: 'Try it in the playground',
     ctaDocs: 'Documentation',
+    targetsLabel: 'Works with',
   },
   showcase: {
     eyebrow: 'Demos',
@@ -65,12 +67,12 @@ export const en: Messages = {
       {
         title: 'Rich content',
         description:
-          'Nodes can display syntax-highlighted code, formatted text or images. Content can change mid-animation.',
+          'Nodes can display syntax-highlighted code, formatted text or images, and a `subicon` badge for the tech (React, PostgreSQL, Node…). Content can change mid-animation.',
       },
       {
-        title: 'Tech sub-icons',
+        title: 'No framework required',
         description:
-          'Add a `subicon` badge to show a known technology (React, PostgreSQL, Node…) or any custom icon.',
+          'One engine, three thin bindings: `<DataFlowPlayer>` in React, `<dfa-player>` in Angular, `<dataflow-player>` everywhere else. The core also mounts on its own.',
       },
     ],
   },
@@ -89,17 +91,47 @@ export const en: Messages = {
     repoAria: 'Project GitHub repository',
     labels: {
       SITE: 'SITE',
-      PROJET: 'PROJECT',
+      PACKAGES: 'PACKAGES',
+      PROJECT: 'PROJECT',
       Documentation: 'Documentation',
-      Exemples: 'Examples',
+      Examples: 'Examples',
       Playground: 'Playground',
-      npm: 'npm',
       GitHub: 'GitHub',
+      Changelog: 'Changelog',
     },
   },
   intro: {
     leadPost:
       ' compiles a JSON specification into a deterministic, navigable data flow animation.',
+    packagesTitle: 'One engine, four packages',
+    packagesIntro:
+      'The engine, the DOM renderer and the stylesheet live in the core. Each binding adds nothing but the glue its framework needs: it copies neither the engine nor the CSS.',
+    packagesCols: { pkg: 'Package', api: 'API', role: 'Role' },
+    packages: [
+      {
+        pkg: '@dataflow-animator/core',
+        api: 'mountPlayer()',
+        desc: 'The engine, the DOM renderer and the stylesheet. Mounts on its own, with no framework.',
+      },
+      {
+        pkg: '@dataflow-animator/react',
+        api: '<DataFlowPlayer>',
+        desc: 'The React binding (18 or 19).',
+      },
+      {
+        pkg: '@dataflow-animator/element',
+        api: '<dataflow-player>',
+        desc: 'The custom element: plain HTML, Vue, Svelte, Astro… and a CDN with no build step.',
+      },
+      {
+        pkg: '@dataflow-animator/angular',
+        api: '<dfa-player>',
+        desc: 'The standalone Angular component (22).',
+      },
+    ],
+    packagesOutro:
+      "The stylesheet is always the core's, whichever binding you use — and it is not optional.",
+    packagesLink: 'Compare the four surfaces →',
     overviewTitle: 'Overview',
     overviewIntro: 'You describe:',
     overviewItems: [
@@ -136,6 +168,10 @@ export const en: Messages = {
         rest: ' A retained DOM renderer mutates the frame in place instead of re-rendering it — about 6x less script time per frame. It mounts on the client, so the diagram appears on hydration.',
       },
       {
+        strong: 'Framework-agnostic.',
+        rest: ' The core imports no framework. React, Angular and the custom element mount exactly the same renderer — an equality this repository checks to the pixel.',
+      },
+      {
         strong: 'Extensible.',
         rest: ' Node icons, tech sub-icons and syntax highlighting are registrable / replaceable.',
       },
@@ -145,7 +181,12 @@ export const en: Messages = {
       {
         to: '/docs/installation',
         label: 'Installation',
-        desc: ' — get started in 5 lines.',
+        desc: ' — get started in 5 lines, in your framework.',
+      },
+      {
+        to: '/docs/reference/packages',
+        label: 'Packages and bindings',
+        desc: ' — React, Angular, the custom element, or the core on its own.',
       },
       {
         to: '/docs/concepts/nodes',
@@ -185,7 +226,7 @@ export const en: Messages = {
       {
         to: '/docs/reference/components',
         label: 'Components and JavaScript API',
-        desc: ' — <DataFlowPlayer> props, icons, syntax highlighting.',
+        desc: " — <DataFlowPlayer>'s React props, icons, syntax highlighting.",
       },
       {
         to: '/docs/reference/api',
@@ -249,6 +290,23 @@ export const en: Messages = {
     loadingEditor: 'Loading editor...',
     invalidJson: 'Invalid JSON:',
     emptyState: 'Enter a valid JSON spec to see the animation.',
+    // Identical to `validateSpec`'s own English defaults — passed anyway, so
+    // the playground stays locale-agnostic (one code path for both languages).
+    specErrors: {
+      oneOf: (values: string) => `invalid value — accepted values: ${values}`,
+      expected: (value: string) => `invalid value — expected: "${value}"`,
+      oneOfTruncated: (values: string, rest: number) =>
+        `invalid value — accepted values: ${values}, … (+${rest} more)`,
+      missingField: (field: string) => `required field missing: "${field}"`,
+      wrongType: (type: string) => `wrong type — expected: ${type}`,
+      tooSmall: (limit: number) => `value too small — minimum: ${limit}`,
+      mustBeInteger: 'must be an integer',
+      mustBeMultipleOf: (factor: number) => `must be a multiple of ${factor}`,
+      unknownError: 'unknown error',
+      unknownId: (id: string, available: string) =>
+        `unknown ID: "${id}" — available IDs: ${available}`,
+      unknownIdNoList: (id: string) => `unknown ID: "${id}"`,
+    },
   },
   // Identical to the core's own English defaults — passed anyway, so the
   // wrapper stays locale-agnostic (one code path for both languages).

@@ -1,4 +1,4 @@
-# React DataFlow Animator
+# DataFlow Animator
 
 [![CI](https://github.com/PierreOlivierBrillant/dataflow-animator/actions/workflows/ci-cd.yml/badge.svg?branch=main)](https://github.com/PierreOlivierBrillant/dataflow-animator/actions/workflows/ci-cd.yml)
 [![npm version](https://img.shields.io/npm/v/@dataflow-animator/react.svg)](https://www.npmjs.com/package/@dataflow-animator/react)
@@ -8,25 +8,33 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178c6)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-%3E%3D18-61dafb)](https://react.dev/)
 
-React component that compiles a JSON specification into a deterministic and navigable dataflow animation (client/server, SQL queries, microservices...).
+A JSON specification compiled into a deterministic, scrubbable dataflow
+animation (client/server, SQL queries, microservices, logic circuits...) —
+with one thin binding per framework.
 
+- **A framework-agnostic engine**, and three bindings over it: React
+  (`<DataFlowPlayer>`), Angular (`<dfa-player>`) and a custom element
+  (`<dataflow-player>`) for everything else. They render the same pixels.
 - No coordinates to provide — the engine places the nodes.
 - Built-in player: play, pause, step navigation, fullscreen.
 - Renders in the browser, safe to import from Docusaurus, Next.js, Vite, etc.
   (the diagram appears on hydration — see [SSR](#ssr)).
 - Built-in syntax highlighting (Prism, replaceable).
 
+The sections below show the React binding; the
+[Installation page](https://pierreolivierbrillant.github.io/dataflow-animator/docs/installation)
+has the same walkthrough for each of the four packages.
+
 ## Installation
 
 ```bash
-npm install @dataflow-animator/react
+npm install @dataflow-animator/react @dataflow-animator/core
 ```
 
 `react` and `react-dom` (≥ 18) are expected in `peerDependencies`.
 [`@dataflow-animator/core`](./packages/core/README.md) — the engine, the DOM
-renderer and the stylesheet — comes along as a dependency; nothing extra to
-install. Note that the stylesheet is imported FROM the core, not from this
-package.
+renderer and the stylesheet — arrives on its own as a dependency; install it
+explicitly anyway, because you import its stylesheet by name.
 
 No React? Three options, all published from this repository:
 
@@ -164,8 +172,11 @@ renders nothing until it reaches a browser.
 
 ## Documentation
 
-- **Documentation site** (demos, interactive playground, complete API reference)
-  — deployed from [`apps/docs`](./apps/docs).
+- **[Documentation site](https://pierreolivierbrillant.github.io/dataflow-animator/)**
+  (demos, interactive playground, complete API reference) — deployed from
+  [`apps/docs`](./apps/docs). Start at
+  [Packages and bindings](https://pierreolivierbrillant.github.io/dataflow-animator/docs/reference/packages)
+  to pick yours.
 - **Functional specification**: [`docs/SPEC.md`](./docs/SPEC.md).
 - **Internal architecture**: [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
 - **JSON Schema**: exposed via the `dataFlowSchema` export.

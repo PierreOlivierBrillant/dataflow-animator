@@ -4,26 +4,35 @@ title: Installation
 slug: /installation
 ---
 
-## Installation
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
-```bash
-npm install @dataflow-animator/react
-```
+Pick your framework below. All four routes mount the **same** engine, the same
+DOM renderer and the same stylesheet — they all come from
+[`@dataflow-animator/core`](https://www.npmjs.com/package/@dataflow-animator/core),
+and each binding is a thin layer over its `mountPlayer` call.
 
-`react` and `react-dom` (≥ 18) are expected in `peerDependencies`.
+:::warning The stylesheet is not optional
 
-[`@dataflow-animator/core`](https://www.npmjs.com/package/@dataflow-animator/core)
-— the engine, the DOM renderer and the stylesheet — installs along with it as a
-dependency. You never install it yourself, but you do **import the stylesheet
-from it**: the React package ships no CSS of its own.
+No binding ships CSS of its own: you always import
+`@dataflow-animator/core/styles.css`, exactly once, anywhere in your app.
+Without it the markup mounts and measures, but nothing has a size, a colour or
+a transition — you get a silent blank box.
 
-:::tip No React?
-The core mounts on its own, in any page:
-`mountPlayer(container, spec, options)`. The React package is a thin binding over
-exactly that call.
 :::
 
-## Minimal usage
+## Install and use {#install}
+
+<Tabs groupId="framework" queryString>
+  <TabItem value="react" label="React" default>
+
+```bash
+npm install @dataflow-animator/react @dataflow-animator/core
+```
+
+`react` and `react-dom` (≥ 18) are expected in `peerDependencies`. The core
+arrives on its own as a dependency; install it explicitly anyway, because you
+import its stylesheet by name.
 
 ```tsx
 import { DataFlowPlayer } from '@dataflow-animator/react';
@@ -49,6 +58,137 @@ export default function Example() {
   return <DataFlowPlayer spec={spec} />;
 }
 ```
+
+  </TabItem>
+  <TabItem value="element" label="Custom element">
+
+```bash
+npm install @dataflow-animator/element @dataflow-animator/core
+```
+
+The core arrives on its own as a dependency; install it explicitly anyway,
+because you import its stylesheet by name. Importing the package **registers
+the tag** — that import is the whole setup.
+
+```js
+import '@dataflow-animator/element';
+import '@dataflow-animator/core/styles.css';
+```
+
+```html
+<dataflow-player
+  height="420"
+  spec='{
+    "direction": "left-to-right",
+    "nodes": [
+      { "id": "browser", "type": "laptop", "text": "Browser", "lane": 1 },
+      { "id": "api", "type": "server", "text": "API", "lane": 2 }
+    ],
+    "packets": [
+      { "id": "req", "kind": "http_packet", "packet_content": { "header": "GET /users" } }
+    ],
+    "timeline": [{ "type": "move", "object": "req", "from": "browser", "to": "api" }]
+  }'
+></dataflow-player>
+```
+
+Beyond a small spec, set the `spec` **property** with a real object instead and
+skip the JSON-in-an-attribute escaping — which is also what `:spec="spec"` in
+Vue and `spec={spec}` in Svelte do for you:
+
+```js
+document.querySelector('dataflow-player').spec = spec;
+```
+
+  </TabItem>
+  <TabItem value="angular" label="Angular">
+
+```bash
+npm install @dataflow-animator/angular @dataflow-animator/core
+```
+
+Requires **Angular 22**; `@angular/core` and `@angular/common` are peer
+dependencies. Register the stylesheet globally in `angular.json`:
+
+```json title="angular.json"
+"styles": ["@dataflow-animator/core/styles.css", "src/styles.css"]
+```
+
+Then import the standalone component:
+
+```ts
+import { Component } from '@angular/core';
+import {
+  DataFlowPlayerComponent,
+  type DataFlowSpec,
+} from '@dataflow-animator/angular';
+
+@Component({
+  selector: 'app-demo',
+  imports: [DataFlowPlayerComponent],
+  template: `<dfa-player [spec]="spec" [height]="420" />`,
+})
+export class DemoComponent {
+  readonly spec: DataFlowSpec = {
+    direction: 'left-to-right',
+    nodes: [
+      { id: 'browser', type: 'laptop', text: 'Browser', lane: 1 },
+      { id: 'api', type: 'server', text: 'API', lane: 2 },
+    ],
+    packets: [
+      {
+        id: 'req',
+        kind: 'http_packet',
+        packet_content: { header: 'GET /users' },
+      },
+    ],
+    timeline: [{ type: 'move', object: 'req', from: 'browser', to: 'api' }],
+  };
+}
+```
+
+  </TabItem>
+  <TabItem value="core" label="No framework">
+
+```bash
+npm install @dataflow-animator/core
+```
+
+`mountPlayer` builds the whole player — stage, control bar and clock — into any
+container you hand it:
+
+```ts
+import { mountPlayer } from '@dataflow-animator/core';
+import '@dataflow-animator/core/styles.css';
+
+const player = mountPlayer(document.getElementById('diagram'), spec, {
+  height: 420,
+  autoPlay: true,
+});
+
+// Later, when the container goes away:
+player.destroy();
+```
+
+`mountPlayer` returns a handle: `el` (the `.rdfa-player` root), `clock`
+(`play` / `pause` / `seek` / `playTo` / `subscribe`), `warnings` (what the
+compiler had to say about your spec) and `destroy()`, which releases every
+listener, observer and animation frame it took.
+
+Need the diagram without the control bar? `mountStage()` gives you a handle
+whose `update(t)` you drive yourself, and `createPlayerClock` is exported so
+you do not have to reimplement its playback semantics.
+
+  </TabItem>
+</Tabs>
+
+:::tip Vue, Svelte, Astro, Rails, Django…
+
+Anything that renders an HTML tag can use the custom element — that is the
+point of it. See [Packages and bindings](./reference/packages.mdx) for the full
+comparison of the four surfaces.
+
+:::
 
 ## In Docusaurus
 
@@ -81,6 +221,35 @@ export default function Page() {
 }
 ```
 
+## From a CDN, with no build step
+
+There is deliberately **no self-contained bundle**: shipping one would mean
+shipping a second copy of the engine, which is the one thing this packaging is
+designed to avoid. A CDN that rewrites bare module specifiers (esm.sh, jspm)
+needs nothing else:
+
+```html
+<link
+  rel="stylesheet"
+  href="https://esm.sh/@dataflow-animator/core/styles.css"
+/>
+<script type="module">
+  import 'https://esm.sh/@dataflow-animator/element';
+</script>
+
+<dataflow-player id="player" height="420"></dataflow-player>
+<script type="module">
+  document.getElementById('player').spec = {
+    /* … */
+  };
+</script>
+```
+
+An import map works too, and keeps one copy of the core for every module that
+asks for it — see the
+[element's README](https://github.com/PierreOlivierBrillant/dataflow-animator/blob/main/packages/element/README.md)
+for that recipe.
+
 ## JSON auto-completion in VS Code {#autocomplete-json-vscode}
 
 Add this configuration in `.vscode/settings.json` to enable auto-completion and inline validation on all your `*.dataflow.json` files:
@@ -100,18 +269,20 @@ The same path works with any JSON Schema draft-07 compatible validator (Ajv, ajv
 
 ## SSR and hydration
 
-The player renders **no markup on the server**. It mounts a framework-agnostic
-DOM renderer in a client effect, so the static HTML holds a correctly-sized
-placeholder and the diagram appears on hydration. There is no hydration mismatch
-— there is nothing to match — and importing the package on a server is safe:
-nothing touches the DOM at module scope.
+The player renders **no markup on the server**, in every binding. It mounts a
+framework-agnostic DOM renderer in a client effect, so the static HTML holds a
+correctly-sized placeholder and the diagram appears on hydration. There is no
+hydration mismatch — there is nothing to match — and importing any of these
+packages on a server is safe: nothing touches the DOM at module scope.
 
 What that costs you: a prerendered page shows an empty box where the diagram
-will be. Use `fallback` to put something meaningful in the static HTML — a
-poster image, a caption, a skeleton:
+will be. In React, use `fallback` to put something meaningful in the static
+HTML — a poster image, a caption, a skeleton:
 
 ```tsx
 <DataFlowPlayer spec={spec} fallback={<div>Loading animation...</div>} />
 ```
 
-`NodeView` behaves the same way.
+`NodeView` behaves the same way. `<dataflow-player>` and `<dfa-player>` are
+client-only in the same sense: they render nothing until they reach a browser,
+so put a poster or a caption around the tag if you need static content.

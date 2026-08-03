@@ -11,8 +11,48 @@ export interface SpecError {
   message: string;
 }
 
-export function validateSpec(input: unknown): SpecError[] {
-  return [...formatErrors(runSchema(input)), ...checkRefs(input)];
+/**
+ * The user-visible wording of a validation error. English lives here as the
+ * default, and a caller overrides key by key — the same contract the player's
+ * own `labels` option follows, for the same reason: the playground renders in
+ * both locales, and a message hardcoded in one of them is wrong in the other.
+ */
+export interface SpecErrorMessages {
+  oneOf: (values: string) => string;
+  expected: (value: string) => string;
+  oneOfTruncated: (values: string, rest: number) => string;
+  missingField: (field: string) => string;
+  wrongType: (type: string) => string;
+  tooSmall: (limit: number) => string;
+  mustBeInteger: string;
+  mustBeMultipleOf: (factor: number) => string;
+  unknownError: string;
+  unknownId: (id: string, available: string) => string;
+  unknownIdNoList: (id: string) => string;
+}
+
+const DEFAULT_MESSAGES: SpecErrorMessages = {
+  oneOf: (values) => `invalid value — accepted values: ${values}`,
+  expected: (value) => `invalid value — expected: "${value}"`,
+  oneOfTruncated: (values, rest) =>
+    `invalid value — accepted values: ${values}, … (+${rest} more)`,
+  missingField: (field) => `required field missing: "${field}"`,
+  wrongType: (type) => `wrong type — expected: ${type}`,
+  tooSmall: (limit) => `value too small — minimum: ${limit}`,
+  mustBeInteger: 'must be an integer',
+  mustBeMultipleOf: (factor) => `must be a multiple of ${factor}`,
+  unknownError: 'unknown error',
+  unknownId: (id, available) =>
+    `unknown ID: "${id}" — available IDs: ${available}`,
+  unknownIdNoList: (id) => `unknown ID: "${id}"`,
+};
+
+export function validateSpec(
+  input: unknown,
+  messages: Partial<SpecErrorMessages> = {}
+): SpecError[] {
+  const m: SpecErrorMessages = { ...DEFAULT_MESSAGES, ...messages };
+  return [...formatErrors(runSchema(input), m), ...checkRefs(input, m)];
 }
 
 // ─── Ajv schema validation ────────────────────────────────────────────────────
@@ -22,7 +62,10 @@ function runSchema(input: unknown): ErrorObject[] {
   return validate.errors ?? [];
 }
 
-function formatErrors(errors: ErrorObject[]): SpecError[] {
+function formatErrors(
+  errors: ErrorObject[],
+  m: SpecErrorMessages
+): SpecError[] {
   // anyOf/oneOf parentes : bruit pur — les sous-erreurs de chaque branche
   // (const, required, type…) portent l'information utile.
   const useful = errors.filter(
@@ -66,8 +109,8 @@ function formatErrors(errors: ErrorObject[]): SpecError[] {
         path,
         message:
           vals.length > 1
-            ? `valeur invalide — valeurs acceptées : ${vals.map((v) => `"${v}"`).join(', ')}`
-            : `valeur invalide — attendu : "${vals[0]}"`,
+            ? m.oneOf(vals.map((v) => `"${v}"`).join(', '))
+            : m.expected(vals[0]),
       });
       continue;
     }
@@ -78,14 +121,11 @@ function formatErrors(errors: ErrorObject[]): SpecError[] {
       const key = `required:${path}:${missingProperty}`;
       if (seen.has(key)) continue;
       seen.add(key);
-      result.push({
-        path,
-        message: `champ obligatoire manquant : "${missingProperty}"`,
-      });
+      result.push({ path, message: m.missingField(missingProperty) });
       continue;
     }
 
-    const formatted = formatSingle(e);
+    const formatted = formatSingle(e, m);
     const key = `${e.keyword}:${path}:${formatted.message}`;
     if (seen.has(key)) continue;
     seen.add(key);
@@ -95,7 +135,7 @@ function formatErrors(errors: ErrorObject[]): SpecError[] {
   return result;
 }
 
-function formatSingle(e: ErrorObject): SpecError {
+function formatSingle(e: ErrorObject, m: SpecErrorMessages): SpecError {
   const path = e.instancePath || '/';
   switch (e.keyword) {
     case 'enum': {
@@ -105,32 +145,27 @@ function formatSingle(e: ErrorObject): SpecError {
       const list = shown.map((v) => `"${v}"`).join(', ');
       return {
         path,
-        message:
-          rest > 0
-            ? `valeur invalide — valeurs acceptées : ${list}, … (+${rest} autres)`
-            : `valeur invalide — valeurs acceptées : ${list}`,
+        message: rest > 0 ? m.oneOfTruncated(list, rest) : m.oneOf(list),
       };
     }
     case 'type': {
       const { type } = e.params as { type: string };
-      return { path, message: `type incorrect — attendu : ${type}` };
+      return { path, message: m.wrongType(type) };
     }
     case 'minimum': {
       const { limit } = e.params as { comparison: string; limit: number };
-      return { path, message: `valeur trop petite — minimum : ${limit}` };
+      return { path, message: m.tooSmall(limit) };
     }
     case 'multipleOf': {
       const { multipleOf } = e.params as { multipleOf: number };
       return {
         path,
         message:
-          multipleOf === 1
-            ? 'doit être un entier'
-            : `doit être un multiple de ${multipleOf}`,
+          multipleOf === 1 ? m.mustBeInteger : m.mustBeMultipleOf(multipleOf),
       };
     }
     default:
-      return { path, message: e.message ?? 'erreur inconnue' };
+      return { path, message: e.message ?? m.unknownError };
   }
 }
 
@@ -146,22 +181,35 @@ function refNodeId(value: unknown): unknown {
   return i < 0 ? value : value.slice(0, i);
 }
 
-function checkRefs(input: unknown): SpecError[] {
+/** Everything the reference walk needs, in one place: the id sets it resolves
+ *  against, the wording it reports with, and the sink it appends to. */
+interface RefContext {
+  staticIds: Set<string>;
+  dynamicIds: Set<string>;
+  connectionIds: Set<string>;
+  actionIds: Set<string>;
+  messages: SpecErrorMessages;
+  errors: SpecError[];
+}
+
+function checkRefs(input: unknown, m: SpecErrorMessages): SpecError[] {
   if (!input || typeof input !== 'object') return [];
   const spec = input as AnyRecord;
 
-  const staticIds = collectIds(spec.nodes);
-  const dynamicIds = collectIds(spec.packets);
-  const connectionIds = collectIds(spec.connections);
-  const actionIds = collectActionIds(spec.timeline);
-
-  const errors: SpecError[] = [];
+  const ctx: RefContext = {
+    staticIds: collectIds(spec.nodes),
+    dynamicIds: collectIds(spec.packets),
+    connectionIds: collectIds(spec.connections),
+    actionIds: collectActionIds(spec.timeline),
+    messages: m,
+    errors: [],
+  };
 
   // align_with référence un autre static_object
   if (Array.isArray(spec.nodes)) {
     for (let i = 0; i < spec.nodes.length; i++) {
       const obj = spec.nodes[i] as AnyRecord;
-      checkRef(`/nodes/${i}/align_with`, obj.align_with, staticIds, errors);
+      checkRef(`/nodes/${i}/align_with`, obj.align_with, ctx.staticIds, ctx);
     }
   }
 
@@ -172,36 +220,24 @@ function checkRefs(input: unknown): SpecError[] {
       checkRef(
         `/connections/${i}/from`,
         refNodeId(conn.from),
-        staticIds,
-        errors
+        ctx.staticIds,
+        ctx
       );
-      checkRef(`/connections/${i}/to`, refNodeId(conn.to), staticIds, errors);
+      checkRef(`/connections/${i}/to`, refNodeId(conn.to), ctx.staticIds, ctx);
     }
   }
 
   if (Array.isArray(spec.timeline)) {
-    walkActions(
-      spec.timeline,
-      '/timeline',
-      staticIds,
-      dynamicIds,
-      connectionIds,
-      actionIds,
-      errors
-    );
+    walkActions(spec.timeline, '/timeline', ctx);
   }
 
-  return errors;
+  return ctx.errors;
 }
 
 function walkActions(
   actions: unknown[],
   basePath: string,
-  staticIds: Set<string>,
-  dynamicIds: Set<string>,
-  connectionIds: Set<string>,
-  actionIds: Set<string>,
-  errors: SpecError[]
+  ctx: RefContext
 ): void {
   for (let i = 0; i < actions.length; i++) {
     if (!actions[i] || typeof actions[i] !== 'object') continue;
@@ -209,25 +245,25 @@ function walkActions(
     const p = `${basePath}/${i}`;
 
     // Ordonnancement inter-actions
-    checkRef(`${p}/wait_for`, a.wait_for, actionIds, errors);
-    checkRef(`${p}/keep_until`, a.keep_until, actionIds, errors);
+    checkRef(`${p}/wait_for`, a.wait_for, ctx.actionIds, ctx);
+    checkRef(`${p}/keep_until`, a.keep_until, ctx.actionIds, ctx);
 
     switch (a.type) {
       case 'move':
-        checkRef(`${p}/object`, a.object, dynamicIds, errors);
-        checkRef(`${p}/from`, refNodeId(a.from), staticIds, errors);
-        checkRef(`${p}/to`, refNodeId(a.to), staticIds, errors);
+        checkRef(`${p}/object`, a.object, ctx.dynamicIds, ctx);
+        checkRef(`${p}/from`, refNodeId(a.from), ctx.staticIds, ctx);
+        checkRef(`${p}/to`, refNodeId(a.to), ctx.staticIds, ctx);
         break;
       case 'arrow':
-        checkRef(`${p}/from`, refNodeId(a.from), staticIds, errors);
-        checkRef(`${p}/to`, refNodeId(a.to), staticIds, errors);
+        checkRef(`${p}/from`, refNodeId(a.from), ctx.staticIds, ctx);
+        checkRef(`${p}/to`, refNodeId(a.to), ctx.staticIds, ctx);
         break;
       case 'loading':
       case 'set_content':
       case 'comment':
       case 'rotate':
       case 'toggle':
-        checkRef(`${p}/object`, a.object, staticIds, errors);
+        checkRef(`${p}/object`, a.object, ctx.staticIds, ctx);
         break;
       case 'flow':
         if (Array.isArray(a.route)) {
@@ -235,8 +271,8 @@ function walkActions(
             checkRef(
               `${p}/route/${j}`,
               refNodeId(a.route[j]),
-              staticIds,
-              errors
+              ctx.staticIds,
+              ctx
             );
           }
         }
@@ -244,22 +280,14 @@ function walkActions(
       case 'highlight': {
         // object peut être un static_object OU une connection (par ID)
         // Merge explicite pour éviter tout problème de transpilation Set spread
-        const highlightIds = new Set<string>(Array.from(staticIds));
-        for (const id of Array.from(connectionIds)) highlightIds.add(id);
-        checkRef(`${p}/object`, a.object, highlightIds, errors);
+        const highlightIds = new Set<string>(Array.from(ctx.staticIds));
+        for (const id of Array.from(ctx.connectionIds)) highlightIds.add(id);
+        checkRef(`${p}/object`, a.object, highlightIds, ctx);
         break;
       }
       case 'parallel':
         if (Array.isArray(a.actions)) {
-          walkActions(
-            a.actions,
-            `${p}/actions`,
-            staticIds,
-            dynamicIds,
-            connectionIds,
-            actionIds,
-            errors
-          );
+          walkActions(a.actions, `${p}/actions`, ctx);
         }
         break;
     }
@@ -270,18 +298,18 @@ function checkRef(
   path: string,
   value: unknown,
   available: Set<string>,
-  errors: SpecError[]
+  ctx: RefContext
 ): void {
   if (typeof value !== 'string' || available.has(value)) return;
   // Array.from évite les problèmes de transpilation babel avec [...]Set
   const list = Array.from(available)
     .map((id) => `"${id}"`)
     .join(', ');
-  errors.push({
+  ctx.errors.push({
     path,
     message: list
-      ? `ID inconnu : "${value}" — IDs disponibles : ${list}`
-      : `ID inconnu : "${value}"`,
+      ? ctx.messages.unknownId(value, list)
+      : ctx.messages.unknownIdNoList(value),
   });
 }
 
