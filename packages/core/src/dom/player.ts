@@ -256,8 +256,32 @@ export function mountPlayer(
   };
   document.addEventListener('fullscreenchange', onFullscreenChange);
 
+  /**
+   * The shortcuts listen on the ROOT, which also contains the control bar and
+   * — while it is open — the JSON dialog. Every keydown on a focused button
+   * therefore bubbles here, and two exclusions follow from that:
+   *
+   *  - **Space is not a shortcut on an activatable control.** Space ACTIVATES a
+   *    focused button; claiming it here would toggle playback instead of
+   *    pressing "Next step". It stays the play/pause shortcut only when the
+   *    focus is on the root or the stage, i.e. on nothing activatable.
+   *  - **No shortcut fires from inside the dialog.** It is modal, and its
+   *    `<pre>` is focusable and scrollable, so the arrows there belong to the
+   *    scroll. Everywhere else the arrows stay global — unlike Space they
+   *    compete with no button activation, so a focused button still steps the
+   *    timeline with them.
+   */
+  const fromDialog = (target: EventTarget | null): boolean =>
+    dialog !== undefined &&
+    target instanceof Node &&
+    dialog.el.contains(target);
+  const fromActivatable = (target: EventTarget | null): boolean =>
+    target instanceof Element && target.closest('button') !== null;
+
   const onKeyDown = (event: KeyboardEvent): void => {
+    if (fromDialog(event.target)) return;
     if (event.key === ' ') {
+      if (fromActivatable(event.target)) return;
       event.preventDefault();
       clock.toggle();
     } else if (event.key === 'ArrowRight') {

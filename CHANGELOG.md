@@ -33,6 +33,37 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   - `@dataflow-animator/angular` — a `labels` input, keyed structurally like
     `spec`.
 
+### Fixed
+
+Three keyboard defects of the player chrome, all in `@dataflow-animator/core`
+and therefore fixed for all four packages at once. The first two predate the
+framework-agnostic renderer — they behaved the same way in the React chrome of
+v2/v3 — so these are deliberate **behaviour changes**, not a return to a
+previous rendering. No markup, class name or pixel changes.
+
+- **Space on a focused control now activates that control.** The shortcuts
+  listen on the `.rdfa-player` root, which contains the control bar, so a
+  keydown on any focused button bubbled to them: pressing Space on "Next step"
+  toggled playback instead of stepping, and did so even from a button of the
+  JSON dialog — driving the player _behind_ the open modal. Space is now the
+  play/pause shortcut only when the focus is on the root or the stage, i.e. on
+  nothing activatable. `ArrowLeft`/`ArrowRight` stay global by design: they
+  compete with no button activation, so a keyboard user standing on a button
+  still steps the timeline with them. Neither fires from inside the JSON
+  dialog, which is modal and whose code panel scrolls.
+- **Enter on the focused progress bar no longer jumps to the start.** The bar
+  is a `<button>` whose seek reads `event.clientX`; a keyboard activation
+  synthesises a click with no pointer behind it (`clientX` 0), which read as a
+  click on the far left. A click carrying no pointer (`detail === 0`) now seeks
+  nothing. The bar also gained real slider semantics — `role="slider"` with
+  `aria-valuemin`/`aria-valuemax`/`aria-valuenow`, the last kept on the clock —
+  so it announces the position it displays.
+- **The JSON dialog's code panel is reachable by keyboard.** The `<pre>`
+  scrolls, but was not focusable, so a keyboard user could not scroll the spec
+  at all. It is now a named tab stop (`tabindex="0"` plus an `aria-label`) and
+  takes its place in the dialog's focus trap, last, after the three head
+  buttons.
+
 ## `@dataflow-animator/angular` 0.1.0
 
 **New package.** `<dfa-player>`, a standalone Angular component over

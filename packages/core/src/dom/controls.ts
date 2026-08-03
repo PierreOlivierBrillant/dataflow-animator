@@ -41,6 +41,8 @@ export interface ControlsElement {
   readonly el: HTMLElement;
   readonly playBtn: HTMLButtonElement;
   readonly fullscreenBtn: HTMLButtonElement;
+  /** The scrub bar, carried for the `aria-valuenow` `apply` keeps current. */
+  readonly scrub: HTMLButtonElement;
   readonly fill: HTMLElement;
   readonly thumb: HTMLElement;
   readonly timeCurrent: Text;
@@ -159,16 +161,29 @@ export function createControlsElement(
   }
   track.appendChild(thumb);
 
+  // A `<button>` with slider SEMANTICS: the element and its class names are
+  // unchanged (see the fidelity note above), but a control that reports a
+  // position has to say so — a bare button announces none. `aria-valuenow` is
+  // the one of the four that moves, and `apply` writes it.
   const scrub = h(
     'button',
     {
       type: 'button',
       class: 'rdfa-timeline',
       'aria-label': labels.progressBar,
+      role: 'slider',
+      'aria-valuemin': '0',
+      'aria-valuemax': String(Math.round(clock.durationMs)),
     },
     [track]
   );
   scrub.addEventListener('click', (event) => {
+    // A KEYBOARD activation (Enter, or Space on the focused bar) synthesises a
+    // click with no pointer behind it: `detail` is 0 and `clientX` is 0, which
+    // read as a click on the far left and would jump to t=0. Only a real
+    // pointer carries a position worth seeking to; the keyboard moves the
+    // cursor through the player's own Arrow shortcuts instead.
+    if (event.detail === 0) return;
     const rect = scrub.getBoundingClientRect();
     const r = clamp((event.clientX - rect.left) / rect.width, 0, 1);
     clock.seek(r * clock.durationMs);
@@ -200,6 +215,7 @@ export function createControlsElement(
     el,
     playBtn,
     fullscreenBtn,
+    scrub,
     fill,
     thumb,
     timeCurrent,
@@ -239,6 +255,12 @@ export function applyControlsElement(
 
   setStyle(ctl.fill, { width: `${ratio * 100}%` });
   setStyle(ctl.thumb, { left: `${ratio * 100}%` });
+
+  // Whole milliseconds, so the value the assistive layer reads matches the
+  // clock rather than a float that never repeats. `setAttrIfChanged` is what
+  // keeps a paused frame free — during playback it does write once per frame,
+  // which is the price of a slider that is actually current.
+  setAttrIfChanged(ctl.scrub, 'aria-valuenow', String(Math.round(t)));
 
   // Assigning an unchanged `nodeValue` is already a no-op in every engine, so
   // no read-before-write guard is needed here.

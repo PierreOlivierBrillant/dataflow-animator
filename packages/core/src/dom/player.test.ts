@@ -100,8 +100,16 @@ describe('mountPlayer — the clock drives the stage', () => {
 });
 
 describe('mountPlayer — keyboard', () => {
-  const press = (el: HTMLElement, key: string): KeyboardEvent => {
-    const event = new KeyboardEvent('keydown', { key, cancelable: true });
+  const press = (
+    el: HTMLElement,
+    key: string,
+    bubbles = false
+  ): KeyboardEvent => {
+    const event = new KeyboardEvent('keydown', {
+      key,
+      bubbles,
+      cancelable: true,
+    });
     el.dispatchEvent(event);
     return event;
   };
@@ -114,6 +122,15 @@ describe('mountPlayer — keyboard', () => {
 
     expect(toggle).toHaveBeenCalled();
     expect(event.defaultPrevented).toBe(true);
+  });
+
+  it('keeps Space a shortcut over the stage, where nothing is activatable', () => {
+    const { player } = mount();
+    const toggle = vi.spyOn(player.clock, 'toggle');
+
+    press(player.el.querySelector<HTMLElement>('.rdfa-stage')!, ' ', true);
+
+    expect(toggle).toHaveBeenCalled();
   });
 
   // The keyboard mirrors the buttons: ArrowRight plays to the next stop like
@@ -139,6 +156,56 @@ describe('mountPlayer — keyboard', () => {
     const { player } = mount();
 
     expect(press(player.el, 'a').defaultPrevented).toBe(false);
+  });
+
+  // The shortcuts listen on the root, so anything focused inside the chrome
+  // bubbles to them. Space is the one key that CONFLICTS: it activates the
+  // focused button.
+  it('leaves Space to the button it is pressed on', () => {
+    const { player } = mount();
+    const toggle = vi.spyOn(player.clock, 'toggle');
+    const next = player.el.querySelector<HTMLElement>(
+      'button[aria-label="Next step"]'
+    )!;
+
+    const event = press(next, ' ', true);
+
+    expect(toggle).not.toHaveBeenCalled();
+    expect(event.defaultPrevented).toBe(false);
+  });
+
+  // The arrows stay global: they compete with no activation, and they mirror
+  // the buttons a keyboard user is standing on.
+  it('still steps the timeline from a focused button on the arrows', () => {
+    const { player } = mount();
+    const playTo = vi.spyOn(player.clock, 'playTo');
+    const next = player.el.querySelector<HTMLElement>(
+      'button[aria-label="Next step"]'
+    )!;
+
+    press(next, 'ArrowRight', true);
+
+    expect(playTo).toHaveBeenCalledWith(300);
+  });
+
+  it('fires no shortcut from inside the JSON dialog', () => {
+    const { player } = mount({ exportable: true });
+    (
+      player.el.querySelector(
+        'button[aria-label="JSON specification"]'
+      ) as HTMLElement
+    ).click();
+    const toggle = vi.spyOn(player.clock, 'toggle');
+    const playTo = vi.spyOn(player.clock, 'playTo');
+    const pre = player.el.querySelector<HTMLElement>('pre.rdfa-dialog-code')!;
+
+    // The dialog is modal, and its code panel scrolls — the arrows belong to
+    // that scroll, not to the timeline behind the modal.
+    press(pre, ' ', true);
+    press(pre, 'ArrowRight', true);
+
+    expect(toggle).not.toHaveBeenCalled();
+    expect(playTo).not.toHaveBeenCalled();
   });
 
   it('binds nothing when the controls are off', () => {

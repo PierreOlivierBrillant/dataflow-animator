@@ -78,6 +78,16 @@ describe('createJsonDialog — accessibility surface', () => {
 
     expect(code.innerHTML).toBe('{"a":"&lt;b&gt;"}');
   });
+
+  // The panel scrolls, and a scrollable box that is not focusable cannot be
+  // scrolled with a keyboard at all.
+  it('makes the scrollable code a named tab stop', () => {
+    const { dialog } = make();
+    const pre = dialog.el.querySelector('pre.rdfa-dialog-code')!;
+
+    expect(pre.getAttribute('tabindex')).toBe('0');
+    expect(pre.getAttribute('aria-label')).toBe('JSON specification');
+  });
 });
 
 describe('createJsonDialog — wiring', () => {
@@ -188,21 +198,28 @@ describe('createJsonDialog — modal behaviour', () => {
     expect(document.activeElement).toBe(byLabel(dialog.el, 'Close'));
   });
 
-  it('traps Tab within its buttons', async () => {
+  it('traps Tab within its stops, the code panel last', async () => {
     const { dialog } = make();
-    await Promise.resolve();
+    await Promise.resolve(); // let the queued focus land
     const download = byLabel(dialog.el, 'Download the JSON');
     const close = byLabel(dialog.el, 'Close');
+    const pre = dialog.el.querySelector<HTMLElement>('pre.rdfa-dialog-code')!;
 
-    // On the last button, Tab wraps to the first.
+    // The code panel sits after the buttons in the document, so "Close" is no
+    // longer the last stop: Tab there is left to the browser's native move
+    // rather than wrapped round (jsdom performs no native move of its own).
     close.focus();
-    press(close, 'Tab');
+    expect(press(close, 'Tab').defaultPrevented).toBe(false);
+
+    // From the LAST stop — the code panel — Tab wraps to the first.
+    pre.focus();
+    press(pre, 'Tab');
     expect(document.activeElement).toBe(download);
 
-    // On the first, Shift+Tab wraps to the last.
+    // On the first, Shift+Tab wraps to the last — the code panel.
     download.focus();
     press(download, 'Tab', true);
-    expect(document.activeElement).toBe(close);
+    expect(document.activeElement).toBe(pre);
   });
 
   it('restores focus to the opener on destroy', async () => {

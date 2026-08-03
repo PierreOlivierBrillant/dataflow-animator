@@ -103,6 +103,17 @@ describe('createControlsElement — accessibility surface', () => {
     expect(scrub.querySelectorAll('.rdfa-timeline-step')).toHaveLength(3);
   });
 
+  // A button that reports a position has to say so: bare, it announces none.
+  it('gives the scrub bar slider semantics over its button markup', () => {
+    const { ctl } = make({ durationMs: 12_000 });
+    const scrub = ctl.el.querySelector('.rdfa-timeline')!;
+
+    expect(scrub.getAttribute('role')).toBe('slider');
+    expect(scrub.getAttribute('aria-valuemin')).toBe('0');
+    expect(scrub.getAttribute('aria-valuemax')).toBe('12000');
+    expect(scrub.getAttribute('aria-valuenow')).toBe('0');
+  });
+
   it('filters step ticks strictly inside the timeline', () => {
     // A stop at 0 or at the very end would sit under the thumb's rest states.
     const { ctl } = make({ stops: [0, 500, 1000] });
@@ -169,6 +180,14 @@ describe('applyControlsElement — the clock-driven state', () => {
     );
   });
 
+  it('keeps the slider value on the clock, in whole milliseconds', () => {
+    const { ctl, clock } = make({ durationMs: 12_000 });
+    clock.seek(3400.6);
+    applyControlsElement(ctl, clock, false);
+
+    expect(ctl.scrub.getAttribute('aria-valuenow')).toBe('3401');
+  });
+
   it('leaves the swapped subtrees untouched when nothing changed', () => {
     const { ctl, clock } = make();
     const icon = ctl.playBtn.firstElementChild;
@@ -222,7 +241,8 @@ describe('createControlsElement — wiring', () => {
     } as DOMRect);
     const seek = vi.spyOn(clock, 'seek');
 
-    scrub.dispatchEvent(new MouseEvent('click', { clientX: 50 }));
+    // `detail: 1` is what a real pointer click carries; 0 means keyboard.
+    scrub.dispatchEvent(new MouseEvent('click', { clientX: 50, detail: 1 }));
 
     expect(seek).toHaveBeenCalledWith(250);
   });
@@ -236,9 +256,24 @@ describe('createControlsElement — wiring', () => {
     } as DOMRect);
     const seek = vi.spyOn(clock, 'seek');
 
-    scrub.dispatchEvent(new MouseEvent('click', { clientX: 400 }));
+    scrub.dispatchEvent(new MouseEvent('click', { clientX: 400, detail: 1 }));
 
     expect(seek).toHaveBeenCalledWith(1000);
+  });
+
+  // The bar is a <button>, so Enter and Space on it synthesise a click that
+  // carries no pointer: clientX is 0, which used to read as "seek to the very
+  // start".
+  it('does NOT seek from a keyboard activation of the scrub bar', () => {
+    const { ctl, clock } = make();
+    clock.seek(600);
+    const seek = vi.spyOn(clock, 'seek');
+
+    // `detail: 0` is what distinguishes a synthesised click from a pointer one.
+    ctl.scrub.dispatchEvent(new MouseEvent('click', { detail: 0 }));
+
+    expect(seek).not.toHaveBeenCalled();
+    expect(clock.t).toBe(600);
   });
 
   it('reports a full-screen request to its caller', () => {

@@ -167,10 +167,21 @@ export function createJsonDialog(
   );
   closeBtn.addEventListener('click', onClose);
 
+  // The spec routinely overflows the panel, so the `<pre>` scrolls — and a
+  // scrollable box that cannot be focused cannot be scrolled with a keyboard at
+  // all. `tabindex="0"` makes it a stop, the label gives that stop a name, and
+  // the focus trap below lists it at its place in the document order.
+  const pre = h('pre', {
+    class: 'rdfa-dialog-code rdfa-code',
+    tabindex: '0',
+    'aria-label': labels.jsonSpec,
+  });
+
   const code = h('code');
   // The React side uses `dangerouslySetInnerHTML` here — the highlighter
   // returns markup by contract, so this is the literal equivalent.
   code.innerHTML = highlight(json, 'json');
+  pre.appendChild(code);
 
   const el = h(
     'div',
@@ -189,13 +200,14 @@ export function createJsonDialog(
           copyBtn,
           closeBtn,
         ]),
-        h('pre', { class: 'rdfa-dialog-code rdfa-code' }, [code]),
+        pre,
       ]),
     ]
   );
 
-  // Tab cycles within these; the backdrop is `tabindex="-1"` and stays out.
-  const focusable: HTMLElement[] = [downloadBtn, copyBtn, closeBtn];
+  // Tab cycles within these, IN DOCUMENT ORDER — the head's three buttons, then
+  // the scrollable code. The backdrop is `tabindex="-1"` and stays out.
+  const focusable: HTMLElement[] = [downloadBtn, copyBtn, closeBtn, pre];
   el.addEventListener('keydown', (event: KeyboardEvent) => {
     if (event.key === 'Escape') {
       event.preventDefault();
