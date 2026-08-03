@@ -413,6 +413,63 @@ describe('mountStage — update(t), the retained read path', () => {
     expect(present()).toEqual(['a', 'b']);
   });
 
+  // A ResizeObserver holds its targets STRONGLY: whatever is still in this set
+  // is still alive, detached or not.
+  it('stops retaining the element a set_visible hide removed', () => {
+    const live = new Set<Element>();
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        observe(el: Element) {
+          live.add(el);
+        }
+        unobserve(el: Element) {
+          live.delete(el);
+        }
+        disconnect() {
+          live.clear();
+        }
+      }
+    );
+    const cycling: Partial<DataFlowSpec> = {
+      timeline: [
+        {
+          type: 'set_visible',
+          id: 'hide',
+          object: 'b',
+          visible: false,
+          duration: 500,
+        },
+        {
+          type: 'set_visible',
+          id: 'show',
+          object: 'b',
+          visible: true,
+          duration: 500,
+        },
+      ],
+    };
+    // Read the windows off the compiled timeline: steps carry holds, so guessed
+    // instants would be brittle.
+    const { timeline } = compile({ ...spec, ...cycling });
+    const [hide, show] = timeline.clips.filter((c) => c.kind === 'set_visible');
+    const { container, handle } = mount(cycling, 0);
+    const nodeB = () => container.querySelector('[data-node-id="b"]');
+    const first = nodeB()!;
+    expect(live.has(first)).toBe(true);
+
+    handle.update(hide.endMs);
+    expect(nodeB()).toBeNull();
+    handle.update(show.endMs);
+
+    const second = nodeB()!;
+    // The reconciliation builds a NEW element rather than recycling the old
+    // one, so the old one is only reachable through the observer.
+    expect(second).not.toBe(first);
+    expect(live.has(first)).toBe(false);
+    expect(live.has(second)).toBe(true);
+  });
+
   it('walking to t lands on the same markup as mounting there directly', () => {
     // The jsdom counterpart of the mount-vs-update gate: no layout here, so it
     // proves the STRUCTURE converges, while the browser gate proves the

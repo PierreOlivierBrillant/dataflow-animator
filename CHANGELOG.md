@@ -35,6 +35,12 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Fixed
 
+- **The stage's `ResizeObserver` no longer retains removed nodes.** A
+  `ResizeObserver` holds its targets strongly, and the tracker only ever added
+  to its observed set: every `set_visible` hide left the observer holding a
+  detached element — a fresh one, since the reconciliation never recycles what
+  it removed — until the player was destroyed. The observed set is now
+  re-synchronised with the nodes actually in the tree on each re-observation.
 - **`createPlayerClock` now validates `speed`.** An invalid value
   (`<= 0`, `NaN`, `Infinity`) made `t` drift towards `-Infinity` instead of
   advancing, so `playTo` never reached its target and the rAF loop never

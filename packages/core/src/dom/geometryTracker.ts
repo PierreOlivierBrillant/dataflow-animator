@@ -33,6 +33,13 @@ export interface GeometryTracker {
    *  only needs one reading never installs an observer. */
   observe(onChange: () => void): void;
   disconnect(): void;
+  /**
+   * The targets the `ResizeObserver` currently holds. Internal introspection —
+   * deliberately absent from the package barrel — so a suite can assert that a
+   * node the reconciliation removed is no longer RETAINED, which is not
+   * otherwise observable from the outside.
+   */
+  readonly observed: ReadonlySet<Element>;
 }
 
 /**
@@ -100,6 +107,14 @@ export function sameMetrics(a: StageMetrics, b: StageMetrics): boolean {
 
 export function createGeometryTracker(stage: HTMLElement): GeometryTracker {
   let ro: ResizeObserver | undefined;
+  /**
+   * Exactly the targets `ro` holds. A `ResizeObserver` keeps a STRONG reference
+   * to every target until it is unobserved, so without this set each node the
+   * reconciliation removes — every `set_visible` hide→show builds a fresh
+   * element rather than recycling the old one — would stay alive, detached,
+   * until `disconnect()`.
+   */
+  const observed = new Set<Element>();
 
   const measure = (previous: StageMetrics): StageMetrics => {
     const sr = stage.getBoundingClientRect();
@@ -162,13 +177,30 @@ export function createGeometryTracker(stage: HTMLElement): GeometryTracker {
 
     observe(onChange: () => void) {
       if (typeof ResizeObserver === 'undefined') return;
-      ro ??= new ResizeObserver(() => onChange());
+      const observer = (ro ??= new ResizeObserver(() => onChange()));
       // Observing the stage alone is not enough: a node can grow without the
       // stage changing size.
-      ro.observe(stage);
+      const current = new Set<Element>([stage]);
       stage
         .querySelectorAll<HTMLElement>('[data-node-id]')
-        .forEach((el) => ro?.observe(el));
+        .forEach((el) => current.add(el));
+
+      // The observed set is a function of the CURRENT tree, so a call is a
+      // full re-synchronisation rather than an append. Dropping first keeps the
+      // observer from holding a detached element for the rest of the mount.
+      // `unobserve` never notifies, and the `observe` calls below are the very
+      // ones this method has always made — so no callback exists here that did
+      // not before, and nothing can cascade into `onChange`.
+      for (const el of observed) {
+        if (!current.has(el)) {
+          observer.unobserve(el);
+          observed.delete(el);
+        }
+      }
+      for (const el of current) {
+        observer.observe(el);
+        observed.add(el);
+      }
       // NOTE — no MutationObserver, unlike the React hook. During playback
       // `set_visible` does add and remove nodes at runtime, but the mount loop
       // re-observes the node set on every reconciliation, so this tracker never
@@ -179,6 +211,11 @@ export function createGeometryTracker(stage: HTMLElement): GeometryTracker {
     disconnect() {
       ro?.disconnect();
       ro = undefined;
+      observed.clear();
+    },
+
+    get observed(): ReadonlySet<Element> {
+      return observed;
     },
   };
 }

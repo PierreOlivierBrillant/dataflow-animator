@@ -322,6 +322,7 @@ describe('sameMetrics', () => {
 describe('observe / disconnect', () => {
   function stubResizeObserver() {
     const observed: Element[] = [];
+    const unobserved: Element[] = [];
     const disconnect = vi.fn();
     let trigger: (() => void) | undefined;
     vi.stubGlobal(
@@ -333,10 +334,22 @@ describe('observe / disconnect', () => {
         observe(el: Element) {
           observed.push(el);
         }
+        unobserve(el: Element) {
+          unobserved.push(el);
+        }
         disconnect = disconnect;
       }
     );
-    return { observed, disconnect, fire: () => trigger?.() };
+    return { observed, unobserved, disconnect, fire: () => trigger?.() };
+  }
+
+  /** Appends a bare node element to a stage built by `buildStage`. */
+  function addNode(stage: HTMLElement, id: string): HTMLElement {
+    const el = document.createElement('div');
+    el.setAttribute('data-node-id', id);
+    stubRect(el, { left: 0, top: 0, width: 10, height: 10 });
+    stage.appendChild(el);
+    return el;
   }
 
   it('observes the stage AND every node', () => {
@@ -370,6 +383,69 @@ describe('observe / disconnect', () => {
     tracker.disconnect();
 
     expect(ro.disconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it('observes nothing twice over and unobserves nothing on a first call', () => {
+    stubScale('1');
+    const ro = stubResizeObserver();
+    const tracker = createGeometryTracker(buildStage([{ id: 'a' }]));
+
+    tracker.observe(() => {});
+
+    expect(ro.unobserved).toEqual([]);
+    expect(tracker.observed.size).toBe(2);
+  });
+
+  it('unobserves a node that left the DOM', () => {
+    stubScale('1');
+    const ro = stubResizeObserver();
+    const stage = buildStage([{ id: 'a' }, { id: 'b' }]);
+    const tracker = createGeometryTracker(stage);
+    tracker.observe(() => {});
+    const gone = stage.querySelector<HTMLElement>('[data-node-id="b"]')!;
+
+    gone.remove();
+    tracker.observe(() => {});
+
+    expect(ro.unobserved).toEqual([gone]);
+    expect(tracker.observed.has(gone)).toBe(false);
+    expect(tracker.observed.size).toBe(2);
+  });
+
+  it('retains nothing from a hide→show cycle, which builds a NEW element', () => {
+    // The leak this closes: the reconciliation never recycles a removed
+    // element, so without the sweep the observer would pile up one detached
+    // node per cycle until `disconnect()`.
+    stubScale('1');
+    stubResizeObserver();
+    const stage = buildStage([{ id: 'a' }]);
+    const tracker = createGeometryTracker(stage);
+    tracker.observe(() => {});
+    const first = stage.querySelector<HTMLElement>('[data-node-id="a"]')!;
+
+    first.remove();
+    tracker.observe(() => {});
+    const second = addNode(stage, 'a');
+    tracker.observe(() => {});
+
+    expect(tracker.observed.has(first)).toBe(false);
+    expect([...tracker.observed]).toEqual([stage, second]);
+  });
+
+  it('forgets its targets on disconnect', () => {
+    stubScale('1');
+    const ro = stubResizeObserver();
+    const stage = buildStage([{ id: 'a' }]);
+    const tracker = createGeometryTracker(stage);
+    tracker.observe(() => {});
+
+    tracker.disconnect();
+
+    expect(tracker.observed.size).toBe(0);
+    // A fresh observer holds nothing, so there is nothing to unobserve either.
+    tracker.observe(() => {});
+    expect(ro.unobserved).toEqual([]);
+    expect(tracker.observed.size).toBe(2);
   });
 
   it('is a no-op where ResizeObserver does not exist', () => {

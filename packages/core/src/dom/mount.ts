@@ -990,8 +990,9 @@ export function mountStage(
       if (hasNew || hasGone || setChanged) {
         outcome = run();
         // A `set_visible` reveal puts a node in the tree that the
-        // ResizeObserver has never seen; re-observing is the vanilla
-        // counterpart of React's MutationObserver.
+        // ResizeObserver has never seen, and a hide leaves it holding one that
+        // is gone; re-observing re-synchronises both directions, and is the
+        // vanilla counterpart of React's MutationObserver.
         if (setChanged) tracker.observe(onGeometryChange);
       }
 
