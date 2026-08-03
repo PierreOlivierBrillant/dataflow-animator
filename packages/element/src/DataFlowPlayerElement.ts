@@ -4,6 +4,7 @@ import {
   type Density,
   type Highlighter,
   type PlayerHandle,
+  type PlayerLabels,
   type PlayerMode,
   type PlayerOptions,
   type PlayerTheme,
@@ -72,6 +73,7 @@ export class DataFlowPlayerElement extends ElementBase {
    */
   #spec: DataFlowSpec | null = null;
   #highlight: Highlighter | undefined = undefined;
+  #labels: Partial<PlayerLabels> | undefined = undefined;
   /**
    * Where a remount resumes from. Only the FIRST mount honours
    * `initial-t`/`auto-play`; every later one reopens at the instant and play
@@ -111,6 +113,18 @@ export class DataFlowPlayerElement extends ElementBase {
   }
   set highlight(value: Highlighter | undefined) {
     this.#highlight = value;
+    this.#schedule();
+  }
+
+  /**
+   * Localises the chrome — any key left out keeps the core's English default.
+   * Property only, like `highlight`: an object does not live in an attribute.
+   */
+  get labels(): Partial<PlayerLabels> | undefined {
+    return this.#labels;
+  }
+  set labels(value: Partial<PlayerLabels> | undefined) {
+    this.#labels = value;
     this.#schedule();
   }
 
@@ -335,6 +349,7 @@ export class DataFlowPlayerElement extends ElementBase {
     const options: PlayerOptions = {
       ...readOptions(this),
       ...(this.#highlight ? { highlight: this.#highlight } : {}),
+      ...(this.#labels ? { labels: this.#labels } : {}),
       // Only the first mount honours the attributes; afterwards the previous
       // player's instant and play state win.
       ...(resume ? { initialT: resume.t, autoPlay: resume.playing } : {}),

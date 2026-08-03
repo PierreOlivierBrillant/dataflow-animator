@@ -1,6 +1,7 @@
 import { clamp, nextStop, prevStop, type Timeline } from '../engine/timeline';
 import type { PlayerClock } from './clock';
 import { h, s, setAttrIfChanged, setStyle, type Child } from './el';
+import type { PlayerLabels } from './labels';
 
 /**
  * Player control bar — the port of `Controls.tsx`.
@@ -10,8 +11,8 @@ import { h, s, setAttrIfChanged, setStyle, type Child } from './el';
  * time readout all track `t`), so rebuilding it would put a DOM teardown on the
  * animation path.
  *
- * FIDELITY — the markup, the class names and the strings are reproduced exactly,
- * including two things that are easy to "improve" by accident:
+ * FIDELITY — the markup and the class names are reproduced exactly, including
+ * two things that are easy to "improve" by accident:
  *
  *  - the scrub bar is a `<button class="rdfa-timeline">` with pointer maths, NOT
  *    an `<input type="range">`. Swapping it would change the accessibility tree,
@@ -19,15 +20,17 @@ import { h, s, setAttrIfChanged, setStyle, type Child } from './el';
  *  - the time readout is three separate text nodes (`"3s"`, `" / "`, `"12s"`),
  *    because that is what JSX produces from `{fmt(t)} / {fmt(durationMs)}`.
  *
- * The user-visible labels are FRENCH, hardcoded, in a package published in
- * English. That is reproduced verbatim here rather than fixed: this step ports
- * behaviour, and localising the chrome is a product decision with its own
- * migration. It is flagged in the step report.
+ * The user-visible labels are injected through `ControlsOptions.labels`, always
+ * fully resolved: `mountPlayer` fills `PlayerOptions.labels` (a partial) with
+ * the English defaults from `labels.ts`, so this module never falls back on its
+ * own. English is the default because the package publishes in English.
  */
 
 export interface ControlsOptions {
   clock: PlayerClock;
   timeline: Timeline;
+  /** Fully resolved by the caller — see the module header. */
+  labels: PlayerLabels;
   onToggleFullscreen(): void;
   /** Optional slot for the JSON spec button, rendered before full screen. */
   exportSlot?: HTMLElement;
@@ -42,6 +45,8 @@ export interface ControlsElement {
   readonly thumb: HTMLElement;
   readonly timeCurrent: Text;
   readonly timeTotal: Text;
+  /** Carried on the handle so `apply` swaps labels without a new parameter. */
+  readonly labels: PlayerLabels;
   /** Memo of the swapped icon subtrees, so a frame writes no DOM when idle. */
   playing?: boolean;
   fullscreen?: boolean;
@@ -115,9 +120,9 @@ function fmt(ms: number): string {
 export function createControlsElement(
   options: ControlsOptions
 ): ControlsElement {
-  const { clock, timeline, onToggleFullscreen, exportSlot } = options;
+  const { clock, timeline, labels, onToggleFullscreen, exportSlot } = options;
 
-  const restartBtn = button('Restart from the beginning', [restartIcon()]);
+  const restartBtn = button(labels.restart, [restartIcon()]);
   restartBtn.addEventListener('click', () => clock.restart());
 
   // Label and icon are written by `apply`, which runs before the bar is ever
@@ -125,7 +130,7 @@ export function createControlsElement(
   const playBtn = h('button', { type: 'button', class: 'rdfa-btn' });
   playBtn.addEventListener('click', () => clock.toggle());
 
-  const prevBtn = button('Previous step', [ICONS.prev()]);
+  const prevBtn = button(labels.prevStep, [ICONS.prev()]);
   prevBtn.addEventListener('click', () => {
     clock.pause();
     clock.seek(prevStop(timeline, clock.t));
@@ -134,7 +139,7 @@ export function createControlsElement(
   // NOT symmetric with `prev`, by nature: `playTo` animates forward, so "next"
   // plays to the stop; a backward `playTo` would just jump, so "prev" seeks.
   // The keyboard mirrors this pair (ArrowRight plays, ArrowLeft jumps).
-  const nextBtn = button('Next step', [ICONS.next()]);
+  const nextBtn = button(labels.nextStep, [ICONS.next()]);
   nextBtn.addEventListener('click', () => {
     clock.playTo(nextStop(timeline, clock.t));
   });
@@ -159,7 +164,7 @@ export function createControlsElement(
     {
       type: 'button',
       class: 'rdfa-timeline',
-      'aria-label': 'Progress bar',
+      'aria-label': labels.progressBar,
     },
     [track]
   );
@@ -191,7 +196,16 @@ export function createControlsElement(
   if (exportSlot) el.appendChild(exportSlot);
   el.appendChild(fullscreenBtn);
 
-  return { el, playBtn, fullscreenBtn, fill, thumb, timeCurrent, timeTotal };
+  return {
+    el,
+    playBtn,
+    fullscreenBtn,
+    fill,
+    thumb,
+    timeCurrent,
+    timeTotal,
+    labels,
+  };
 }
 
 /** Writes the clock-dependent state. The whole per-frame cost of the bar. */
@@ -204,7 +218,7 @@ export function applyControlsElement(
   const ratio = durationMs > 0 ? clamp(t / durationMs, 0, 1) : 0;
 
   if (ctl.playing !== playing) {
-    const label = playing ? 'Pause' : 'Play';
+    const label = playing ? ctl.labels.pause : ctl.labels.play;
     setAttrIfChanged(ctl.playBtn, 'aria-label', label);
     setAttrIfChanged(ctl.playBtn, 'title', label);
     ctl.playBtn.replaceChildren(playing ? ICONS.pause() : ICONS.play());
@@ -212,7 +226,9 @@ export function applyControlsElement(
   }
 
   if (ctl.fullscreen !== isFullscreen) {
-    const label = isFullscreen ? 'Exit fullscreen' : 'Fullscreen';
+    const label = isFullscreen
+      ? ctl.labels.exitFullscreen
+      : ctl.labels.fullscreen;
     setAttrIfChanged(ctl.fullscreenBtn, 'aria-label', label);
     setAttrIfChanged(ctl.fullscreenBtn, 'title', label);
     ctl.fullscreenBtn.replaceChildren(

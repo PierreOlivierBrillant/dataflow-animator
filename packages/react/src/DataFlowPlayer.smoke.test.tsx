@@ -165,6 +165,22 @@ describe('DataFlowPlayer — options forwarded to the core', () => {
     expect(await scaleOf('spacious')).not.toBe(await scaleOf('compact'));
   });
 
+  it('forwards labels to the chrome, keeping English for the rest', async () => {
+    const { container } = render(
+      <DataFlowPlayer
+        spec={spec}
+        exportable
+        labels={{ nextStep: 'Étape suivante', jsonSpec: 'Spécification JSON' }}
+      />
+    );
+
+    await waitFor(() => expect(player(container)).not.toBeNull());
+    expect(screen.getByLabelText('Étape suivante')).toBeTruthy();
+    expect(screen.getByLabelText('Spécification JSON')).toBeTruthy();
+    // An untouched key keeps the core's English default.
+    expect(screen.getByLabelText('Play')).toBeTruthy();
+  });
+
   it('logs compilation warnings in debug mode', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const { container } = render(
@@ -207,6 +223,19 @@ describe('DataFlowPlayer — mount lifecycle', () => {
     const before = player(container);
 
     rerender(<DataFlowPlayer spec={{ ...spec, nodes: [...spec.nodes] }} />);
+
+    expect(player(container)).toBe(before);
+  });
+
+  // Same hazard as the spec: `labels={{ … }}` is a fresh object every render.
+  it('does not remount when a structurally identical labels object is passed again', async () => {
+    const { container, rerender } = render(
+      <DataFlowPlayer spec={spec} labels={{ play: 'Lecture' }} />
+    );
+    await waitFor(() => expect(player(container)).not.toBeNull());
+    const before = player(container);
+
+    rerender(<DataFlowPlayer spec={spec} labels={{ play: 'Lecture' }} />);
 
     expect(player(container)).toBe(before);
   });

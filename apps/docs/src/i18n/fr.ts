@@ -8,6 +8,8 @@
  * (literal text) on the home page; on the intro they are split for a
  * real `<code>` rendering.
  */
+import type { PlayerLabels } from '@dataflow-animator/react';
+
 export const fr = {
   nav: {
     documentation: 'Documentation',
@@ -260,6 +262,27 @@ export const fr = {
     invalidJson: 'JSON invalide :',
     emptyState: "Entrez une spec JSON valide pour voir l'animation.",
   },
+  // The player chrome, injected into every <DataFlowPlayer> the site renders
+  // (see src/components/DataFlowPlayer.tsx). `satisfies` keeps the keys in step
+  // with the library's own PlayerLabels. The French strings are the v2 chrome's,
+  // verbatim.
+  player: {
+    restart: 'Recommencer depuis le début',
+    play: 'Lecture',
+    pause: 'Pause',
+    prevStep: 'Étape précédente',
+    nextStep: 'Étape suivante',
+    progressBar: 'Barre de progression',
+    fullscreen: 'Plein écran',
+    exitFullscreen: 'Quitter le plein écran',
+    jsonSpec: 'Spécification JSON',
+    download: 'Télécharger le JSON',
+    copy: 'Copier',
+    copied: 'Copié',
+    copyToClipboard: 'Copier dans le presse-papier',
+    close: 'Fermer',
+    closeDialog: 'Fermer la fenêtre',
+  } satisfies PlayerLabels,
   apiRef: {
     property: 'Propriété',
     examples: 'Exemples',

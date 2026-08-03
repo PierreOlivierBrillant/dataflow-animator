@@ -110,6 +110,7 @@ export type {
   HighlightLanguage,
   PlayerTheme,
   PlayerMode,
+  PlayerLabels,
   // Backward-compatible aliases (removed in v2)
   StaticObject,
   StaticObjectType,

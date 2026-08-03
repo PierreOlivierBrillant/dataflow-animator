@@ -185,6 +185,77 @@ describe('mountPlayer — the export slot', () => {
   });
 });
 
+describe('mountPlayer — labels', () => {
+  const byLabel = (root: Element, label: string): HTMLButtonElement | null =>
+    root.querySelector(`button[aria-label="${label}"]`);
+
+  it('publishes English chrome by default', () => {
+    const { player } = mount({ exportable: true });
+
+    for (const label of [
+      'Restart from the beginning',
+      'Play',
+      'Previous step',
+      'Next step',
+      'Progress bar',
+      'JSON specification',
+      'Fullscreen',
+    ])
+      expect(byLabel(player.el, label)).not.toBeNull();
+  });
+
+  it('overrides only the keys given, keeping the defaults for the rest', () => {
+    const { player } = mount({
+      exportable: true,
+      labels: { nextStep: 'Étape suivante', jsonSpec: 'Spécification JSON' },
+    });
+
+    expect(byLabel(player.el, 'Étape suivante')).not.toBeNull();
+    expect(byLabel(player.el, 'Next step')).toBeNull();
+    // The JSON button carries the override in both attributes.
+    const json = byLabel(player.el, 'Spécification JSON')!;
+    expect(json.getAttribute('title')).toBe('Spécification JSON');
+    // Untouched keys stay English.
+    expect(byLabel(player.el, 'Restart from the beginning')).not.toBeNull();
+  });
+
+  it('relabels the clock-driven buttons with the overrides', () => {
+    const { player } = mount({ labels: { play: 'Lecture', pause: 'Pause*' } });
+
+    const playBtn = byLabel(player.el, 'Lecture')!;
+    expect(playBtn).not.toBeNull();
+    player.clock.play();
+    expect(playBtn.getAttribute('aria-label')).toBe('Pause*');
+  });
+
+  it('reaches the JSON dialog — title, buttons and backdrop', () => {
+    const { player } = mount({
+      exportable: true,
+      labels: {
+        jsonSpec: 'Spécification JSON',
+        download: 'Télécharger le JSON',
+        closeDialog: 'Fermer la fenêtre',
+      },
+    });
+
+    byLabel(player.el, 'Spécification JSON')!.click();
+
+    const overlay = player.el.querySelector('.rdfa-dialog-overlay')!;
+    expect(overlay.getAttribute('aria-label')).toBe('Spécification JSON');
+    expect(player.el.querySelector('.rdfa-dialog-title')!.textContent).toBe(
+      'Spécification JSON'
+    );
+    expect(byLabel(player.el, 'Télécharger le JSON')).not.toBeNull();
+    expect(
+      player.el
+        .querySelector('.rdfa-dialog-backdrop')!
+        .getAttribute('aria-label')
+    ).toBe('Fermer la fenêtre');
+    // An untouched dialog key keeps its English default.
+    expect(byLabel(player.el, 'Close')).not.toBeNull();
+  });
+});
+
 describe('mountPlayer — full screen', () => {
   it('requests full screen on the root, and exits only when the root itself is full screen', () => {
     const { player } = mount();

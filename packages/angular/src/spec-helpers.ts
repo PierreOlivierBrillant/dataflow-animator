@@ -1,5 +1,5 @@
 import { Component, NgZone, signal } from '@angular/core';
-import type { DataFlowSpec } from '@dataflow-animator/core';
+import type { DataFlowSpec, PlayerLabels } from '@dataflow-animator/core';
 import { DataFlowPlayerComponent } from './DataFlowPlayerComponent';
 
 /**
@@ -88,6 +88,7 @@ export class StubResizeObserver {
   imports: [DataFlowPlayerComponent],
   template: `<dfa-player
     [spec]="rebuildSpec() ? { ...spec() } : spec()"
+    [labels]="rebuildLabels() ? { ...labels() } : labels()"
     [theme]="theme()"
     [density]="density()"
     [height]="height()"
@@ -104,6 +105,9 @@ export class StubResizeObserver {
 export class HostComponent {
   readonly spec = signal<DataFlowSpec>(SPEC);
   readonly rebuildSpec = signal(false);
+  readonly labels = signal<Partial<PlayerLabels> | undefined>(undefined);
+  /** Same hazard as `rebuildSpec`, for the labels object. */
+  readonly rebuildLabels = signal(false);
   readonly theme = signal<'default' | 'blueprint' | undefined>(undefined);
   readonly density = signal<'compact' | 'comfortable' | 'spacious' | undefined>(
     undefined

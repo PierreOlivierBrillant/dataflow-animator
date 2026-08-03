@@ -250,6 +250,25 @@ export const en: Messages = {
     invalidJson: 'Invalid JSON:',
     emptyState: 'Enter a valid JSON spec to see the animation.',
   },
+  // Identical to the core's own English defaults — passed anyway, so the
+  // wrapper stays locale-agnostic (one code path for both languages).
+  player: {
+    restart: 'Restart from the beginning',
+    play: 'Play',
+    pause: 'Pause',
+    prevStep: 'Previous step',
+    nextStep: 'Next step',
+    progressBar: 'Progress bar',
+    fullscreen: 'Fullscreen',
+    exitFullscreen: 'Exit fullscreen',
+    jsonSpec: 'JSON specification',
+    download: 'Download the JSON',
+    copy: 'Copy',
+    copied: 'Copied',
+    copyToClipboard: 'Copy to clipboard',
+    close: 'Close',
+    closeDialog: 'Close the dialog',
+  },
   apiRef: {
     property: 'Property',
     examples: 'Examples',

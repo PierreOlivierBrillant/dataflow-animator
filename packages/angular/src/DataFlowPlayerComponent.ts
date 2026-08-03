@@ -18,6 +18,7 @@ import {
   type Density,
   type Highlighter,
   type PlayerHandle,
+  type PlayerLabels,
   type PlayerMode,
   type PlayerTheme,
 } from '@dataflow-animator/core';
@@ -99,6 +100,13 @@ export class DataFlowPlayerComponent {
   readonly debug = input<boolean>();
   /** Custom syntax highlighting, replacing Prism. */
   readonly highlight = input<Highlighter>();
+  /**
+   * Localises the chrome — any key left out keeps the core's English default.
+   * Keyed structurally, like `spec`: `[labels]="{ … }"` builds a fresh object
+   * on every change detection pass, and keying on identity would remount the
+   * player forever.
+   */
+  readonly labels = input<Partial<PlayerLabels>>();
 
   /** Emitted after every successful mount, remounts included. */
   readonly mounted = output<DataFlowPlayerMountedEvent>();
@@ -129,6 +137,11 @@ export class DataFlowPlayerComponent {
    */
   private readonly specKey = computed(() => serializeSpec(this.spec()));
 
+  /** Same hazard, same cure as `specKey` — see the `labels` input's doc. */
+  private readonly labelsKey = computed(() =>
+    JSON.stringify(this.labels() ?? null)
+  );
+
   constructor() {
     // ONE effect for every option, which is what makes the remount coalesced:
     // however many inputs change in the same change detection pass, the effect
@@ -140,9 +153,11 @@ export class DataFlowPlayerComponent {
     effect((onCleanup) => {
       if (!this.isBrowser) return;
 
-      // Tracked, and its value deliberately unused: this is what the effect
-      // depends on for the spec. The object itself is read untracked below.
+      // Tracked, and their values deliberately unused: this is what the effect
+      // depends on for the spec and the labels. The objects themselves are read
+      // untracked below.
       this.specKey();
+      this.labelsKey();
 
       const options = toPlayerOptions({
         theme: this.theme(),
@@ -162,6 +177,9 @@ export class DataFlowPlayerComponent {
         // `[highlight]="(c, l) => …"` is a new function on every pass, and since
         // any change remounts, the player would remount forever.
         highlight: untracked(() => this.highlight()),
+        // Untracked too, but NOT unwatched: `labelsKey` above re-runs the
+        // effect when the content changes, identity aside.
+        labels: untracked(() => this.labels()),
       });
 
       const resume = this.resume;

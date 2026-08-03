@@ -1,6 +1,7 @@
 import type {
   Density,
   Highlighter,
+  PlayerLabels,
   PlayerMode,
   PlayerOptions,
   PlayerTheme,
@@ -45,6 +46,8 @@ export interface PlayerInputs {
   loop?: boolean;
   debug?: boolean;
   highlight?: Highlighter;
+  /** Chrome strings — any key left out keeps the core's English default. */
+  labels?: Partial<PlayerLabels>;
 }
 
 /**
@@ -79,6 +82,7 @@ export function toPlayerOptions(inputs: PlayerInputs): PlayerOptions {
   put(options, 'loop', inputs.loop);
   put(options, 'debug', inputs.debug);
   put(options, 'highlight', inputs.highlight);
+  put(options, 'labels', inputs.labels);
 
   return options;
 }

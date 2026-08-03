@@ -1,6 +1,6 @@
 import Heading from '@theme/Heading';
 import Link from '@docusaurus/Link';
-import { DataFlowPlayer } from '@dataflow-animator/react';
+import { DataFlowPlayer } from '../components/DataFlowPlayer';
 import { demosById, getSpec } from './demos';
 import { useLocale, useTranslation } from '../i18n';
 

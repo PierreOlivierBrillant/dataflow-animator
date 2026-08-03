@@ -52,6 +52,7 @@ export function DataFlowPlayer({
   debug = false,
   speed = 1,
   highlight,
+  labels,
   fallback,
 }: DataFlowPlayerProps) {
   const hostRef = useRef<HTMLDivElement>(null);
@@ -86,6 +87,10 @@ export function DataFlowPlayer({
    */
   const specKey = useMemo(() => serializeSpec(spec), [spec]);
   const styleKey = useMemo(() => (style ? JSON.stringify(style) : ''), [style]);
+  const labelsKey = useMemo(
+    () => (labels ? JSON.stringify(labels) : ''),
+    [labels]
+  );
 
   useEffect(() => {
     const host = hostRef.current;
@@ -105,6 +110,7 @@ export function DataFlowPlayer({
       speed,
       debug,
       style: toStyleMap(style),
+      labels,
       highlight: highlightRef.current,
       initialT: resume?.t ?? initialT,
       autoPlay: resume?.playing ?? autoPlay,
@@ -130,6 +136,7 @@ export function DataFlowPlayer({
   }, [
     specKey,
     styleKey,
+    labelsKey,
     height,
     width,
     initialT,

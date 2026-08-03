@@ -151,6 +151,20 @@ describe('input → option mapping, as seen in the rendered player', () => {
     expect(fixture.nativeElement.querySelector(jsonButton)).not.toBeNull();
   });
 
+  it('localises the chrome through `labels`, keeping English for the rest', () => {
+    const fixture = TestBed.createComponent(HostComponent);
+    fixture.componentInstance.labels.set({ nextStep: 'Étape suivante' });
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector('[aria-label="Étape suivante"]')
+    ).not.toBeNull();
+    // An untouched key keeps the core's English default.
+    expect(
+      fixture.nativeElement.querySelector('[aria-label="Play"]')
+    ).not.toBeNull();
+  });
+
   it('opens at `initialT` rather than at 0', () => {
     const fixture = TestBed.createComponent(HostComponent);
     // Past a whole second: the control bar rounds, so a smaller instant would
@@ -190,6 +204,29 @@ describe('remounting', () => {
 
     expect(fixture.componentInstance.mounts).toHaveLength(1);
     expect(players()).toHaveLength(1);
+  });
+
+  it('does NOT remount for a labels object rebuilt inline with the same structure', () => {
+    // The same hazard as the spec: `[labels]="{ … }"` yields a fresh object on
+    // every change detection pass. Keying on the object would remount forever.
+    const fixture = TestBed.createComponent(HostComponent);
+    fixture.componentInstance.labels.set({ play: 'Lecture' });
+    fixture.detectChanges();
+    expect(fixture.componentInstance.mounts).toHaveLength(1);
+
+    fixture.componentInstance.rebuildLabels.set(true);
+    fixture.detectChanges();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.mounts).toHaveLength(1);
+
+    // A structurally different labels object DOES remount.
+    fixture.componentInstance.labels.set({ play: 'Jouer' });
+    fixture.detectChanges();
+    expect(fixture.componentInstance.mounts).toHaveLength(2);
+    expect(
+      fixture.nativeElement.querySelector('[aria-label="Jouer"]')
+    ).not.toBeNull();
   });
 
   it('does remount for a structurally different spec', () => {

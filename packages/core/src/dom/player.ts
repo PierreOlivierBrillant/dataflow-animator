@@ -11,6 +11,7 @@ import {
   type ControlsElement,
 } from './controls';
 import { h, s, setStyle } from './el';
+import { resolveLabels, type PlayerLabels } from './labels';
 import { createJsonDialog, type JsonDialogElement } from './jsonDialog';
 import { mountStage, type StageHandle } from './mount';
 
@@ -79,6 +80,13 @@ export interface PlayerOptions {
    * sees the final box.
    */
   style?: Readonly<Record<string, string>>;
+  /**
+   * Localises the chrome — every `aria-label`, `title` and heading of the
+   * control bar and the JSON dialog. Any key left out keeps its English
+   * default; the resolution happens here, in the core, so no wrapper ever
+   * writes a default of its own.
+   */
+  labels?: Partial<PlayerLabels>;
 }
 
 export interface PlayerHandle {
@@ -97,7 +105,7 @@ export interface PlayerHandle {
 }
 
 /** The JSON spec button, ported from `DataFlowPlayer`'s `exportSlot`. */
-function jsonButton(onOpen: () => void): HTMLButtonElement {
+function jsonButton(label: string, onOpen: () => void): HTMLButtonElement {
   const svg = s('svg', {
     viewBox: '0 0 24 24',
     fill: 'currentColor',
@@ -113,8 +121,8 @@ function jsonButton(onOpen: () => void): HTMLButtonElement {
     {
       type: 'button',
       class: 'rdfa-btn',
-      'aria-label': 'JSON specification',
-      title: 'JSON specification',
+      'aria-label': label,
+      title: label,
     },
     [svg]
   );
@@ -143,7 +151,12 @@ export function mountPlayer(
     className,
     debug = false,
     style,
+    labels,
   } = options;
+
+  // THE resolution point: past this line every consumer of the chrome receives
+  // a complete `PlayerLabels`, never a partial.
+  const chrome = resolveLabels(labels);
 
   const { timeline, warnings } = compile(spec);
 
@@ -195,6 +208,7 @@ export function mountPlayer(
     dialog = createJsonDialog({
       json,
       highlight,
+      labels: chrome,
       onCopy: () => copyText(json),
       onDownload: () => downloadJson(json),
       onClose: closeDialog,
@@ -219,8 +233,11 @@ export function mountPlayer(
     bar = createControlsElement({
       clock,
       timeline,
+      labels: chrome,
       onToggleFullscreen: toggleFullscreen,
-      exportSlot: exportable ? jsonButton(openDialog) : undefined,
+      exportSlot: exportable
+        ? jsonButton(chrome.jsonSpec, openDialog)
+        : undefined,
     });
     applyControlsElement(bar, clock, isFullscreen);
     root.appendChild(bar.el);

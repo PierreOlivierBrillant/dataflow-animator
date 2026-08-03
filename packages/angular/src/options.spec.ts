@@ -38,6 +38,7 @@ describe('toPlayerOptions', () => {
   it('maps every input through to its option', () => {
     const highlight = (code: string, language: string): string =>
       `${language}:${code}`;
+    const labels = { play: 'Lecture' };
     expect(
       toPlayerOptions({
         theme: 'blueprint',
@@ -54,6 +55,7 @@ describe('toPlayerOptions', () => {
         loop: true,
         debug: true,
         highlight,
+        labels,
       })
     ).toEqual({
       theme: 'blueprint',
@@ -70,6 +72,7 @@ describe('toPlayerOptions', () => {
       loop: true,
       debug: true,
       highlight,
+      labels,
     });
   });
 });

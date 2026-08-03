@@ -1,12 +1,9 @@
 /* eslint-disable react-refresh/only-export-components -- module de contenu (données + rendu), pas un module HMR */
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import Heading from '@theme/Heading';
-import {
-  DataFlowPlayer,
-  NodeView,
-  dataFlowSchema,
-} from '@dataflow-animator/react';
+import { NodeView, dataFlowSchema } from '@dataflow-animator/react';
 import type { DataFlowSpec, Node, NodeType } from '@dataflow-animator/react';
+import { DataFlowPlayer } from '../components/DataFlowPlayer';
 import { demosById, getSpec } from './demos';
 import { getApiExamples } from './apiExamples';
 import { useLocale, useTranslation } from '../i18n';

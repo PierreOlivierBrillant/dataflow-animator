@@ -2,12 +2,12 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Layout from '@theme/Layout';
 import { useColorMode } from '@docusaurus/theme-common';
 import {
-  DataFlowPlayer,
   type DataFlowSpec,
   type DataFlowPlayerProps,
   type PlayerTheme,
   dataFlowSchema,
 } from '@dataflow-animator/react';
+import { DataFlowPlayer } from '../components/DataFlowPlayer';
 import { demos, demosById, getSpec, pickLocale } from '../site-content/demos';
 import { useLocale, useTranslation } from '../i18n';
 import type { SpecError } from '../site-content/validateSpec';

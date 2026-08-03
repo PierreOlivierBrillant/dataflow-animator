@@ -3,7 +3,7 @@ title: Components and JavaScript API
 slug: /reference/components
 ---
 
-import { DataFlowPlayer } from '@dataflow-animator/react';
+import { DataFlowPlayer } from '@site/src/components/DataFlowPlayer';
 import { themeExample } from './_components/themes';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
@@ -42,6 +42,7 @@ Only the `spec` prop is required.
 | `fallback`   | `ReactNode`                                | —               | Rendered on the server and until the player mounts.       |
 | `className`  | `string`                                   | —               | Additional CSS class on the root container.               |
 | `style`      | `CSSProperties`                            | —               | Inline styles on the root container.                      |
+| `labels`     | `Partial<PlayerLabels>`                    | English         | Localises the player chrome ([see below](#labels)).       |
 
 :::info Changing the spec remounts the player
 
@@ -213,6 +214,37 @@ With `exportable`, a button appears in the controls bar; it opens the
 Copying and downloading are **browser-side** operations
 (`navigator.clipboard`, download anchor): they have no effect during SSR, the
 window only opens after hydration. Has no effect if `controls` is `false`.
+
+## Localising the chrome (`labels`) {#labels}
+
+The control bar and the JSON dialog carry user-visible strings — the buttons'
+`aria-label`s and `title`s (tooltips) and the dialog's title — in **English**
+by default. The `labels` prop overrides them key by key; any key you leave out
+keeps its English default:
+
+```tsx
+<DataFlowPlayer
+  spec={spec}
+  exportable
+  labels={{
+    play: 'Lecture',
+    pause: 'Pause',
+    prevStep: 'Étape précédente',
+    nextStep: 'Étape suivante',
+    jsonSpec: 'Spécification JSON',
+  }}
+/>
+```
+
+The full key list is the exported `PlayerLabels` type: `restart`, `play`,
+`pause`, `prevStep`, `nextStep`, `progressBar`, `fullscreen`,
+`exitFullscreen`, `jsonSpec`, `download`, `copy`, `copied`, `copyToClipboard`,
+`close`, `closeDialog`.
+
+These strings live in attributes read by tooltips and assistive technology —
+none of them is drawn on the stage. This site passes `labels` on every player
+it renders, which is why the chrome follows the page language on the French
+pages.
 
 ## Custom icons
 

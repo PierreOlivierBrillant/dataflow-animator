@@ -1,6 +1,7 @@
 /** @vitest-environment jsdom */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createJsonDialog } from './jsonDialog';
+import { DEFAULT_PLAYER_LABELS } from './labels';
 
 const escape = (code: string): string =>
   code.replace(/&/g, '&amp;').replace(/</g, '&lt;');
@@ -12,6 +13,7 @@ function make(over: Partial<Parameters<typeof createJsonDialog>[0]> = {}) {
   const dialog = createJsonDialog({
     json: '{"a":1}',
     highlight: escape,
+    labels: DEFAULT_PLAYER_LABELS,
     onCopy,
     onDownload,
     onClose,

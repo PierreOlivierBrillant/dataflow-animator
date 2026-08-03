@@ -42,6 +42,7 @@ export type {
   PlayerMode,
   Density,
   Highlighter,
+  PlayerLabels,
 } from '@dataflow-animator/core';
 
 import {

@@ -3,7 +3,7 @@ title: Composants et API JavaScript
 slug: /reference/components
 ---
 
-import { DataFlowPlayer } from '@dataflow-animator/react';
+import { DataFlowPlayer } from '@site/src/components/DataFlowPlayer';
 import { themeExample } from './_components/themes';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
@@ -42,6 +42,7 @@ Seule la prop `spec` est requise.
 | `fallback`   | `ReactNode`                                | —               | Rendu côté serveur et jusqu'au montage du player.                 |
 | `className`  | `string`                                   | —               | Classe CSS additionnelle sur le conteneur racine.                 |
 | `style`      | `CSSProperties`                            | —               | Styles inline sur le conteneur racine.                            |
+| `labels`     | `Partial<PlayerLabels>`                    | anglais         | Localise le chrome du player ([voir plus bas](#labels)).          |
 
 :::info Changer la spec remonte le player
 
@@ -214,6 +215,37 @@ Avec `exportable`, un bouton apparaît dans la barre de contrôles ; il ouvre la
 La copie et le téléchargement sont des opérations **côté navigateur**
 (`navigator.clipboard`, ancre de téléchargement) : sans effet pendant le SSR, la
 fenêtre ne s'ouvre qu'après hydratation. Sans effet si `controls` est `false`.
+
+## Localiser le chrome (`labels`) {#labels}
+
+La barre de contrôles et la fenêtre JSON portent des chaînes visibles — les
+`aria-label` et `title` (infobulles) des boutons, le titre de la fenêtre — en
+**anglais** par défaut. La prop `labels` les remplace clé par clé ; toute clé
+omise garde sa valeur anglaise :
+
+```tsx
+<DataFlowPlayer
+  spec={spec}
+  exportable
+  labels={{
+    play: 'Lecture',
+    pause: 'Pause',
+    prevStep: 'Étape précédente',
+    nextStep: 'Étape suivante',
+    jsonSpec: 'Spécification JSON',
+  }}
+/>
+```
+
+La liste complète des clés est le type exporté `PlayerLabels` : `restart`,
+`play`, `pause`, `prevStep`, `nextStep`, `progressBar`, `fullscreen`,
+`exitFullscreen`, `jsonSpec`, `download`, `copy`, `copied`, `copyToClipboard`,
+`close`, `closeDialog`.
+
+Ces chaînes vivent dans des attributs lus par les infobulles et les
+technologies d'assistance — aucune n'est dessinée sur la scène. Ce site passe
+`labels` sur chaque player qu'il rend : c'est ce qui fait suivre au chrome la
+langue de la page, y compris celle-ci.
 
 ## Icônes personnalisées
 

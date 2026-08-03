@@ -378,6 +378,7 @@ describe('properties', () => {
     expect(el.loop).toBeUndefined();
     expect(el.debug).toBeUndefined();
     expect(el.highlight).toBeUndefined();
+    expect(el.labels).toBeUndefined();
   });
 
   it('round-trips every serialisable property through its attribute', async () => {
@@ -480,6 +481,23 @@ describe('properties', () => {
     expect(el.querySelector('.rdfa-code .mine')?.textContent).toBe(
       'javascript:28'
     );
+  });
+
+  it('localises the chrome through the labels property', async () => {
+    // Property-only, like `highlight`: an object does not live in an attribute.
+    const el = create();
+    el.spec = SPEC;
+    el.labels = { nextStep: 'Étape suivante' };
+    const mounted = whenMounted(el);
+    document.body.append(el);
+    await mounted;
+
+    expect(el.labels).toEqual({ nextStep: 'Étape suivante' });
+    expect(
+      el.querySelector('button[aria-label="Étape suivante"]')
+    ).not.toBeNull();
+    // An untouched key keeps the core's English default.
+    expect(el.querySelector('button[aria-label="Play"]')).not.toBeNull();
   });
 
   it('clears the player when spec is set back to null', async () => {

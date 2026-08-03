@@ -144,13 +144,27 @@ camelCase name.
 | `loop`         | `loop`        | boolean                                    | `false`         |
 | `debug`        | `debug`       | boolean                                    | `false`         |
 | —              | `highlight`   | `Highlighter` function                     | Prism           |
+| —              | `labels`      | `Partial<PlayerLabels>` object             | English         |
 
-Two entries do not follow the mechanical rule, and both are forced:
+Three entries do not follow the mechanical rule, and all are forced:
 
 - **`player-class`** is the core's `className` option. `className` on an element
   already means the element's own class list, so claiming it would break
   `el.className` for you.
 - **`highlight`** is a property only — a function cannot live in an attribute.
+- **`labels`** is a property only too — an object does not live in an attribute.
+  It localises the chrome (the control bar's and JSON dialog's `aria-label`s,
+  `title`s and headings); any key you leave out keeps the core's English
+  default:
+
+  ```js
+  const player = document.querySelector('dataflow-player');
+  player.labels = {
+    play: 'Lecture',
+    pause: 'Pause',
+    nextStep: 'Étape suivante',
+  };
+  ```
 
 An unknown `theme` or `mode` is passed through: it becomes a `data-theme` /
 `data-mode` hook that matches no CSS rule, so you get the default palette rather

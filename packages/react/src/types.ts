@@ -4,6 +4,7 @@ import type {
   PlayerTheme,
   PlayerMode,
   Highlighter,
+  PlayerLabels,
 } from '@dataflow-animator/core';
 
 // The framework-agnostic spec types live in @dataflow-animator/core. Re-exported
@@ -83,6 +84,13 @@ export interface DataFlowPlayerProps {
    * together with `spec` for it to take effect.
    */
   highlight?: Highlighter;
+  /**
+   * Localises the chrome — every `aria-label`, `title` and heading of the
+   * control bar and the JSON dialog. Any key left out keeps its English
+   * default, resolved in the core. Compared structurally, like `style`, so an
+   * inline object literal does not remount the player on every render.
+   */
+  labels?: Partial<PlayerLabels>;
   /**
    * Rendered on the server and until the player has mounted.
    *

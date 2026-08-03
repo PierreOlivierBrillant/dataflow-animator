@@ -120,6 +120,7 @@ export class DemoComponent {
 | `loop`        | `boolean`                                  | `false`              |
 | `debug`       | `boolean` — the timeline overlay           | `false`              |
 | `highlight`   | `Highlighter` — replaces Prism             | Prism                |
+| `labels`      | `Partial<PlayerLabels>` — chrome strings   | English              |
 
 **An input you never bind falls through to the core's default — it is not
 `false`.** `controls` defaults to `true`, so `<dfa-player [spec]="spec" />` shows
@@ -150,8 +151,9 @@ Every option is read once, when the player is built — so changing any input,
   mid-scrub does not jump;
 - only the **first** mount honours `initialT` / `autoPlay`.
 
-`spec` is keyed on its **structure**, not its object identity, so
-`[spec]="buildSpec()"` — a fresh object on every pass — does not remount anything.
+`spec` and `labels` are keyed on their **structure**, not their object identity,
+so `[spec]="buildSpec()"` or `[labels]="{ play: 'Lecture' }"` — a fresh object on
+every pass — does not remount anything.
 
 ## Styling
 

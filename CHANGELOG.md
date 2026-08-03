@@ -12,6 +12,27 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
      from the source tree. None of it was exported, so there is no change for
      consumers and no version bump. -->
 
+## Unreleased
+
+### Added
+
+- **`labels` — the player chrome is now localisable.** The chrome (the control
+  bar and the JSON dialog) has always hardcoded its user-visible strings —
+  French in v2, English since v3 / `@dataflow-animator/core` 0.1.0 — with no
+  way to change them. The core's `PlayerOptions` now takes
+  `labels?: Partial<PlayerLabels>`: every `aria-label`, `title` (tooltip) and
+  dialog heading, overridable key by key, any omitted key keeping its English
+  default. The defaults are resolved **in the core**; wrappers pass the object
+  through untouched. Additive on all four public surfaces:
+  - `@dataflow-animator/core` — `mountPlayer(host, spec, { labels })`, and the
+    exported `PlayerLabels` type;
+  - `@dataflow-animator/react` — a `labels` prop, compared structurally (an
+    inline object literal does not remount the player);
+  - `@dataflow-animator/element` — a `labels` **property** (an object does not
+    live in an attribute — same status as `highlight`);
+  - `@dataflow-animator/angular` — a `labels` input, keyed structurally like
+    `spec`.
+
 ## `@dataflow-animator/angular` 0.1.0
 
 **New package.** `<dfa-player>`, a standalone Angular component over

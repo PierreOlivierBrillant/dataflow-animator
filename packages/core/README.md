@@ -109,6 +109,7 @@ server rendering trivial.
 | `density`    | `'compact' \| 'comfortable' \| 'spacious'` | `'comfortable'` | Visual scale.                                      |
 | `speed`      | `number`                                   | `1`             | Playback speed.                                    |
 | `highlight`  | `Highlighter`                              | Prism           | Replaces the syntax highlighter.                   |
+| `labels`     | `Partial<PlayerLabels>`                    | English         | Localises the chrome (tooltips, aria, dialog).     |
 | `debug`      | `boolean`                                  | `false`         | Timeline debug overlay.                            |
 
 Need the diagram without the chrome? `mountStage(container, spec, t, options)`

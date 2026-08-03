@@ -24,6 +24,10 @@ import './styles/dataflow.css';
 // call. `PlayerHandle.destroy()` releases everything it took.
 export { mountPlayer } from './dom/player';
 export type { PlayerOptions, PlayerHandle } from './dom/player';
+// The chrome's strings — what `PlayerOptions.labels` overrides, key by key. The
+// English defaults live in the core and are resolved there, so a wrapper passes
+// this through untouched instead of re-declaring defaults of its own.
+export type { PlayerLabels } from './dom/labels';
 
 // The stage on its own, for a host that brings its own chrome and drives
 // `update(t)` itself. `mountPlayer` is built on top of it.

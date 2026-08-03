@@ -2,6 +2,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { applyControlsElement, createControlsElement } from './controls';
 import { createPlayerClock, type PlayerClock } from './clock';
+import { DEFAULT_PLAYER_LABELS } from './labels';
 import type { Timeline } from '../engine/timeline';
 
 const timeline = (stops: number[], durationMs = 1000): Timeline =>
@@ -15,6 +16,7 @@ function make(over: { stops?: number[]; durationMs?: number } = {}) {
   const ctl = createControlsElement({
     clock,
     timeline: tl,
+    labels: DEFAULT_PLAYER_LABELS,
     onToggleFullscreen,
   });
   applyControlsElement(ctl, clock, false);
@@ -51,6 +53,7 @@ describe('createControlsElement — accessibility surface', () => {
     const ctl = createControlsElement({
       clock,
       timeline: timeline([]),
+      labels: DEFAULT_PLAYER_LABELS,
       onToggleFullscreen: () => {},
       exportSlot: slot,
     });

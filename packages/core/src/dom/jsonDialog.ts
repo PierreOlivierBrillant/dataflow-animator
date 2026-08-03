@@ -1,5 +1,6 @@
 import type { Highlighter } from '../types';
 import { h, s, setAttrIfChanged, type Child } from './el';
+import type { PlayerLabels } from './labels';
 
 /**
  * Modal window showing the highlighted JSON spec — the port of `JsonDialog.tsx`.
@@ -12,15 +13,17 @@ import { h, s, setAttrIfChanged, type Child } from './el';
  * buttons, focus moves in on open and is restored to the opener on close, and
  * its timer is cleared on teardown.
  *
- * One documented quirk remains: the copy button's `title` stays "Copy to
- * clipboard" while its `aria-label` swaps to "Copied" for COPIED_MS, so the two
- * disagree for that window.
+ * One documented quirk remains: the copy button's `title` stays on
+ * `labels.copyToClipboard` while its `aria-label` swaps to `labels.copied` for
+ * COPIED_MS, so the two disagree for that window.
  */
 
 export interface JsonDialogOptions {
   json: string;
   /** Syntax highlighting (Prism by default), applied to the `json` language. */
   highlight: Highlighter;
+  /** Fully resolved by the caller — `mountPlayer` fills in the defaults. */
+  labels: PlayerLabels;
   onCopy(): Promise<void>;
   onDownload(): void;
   onClose(): void;
@@ -84,7 +87,7 @@ function closeIcon(): SVGSVGElement {
 export function createJsonDialog(
   options: JsonDialogOptions
 ): JsonDialogElement {
-  const { json, highlight, onCopy, onDownload, onClose } = options;
+  const { json, highlight, labels, onCopy, onDownload, onClose } = options;
 
   // Restored when the dialog is destroyed, so closing returns the user to
   // whatever opened it (the JSON button in the controls bar).
@@ -96,22 +99,20 @@ export function createJsonDialog(
   const backdrop = h('button', {
     type: 'button',
     class: 'rdfa-dialog-backdrop',
-    'aria-label': 'Close the dialog',
+    'aria-label': labels.closeDialog,
     tabindex: '-1',
   });
   backdrop.addEventListener('click', onClose);
 
-  const title = h('span', { class: 'rdfa-dialog-title' }, [
-    'JSON specification',
-  ]);
+  const title = h('span', { class: 'rdfa-dialog-title' }, [labels.jsonSpec]);
 
   const downloadBtn = h(
     'button',
     {
       type: 'button',
       class: 'rdfa-btn',
-      'aria-label': 'Download the JSON',
-      title: 'Download the JSON',
+      'aria-label': labels.download,
+      title: labels.download,
     },
     [downloadIcon()]
   );
@@ -122,9 +123,9 @@ export function createJsonDialog(
     {
       type: 'button',
       class: 'rdfa-btn rdfa-copy-btn',
-      'aria-label': 'Copy',
+      'aria-label': labels.copy,
       // Constant, unlike the aria-label — reproduced, see the header note.
-      title: 'Copy to clipboard',
+      title: labels.copyToClipboard,
     },
     [copyIcon()]
   );
@@ -136,7 +137,11 @@ export function createJsonDialog(
       'class',
       `rdfa-btn rdfa-copy-btn${copied ? ' rdfa-copied' : ''}`
     );
-    setAttrIfChanged(copyBtn, 'aria-label', copied ? 'Copied' : 'Copy');
+    setAttrIfChanged(
+      copyBtn,
+      'aria-label',
+      copied ? labels.copied : labels.copy
+    );
     copyBtn.replaceChildren(copied ? checkIcon() : copyIcon());
   };
   copyBtn.addEventListener('click', () => {
@@ -155,8 +160,8 @@ export function createJsonDialog(
     {
       type: 'button',
       class: 'rdfa-btn',
-      'aria-label': 'Close',
-      title: 'Close',
+      'aria-label': labels.close,
+      title: labels.close,
     },
     [closeIcon()]
   );
@@ -173,7 +178,7 @@ export function createJsonDialog(
       class: 'rdfa-dialog-overlay',
       role: 'dialog',
       'aria-modal': 'true',
-      'aria-label': 'JSON specification',
+      'aria-label': labels.jsonSpec,
     },
     [
       backdrop,
