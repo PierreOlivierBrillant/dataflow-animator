@@ -1055,9 +1055,12 @@ function circuitDagLayout(
     // Barycenter sweeps (neighbours restricted to this component).
     for (let iter = 0; iter < 6; iter++) {
       const forward = iter % 2 === 0;
+      // NB: Array.from rather than spread — Docusaurus Babel in "loose" mode
+      // transpiles iterable spread to `[].concat(iterable)`, which does not
+      // flatten a Map's key iterator.
       const range = forward
-        ? [...cols.keys()].slice(1)
-        : [...cols.keys()].slice(0, -1).reverse();
+        ? Array.from(cols.keys()).slice(1)
+        : Array.from(cols.keys()).slice(0, -1).reverse();
       for (const l of range) {
         const neigh = forward ? pred : succ;
         const bary = (id: string): number => {

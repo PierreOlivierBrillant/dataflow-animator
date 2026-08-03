@@ -71,7 +71,10 @@ export function createPlayerClock(options: PlayerClockOptions): PlayerClock {
 
   const listeners = new Set<() => void>();
   const emit = (): void => {
-    for (const listener of [...listeners]) listener();
+    // NB: Array.from rather than spread — Docusaurus Babel in "loose" mode
+    // transpiles iterable spread to `[].concat(iterable)`, which does not
+    // flatten a Set.
+    for (const listener of Array.from(listeners)) listener();
   };
 
   const tick = (now: number): void => {

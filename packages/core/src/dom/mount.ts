@@ -971,7 +971,10 @@ export function mountStage(
       // measured BEFORE this frame's content was applied — which is precisely
       // what makes the captured icon geometry the icon's and not the panel's.
       const geometry = settled.metrics.geometry;
-      const hasNew = [...activeContentNodeIds].some(
+      // NB: Array.from rather than spread — Docusaurus Babel in "loose" mode
+      // transpiles iterable spread to `[].concat(iterable)`, which does not
+      // flatten a Set.
+      const hasNew = Array.from(activeContentNodeIds).some(
         (id) => !iconGeomByNode[id] && geometry[id]
       );
       const hasGone = Object.keys(iconGeomByNode).some(

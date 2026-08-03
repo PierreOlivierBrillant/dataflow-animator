@@ -3,8 +3,8 @@ import type { LayoutMap } from '../engine/layout';
 /**
  * Fixed-aspect framing of a circuit schematic.
  *
- * Duplicates of `Stage.tsx`'s `circuitFrameAspect` / `letterbox` (see
- * `stageConstants.ts` for why these live here rather than being imported).
+ * Ported from the removed `Stage.tsx`'s `circuitFrameAspect` / `letterbox`
+ * (see `stageConstants.ts` for why these live here rather than being imported).
  */
 
 export interface Frame {
