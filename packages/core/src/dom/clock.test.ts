@@ -240,6 +240,41 @@ describe('createPlayerClock — playTo', () => {
   });
 });
 
+describe('createPlayerClock — invalid speed', () => {
+  it.each([
+    ['negative', -1],
+    ['zero', 0],
+    ['NaN', NaN],
+    ['Infinity', Infinity],
+  ])('falls back to 1 and warns once for %s speed', (_label, speed) => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const frames = driveFrames();
+    const clock = createPlayerClock({ durationMs: DURATION, speed });
+
+    clock.play();
+    for (let i = 0; i < 6; i++) frames.advance(TICK);
+
+    expect(clock.t).toBe(6 * TICK);
+    expect(clock.t).toBeGreaterThanOrEqual(0);
+    expect(clock.t).toBeLessThanOrEqual(DURATION);
+    expect(warn).toHaveBeenCalledTimes(1);
+
+    warn.mockRestore();
+  });
+
+  it('an invalid speed still lets playTo reach and stop at its target', () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const frames = driveFrames();
+    const clock = createPlayerClock({ durationMs: DURATION, speed: -1 });
+
+    clock.playTo(100);
+    for (let i = 0; i < 7; i++) frames.advance(TICK);
+
+    expect(clock.t).toBe(100);
+    expect(clock.playing).toBe(false);
+  });
+});
+
 describe('createPlayerClock — MAX_DT ceiling', () => {
   it('caps a giant frame gap and does not replay the lost time', () => {
     const frames = driveFrames();

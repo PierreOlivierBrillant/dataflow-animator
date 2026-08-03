@@ -20,8 +20,11 @@ import { clamp } from '../engine/timeline';
 // loop mode).
 const MAX_DT = 100; // ms
 
+const LOG = '[dataflow-animator]';
+
 export interface PlayerClockOptions {
   durationMs: number;
+  /** Must be a finite number > 0; invalid values fall back to 1. */
   speed?: number;
   loop?: boolean;
   autoPlay?: boolean;
@@ -48,7 +51,14 @@ export interface PlayerClock {
 }
 
 export function createPlayerClock(options: PlayerClockOptions): PlayerClock {
-  const { speed = 1, loop = false, autoPlay = false } = options;
+  const { loop = false, autoPlay = false } = options;
+  let speed = options.speed ?? 1;
+  if (!Number.isFinite(speed) || speed <= 0) {
+    console.warn(
+      `${LOG} ignoring \`speed=${options.speed}\`: expected a finite number > 0. Falling back to 1.`
+    );
+    speed = 1;
+  }
 
   let durationMs = options.durationMs;
   let t = 0;
@@ -69,7 +79,9 @@ export function createPlayerClock(options: PlayerClockOptions): PlayerClock {
     // absorbed (that time is genuinely lost), not replayed in slices.
     const dt = Math.min(now - last, MAX_DT);
     last = now;
-    let next = t + dt * speed;
+    // `speed` is validated at construction, but this clamp keeps any future
+    // regression bounded instead of drifting `t` toward -Infinity.
+    let next = Math.max(t + dt * speed, 0);
     let stop = false;
 
     // The target is checked FIRST and sets `stop`, so an armed `playTo` beats

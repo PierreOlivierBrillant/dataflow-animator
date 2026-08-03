@@ -35,6 +35,15 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Fixed
 
+- **`createPlayerClock` now validates `speed`.** An invalid value
+  (`<= 0`, `NaN`, `Infinity`) made `t` drift towards `-Infinity` instead of
+  advancing, so `playTo` never reached its target and the rAF loop never
+  stopped — reachable from HTML via `<dataflow-player speed="-1" auto-play>`
+  and from the Angular `speed` input, since `parseNumber` only checked
+  finiteness. The core now falls back to `1` with a console warning when
+  `speed` is not a finite number greater than `0`; `tick()` also clamps `t` to
+  `0` as a backstop against any future regression.
+
 Three keyboard defects of the player chrome, all in `@dataflow-animator/core`
 and therefore fixed for all four packages at once. The first two predate the
 framework-agnostic renderer — they behaved the same way in the React chrome of
