@@ -1,6 +1,6 @@
 {
   "name": "@dataflow-animator/core",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Framework-agnostic engine and DOM renderer for deterministic, scrubbable data-flow animations compiled from a JSON spec.",
   "type": "module",
   "license": "MIT",

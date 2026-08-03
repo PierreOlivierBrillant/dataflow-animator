@@ -11,7 +11,7 @@ import { toStyleMap } from './utils/styleMap';
 /**
  * Main player: compiles a `spec` into a deterministic timeline and plays it.
  *
- * Since v3 this component is a MOUNT, not a renderer. It creates the
+ * This component is a MOUNT, not a renderer. It creates the
  * framework-agnostic DOM renderer from `@dataflow-animator/core` in an
  * effect and tears it down on unmount; React never manages the player's
  * children. That is what makes a frame ~6x cheaper: a clock tick mutates the

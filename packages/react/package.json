@@ -1,6 +1,6 @@
 {
   "name": "@dataflow-animator/react",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "React binding for @dataflow-animator/core: compiles a JSON specification into a deterministic, scrubbable animation of data flows.",
   "type": "module",
   "license": "MIT",
@@ -58,7 +58,7 @@
     "react-dom": ">=18"
   },
   "dependencies": {
-    "@dataflow-animator/core": "^0.1.0"
+    "@dataflow-animator/core": "^1.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

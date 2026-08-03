@@ -95,26 +95,11 @@ donc compatible SSR et sans JavaScript.
 <DataFlowPlayer spec={spec} theme="pcb" mode="dark" />
 ```
 
-:::warning Migration depuis la v1
+:::note
 
-En v1, `theme` **était** l'axe clair/sombre. Il désigne désormais la palette, et
-le choix clair/sombre est passé sur `mode`. Renommez la prop à chaque appel :
-
-```tsx
-// v1
-<DataFlowPlayer spec={spec} theme="auto" />
-<DataFlowPlayer spec={spec} theme="dark" />
-
-// v2
-<DataFlowPlayer spec={spec} mode="auto" />   // ou omettez-la : 'auto' est la valeur par défaut
-<DataFlowPlayer spec={spec} mode="dark" />
-```
-
-`theme="light" | "dark" | "auto"` est maintenant une erreur de type :
-TypeScript signale donc lui-même chaque appel. Si vous stylez le lecteur
-vous-même, notez que l'élément racine porte `data-theme` (palette) **et**
-`data-mode`, et que les trois variables `--rdfa-packet-*` inutilisées ont été
-supprimées.
+Si vous stylez le lecteur vous-même, notez que l'élément racine porte
+`data-theme` (la palette) **et** `data-mode` (la variante claire/sombre) : votre
+propre CSS peut donc s'accrocher indépendamment à chacun des deux axes.
 
 :::
 
@@ -298,16 +283,6 @@ niveau module, y compris dans un bundle qui tourne aussi côté serveur.
 Les lecteurs `getNodeIcon(type)` / `getSubIcon(name)` permettent d'inspecter le
 registre si besoin ; tous deux renvoient un `SVGElement` neuf.
 
-:::caution Changement en v3
-
-Ces quatre fonctions prenaient et renvoyaient des nœuds React. Elles pilotent
-désormais le registre framework-agnostique par lequel le player rend réellement —
-si elles avaient continué de pointer sur celui de React, elles seraient devenues
-silencieusement inopérantes. Voir le
-[changelog](https://github.com/PierreOlivierBrillant/dataflow-animator/blob/main/CHANGELOG.md).
-
-:::
-
 ## Coloration syntaxique
 
 Par défaut, le code (`set_content` en mode `code`, corps de paquets) est coloré
@@ -344,11 +319,5 @@ composant :
 | `computeLayout(spec)`                   | Positions relatives des nœuds (ratios), sans DOM.  |
 
 Ces fonctions ne touchent aucun DOM et peuvent s'exécuter côté serveur.
-
-:::caution Retiré en v3
-
-`useClock` et le type `Clock` ont disparu. L'horloge du player vit désormais dans
-le cœur framework-agnostique et n'est plus un hook React : le hook exporté ne
-pilotait donc plus rien de ce que fait le player.
-
-:::
+L'horloge du player n'est pas un hook React : elle vit dans le cœur sous le nom
+`createPlayerClock`, exporté pour les hôtes qui pilotent `mountStage` eux-mêmes.

@@ -182,7 +182,7 @@ try {
           '@dataflow-animator/core': `file:${coreTarball}`,
           '@dataflow-animator/element': `file:${elementTarball}`,
         },
-        // Without this, npm resolves the element's own `^0.1.0` dependency on the
+        // Without this, npm resolves the element's own `^1.0.0` dependency on the
         // core from the REGISTRY — where it may not exist yet, and where it would
         // certainly not be the build under test.
         overrides: {

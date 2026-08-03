@@ -164,7 +164,7 @@ try {
           '@angular/compiler-cli': devDeps['@angular/compiler-cli'],
           typescript: devDeps.typescript,
         },
-        // Without this, npm resolves the binding's own `^0.1.0` dependency on the
+        // Without this, npm resolves the binding's own `^1.0.0` dependency on the
         // core from the REGISTRY — where it may not exist yet, and where it would
         // certainly not be the build under test.
         overrides: { '@dataflow-animator/core': `file:${core.path}` },

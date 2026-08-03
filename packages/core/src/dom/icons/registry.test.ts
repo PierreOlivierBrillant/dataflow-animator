@@ -108,14 +108,14 @@ describe('registry — lookup semantics', () => {
     ).not.toBeNull();
   });
 
-  it('folds sub-icon names to lower case, as v2 did', () => {
+  it('folds sub-icon names to lower case', () => {
     registerSubIcon('RDFA-TEST-CASE', MARKUP);
 
     expect(customSubIcon('rdfa-test-case')).not.toBeUndefined();
     expect(customSubIcon('Rdfa-Test-Case')).not.toBeUndefined();
   });
 
-  it('keeps node-icon keys case-sensitive, as v2 did', () => {
+  it('keeps node-icon keys case-sensitive', () => {
     registerNodeIcon('rdfaTestExact', MARKUP);
 
     expect(customNodeIcon('rdfatestexact')).toBeUndefined();
@@ -143,9 +143,9 @@ describe('registry — precedence in the renderers', () => {
     expect(renderSubIcon('redis').querySelector('#mine')).not.toBeNull();
   });
 
-  // v2 tested `switch` before its registry, so registering over it did nothing.
-  // v3 makes registration win everywhere; this is the deliberate behaviour
-  // change the CHANGELOG records.
+  // The legacy React renderer tested `switch` before its registry, so
+  // registering over it did nothing. Registration now wins everywhere,
+  // deliberately.
   it('lets a custom node icon beat the stateful switch geometry', () => {
     registerNodeIcon(
       'switch',

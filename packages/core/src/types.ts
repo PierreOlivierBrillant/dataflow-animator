@@ -1045,7 +1045,7 @@ export type PlayerTheme =
 /** Which variant of a {@link PlayerTheme} to display. */
 export type PlayerMode = 'light' | 'dark' | 'auto';
 
-// ─── Backward-compatible aliases (removed in v2) ─────────────────────────────
+// ─── Legacy aliases (original object vocabulary) ─────────────────────────────
 /** @deprecated Use {@link Node} instead. */
 export type StaticObject = Node;
 /** @deprecated Use {@link NodeType} instead. */

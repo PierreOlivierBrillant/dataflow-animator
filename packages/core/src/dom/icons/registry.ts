@@ -67,14 +67,15 @@ function resolve(entry: Entry): SVGElement {
  * Registers a pictogram for a node `type`, overriding the built-in one.
  *
  * Takes precedence over every built-in, including the stateful `switch` /
- * `push_button` geometry. (v2 tested those two first, so registering over them
- * was silently ignored — an accident of ordering, not a contract.)
+ * `push_button` geometry. (The legacy React renderer tested those two first, so
+ * registering over them was silently ignored — an accident of ordering, not a
+ * contract; "what you register wins" is the rule here.)
  */
 export function registerNodeIcon(type: string, icon: IconSource): void {
   nodeIcons.set(type, { source: icon });
 }
 
-/** Registers a `subicon` badge glyph. Names are case-insensitive, as in v2. */
+/** Registers a `subicon` badge glyph. Names are case-insensitive. */
 export function registerSubIcon(name: string, icon: IconSource): void {
   subIcons.set(name.toLowerCase(), { source: icon });
 }

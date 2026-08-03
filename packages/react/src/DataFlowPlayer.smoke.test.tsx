@@ -13,7 +13,7 @@ import type { DataFlowSpec } from './types';
 afterEach(cleanup);
 
 /**
- * Since v3 the player mounts imperatively in an effect, and the core's stage
+ * The player mounts imperatively in an effect, and the core's stage
  * settles across `requestAnimationFrame`. Every DOM assertion therefore waits
  * rather than reading straight after `render` — `waitFor` rather than fake
  * timers, so the tests are not coupled to the settle budget.

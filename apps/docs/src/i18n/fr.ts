@@ -264,8 +264,8 @@ export const fr = {
   },
   // The player chrome, injected into every <DataFlowPlayer> the site renders
   // (see src/components/DataFlowPlayer.tsx). `satisfies` keeps the keys in step
-  // with the library's own PlayerLabels. The French strings are the v2 chrome's,
-  // verbatim.
+  // with the library's own PlayerLabels. The French strings are the original
+  // French chrome's, verbatim.
   player: {
     restart: 'Recommencer depuis le début',
     play: 'Lecture',

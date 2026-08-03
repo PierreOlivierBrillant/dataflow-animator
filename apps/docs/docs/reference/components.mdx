@@ -95,25 +95,11 @@ needs no JavaScript.
 <DataFlowPlayer spec={spec} theme="pcb" mode="dark" />
 ```
 
-:::warning Upgrading from v1
+:::note
 
-In v1, `theme` **was** the light/dark axis. It is now the palette, and the
-light/dark choice moved to `mode`. Rename the prop at each call site:
-
-```tsx
-// v1
-<DataFlowPlayer spec={spec} theme="auto" />
-<DataFlowPlayer spec={spec} theme="dark" />
-
-// v2
-<DataFlowPlayer spec={spec} mode="auto" />   // or just omit it: 'auto' is the default
-<DataFlowPlayer spec={spec} mode="dark" />
-```
-
-`theme="light" | "dark" | "auto"` is now a type error, so TypeScript flags every
-site for you. If you styled the player yourself, note that the root element
-carries `data-theme` (palette) **and** `data-mode`, and that the three unused
-`--rdfa-packet-*` variables were removed.
+If you style the player yourself, note that the root element carries
+`data-theme` (the palette) **and** `data-mode` (the light/dark variant), so
+your own CSS can hook either axis independently.
 
 :::
 
@@ -297,15 +283,6 @@ scope in a bundle that also runs on the server.
 The `getNodeIcon(type)` / `getSubIcon(name)` readers allow you to inspect the
 registry if needed; both return a fresh `SVGElement`.
 
-:::caution Changed in v3
-
-These four functions used to take and return React nodes. They now drive the
-framework-agnostic registry the player actually renders through — had they kept
-pointing at the React one, they would have become silently inert. See the
-[changelog](https://github.com/PierreOlivierBrillant/dataflow-animator/blob/main/CHANGELOG.md).
-
-:::
-
 ## Syntax highlighting
 
 By default, code (`set_content` in `code` mode, packet bodies) is highlighted
@@ -341,12 +318,6 @@ component:
 | `stepIndexAt` / `nextStop` / `prevStop` | Step-by-step navigation and breakpoints.             |
 | `computeLayout(spec)`                   | Relative node positions (ratios), without DOM.       |
 
-These functions touch no DOM and can run on the server.
-
-:::caution Removed in v3
-
-`useClock` and the `Clock` type are gone. The player's clock now lives in the
-framework-agnostic core and is no longer a React hook, so the exported hook drove
-nothing the player did.
-
-:::
+These functions touch no DOM and can run on the server. The player's clock is
+not a React hook: it lives in the core as `createPlayerClock`, exported for
+hosts that drive `mountStage` themselves.

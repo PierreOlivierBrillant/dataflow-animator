@@ -37,7 +37,7 @@ See also [SPEC.md](./SPEC.md) (functional specification).
    every downstream consumer regardless of framework.
 
    Every binding **depends** on it: since step 3.2 the core is a runtime
-   dependency (`^0.1.0`) of `@dataflow-animator/react`, and since step 3.3 of
+   dependency (`^1.0.0`) of `@dataflow-animator/react`, and since step 3.3 of
    `@dataflow-animator/element` too, externalised from their bundles rather than
    inlined into them. One engine and one stylesheet on disk, however many
    bindings — see
@@ -56,7 +56,7 @@ See also [SPEC.md](./SPEC.md) (functional specification).
    consumer gains ordinary CSS selectors into the player as a side benefit.
    Shadow DOM stays available as a later opt-in.
 
-6. **Browser rendering, no server markup**: since v3 the player MOUNTS the
+6. **Browser rendering, no server markup**: the player MOUNTS the
    core's DOM renderer in a client effect, so nothing is emitted server-side
    beyond a sized placeholder (and `fallback`). No DOM is touched at module
    scope, so importing the package on a server is safe.
@@ -420,7 +420,7 @@ No `style.css`, no `schema.json` — both belong to the core, and `exports` now
 lists only `.` and `./package.json`.
 
 `react` and `react-dom` are in `peerDependencies` (externalized from the bundle).
-`@dataflow-animator/core` is a real `dependency` at `^0.1.0` — a resolvable range,
+`@dataflow-animator/core` is a real `dependency` at `^1.0.0` — a resolvable range,
 not `"*"`, so an installer outside this monorepo gets a version. In-repo, npm
 workspaces satisfies that range with the local symlink. `prismjs` is NOT a
 dependency here: no file in `src/` imports it, and the core already declares it,
@@ -445,7 +445,7 @@ Three things about this manifest are load-bearing:
   to drop a bare `import '@dataflow-animator/element'` entirely and the tag would
   simply never exist. The React package can say `false` because its entry only
   exports values.
-- **`@dataflow-animator/core` at `^0.1.0`** — a resolvable range, for the same
+- **`@dataflow-animator/core` at `^1.0.0`** — a resolvable range, for the same
   reason as above. `prismjs` is external in the Vite config even though nothing
   here imports it, so a future indirect reach for it cannot get inlined.
 - **No `resolve.alias`** in `vite.config.ts`, with the comment explaining that the

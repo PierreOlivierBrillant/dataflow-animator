@@ -1,394 +1,73 @@
 # Changelog
 
-All notable changes to `@dataflow-animator/core`, `@dataflow-animator/react`
-(formerly `react-dataflow-animator`), `@dataflow-animator/element` and
-`@dataflow-animator/angular` are documented here.
+All notable changes to `@dataflow-animator/core`, `@dataflow-animator/react`,
+`@dataflow-animator/element` and `@dataflow-animator/angular` are documented
+here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-<!-- Internal note (no release): after 3.0.0, the now-unused React renderer
-     (Stage, Controls, the JSX node/dynamic components, useClock…) was deleted
-     from the source tree. None of it was exported, so there is no change for
-     consumers and no version bump. -->
+## 1.0.0 — Unreleased
 
-## Unreleased
+First public release: a framework-agnostic core and three thin bindings.
 
-### Added
+### `@dataflow-animator/core`
 
-- **`labels` — the player chrome is now localisable.** The chrome (the control
-  bar and the JSON dialog) has always hardcoded its user-visible strings —
-  French in v2, English since v3 / `@dataflow-animator/core` 0.1.0 — with no
-  way to change them. The core's `PlayerOptions` now takes
-  `labels?: Partial<PlayerLabels>`: every `aria-label`, `title` (tooltip) and
-  dialog heading, overridable key by key, any omitted key keeping its English
-  default. The defaults are resolved **in the core**; wrappers pass the object
-  through untouched. Additive on all four public surfaces:
-  - `@dataflow-animator/core` — `mountPlayer(host, spec, { labels })`, and the
-    exported `PlayerLabels` type;
-  - `@dataflow-animator/react` — a `labels` prop, compared structurally (an
-    inline object literal does not remount the player);
-  - `@dataflow-animator/element` — a `labels` **property** (an object does not
-    live in an attribute — same status as `highlight`);
-  - `@dataflow-animator/angular` — a `labels` input, keyed structurally like
-    `spec`.
+The engine, the renderer and the stylesheet — everything every binding shares,
+usable on its own with no framework at all.
 
-### Fixed
+- **A deterministic engine.** `compile(spec)` turns a JSON specification into a
+  timeline of dated clips; `evaluate(timeline, t)` is a pure function of time.
+  Seeking, stepping and backwards scrubbing are exact, not simulated.
+- **A retained-mode DOM renderer.** `mountPlayer` (stage, control bar and
+  clock) and `mountStage` (bring your own chrome) build the DOM once and mutate
+  it in place as `t` moves — no per-frame rebuild.
+- **Automatic layout** — linear by `direction` and `lane`, circular, trees —
+  and **circuit schematics**: net-aware orthogonal routing, automatic pin
+  assignment, and a fixed-aspect letterboxed frame so a schematic routes
+  identically at any player size or shape.
+- **An accessible, localisable chrome.** Keyboard shortcuts, a scrub bar with
+  slider semantics, a modal JSON dialog with a focus trap; every user-visible
+  string is overridable key by key via `labels` (English defaults, resolved in
+  the core).
+- **Extensible registries** for node icons and sub-icon badges
+  (`registerNodeIcon`, `registerSubIcon`); Prism-based syntax highlighting,
+  replaceable via `highlight`; `dataFlowSchema`, the JSON Schema generated from
+  the spec types; `serializeSpec` and JSON export.
+- **One stylesheet, shipped once**: `@dataflow-animator/core/styles.css`.
+  Whichever binding you use, import it exactly once — without it the markup
+  mounts and measures, but nothing has a size.
+- **SSR-safe**: importing the package touches no DOM, and Prism is kept from
+  auto-highlighting the host page's own code blocks.
 
-- **The stage's `ResizeObserver` no longer retains removed nodes.** A
-  `ResizeObserver` holds its targets strongly, and the tracker only ever added
-  to its observed set: every `set_visible` hide left the observer holding a
-  detached element — a fresh one, since the reconciliation never recycles what
-  it removed — until the player was destroyed. The observed set is now
-  re-synchronised with the nodes actually in the tree on each re-observation.
-- **`createPlayerClock` now validates `speed`.** An invalid value
-  (`<= 0`, `NaN`, `Infinity`) made `t` drift towards `-Infinity` instead of
-  advancing, so `playTo` never reached its target and the rAF loop never
-  stopped — reachable from HTML via `<dataflow-player speed="-1" auto-play>`
-  and from the Angular `speed` input, since `parseNumber` only checked
-  finiteness. The core now falls back to `1` with a console warning when
-  `speed` is not a finite number greater than `0`; `tick()` also clamps `t` to
-  `0` as a backstop against any future regression.
+### `@dataflow-animator/react`
 
-Three keyboard defects of the player chrome, all in `@dataflow-animator/core`
-and therefore fixed for all four packages at once. The first two predate the
-framework-agnostic renderer — they behaved the same way in the React chrome of
-v2/v3 — so these are deliberate **behaviour changes**, not a return to a
-previous rendering. No markup, class name or pixel changes.
+`<DataFlowPlayer>`, the React binding. It mounts the core's player in an effect
+and renders nothing per frame; the engine is a dependency, not a copy, so the
+bundle stays a few kilobytes. `NodeView` renders a single node's visual outside
+any stage. Every option is read at mount: changing one remounts the player,
+which reopens at the current instant and play state (`spec` and `labels` are
+compared structurally, so inline objects cost nothing).
 
-- **Space on a focused control now activates that control.** The shortcuts
-  listen on the `.rdfa-player` root, which contains the control bar, so a
-  keydown on any focused button bubbled to them: pressing Space on "Next step"
-  toggled playback instead of stepping, and did so even from a button of the
-  JSON dialog — driving the player _behind_ the open modal. Space is now the
-  play/pause shortcut only when the focus is on the root or the stage, i.e. on
-  nothing activatable. `ArrowLeft`/`ArrowRight` stay global by design: they
-  compete with no button activation, so a keyboard user standing on a button
-  still steps the timeline with them. Neither fires from inside the JSON
-  dialog, which is modal and whose code panel scrolls.
-- **Enter on the focused progress bar no longer jumps to the start.** The bar
-  is a `<button>` whose seek reads `event.clientX`; a keyboard activation
-  synthesises a click with no pointer behind it (`clientX` 0), which read as a
-  click on the far left. A click carrying no pointer (`detail === 0`) now seeks
-  nothing. The bar also gained real slider semantics — `role="slider"` with
-  `aria-valuemin`/`aria-valuemax`/`aria-valuenow`, the last kept on the clock —
-  so it announces the position it displays.
-- **The JSON dialog's code panel is reachable by keyboard.** The `<pre>`
-  scrolls, but was not focusable, so a keyboard user could not scroll the spec
-  at all. It is now a named tab stop (`tabindex="0"` plus an `aria-label`) and
-  takes its place in the dialog's focus trap, last, after the three head
-  buttons.
+### `@dataflow-animator/element`
 
-## `@dataflow-animator/angular` 0.1.0
+`<dataflow-player>`, a light-DOM custom element for plain HTML, Vue, Svelte, or
+anything that renders a tag. Every option is a kebab-case attribute or a
+camelCase property; `spec` takes a JSON string or a real object. An absent
+boolean attribute means "unspecified" — the core's default applies — so
+`controls="false"` is how the control bar is hidden, never by omission. Two
+events, because mounting coalesces on a microtask: `dataflow-player:mounted`
+and `dataflow-player:error`. Importing the package registers the tag;
+`defineDataFlowPlayer(tag)` registers extra names.
 
-**New package.** `<dfa-player>`, a standalone Angular component over
-`@dataflow-animator/core`. Angular was already reachable through
-`@dataflow-animator/element` and `CUSTOM_ELEMENTS_SCHEMA`; this is the native
-binding, with typed inputs and no schema opt-in.
+### `@dataflow-animator/angular`
 
-```ts
-import { DataFlowPlayerComponent } from '@dataflow-animator/angular';
-// and, once, globally — angular.json "styles" or a global @import:
-//   @dataflow-animator/core/styles.css
+`<dfa-player>`, a standalone Angular component (Angular 22, signal inputs,
+`output()` events). The animation clock runs outside the Angular zone, so
+playback never triggers change detection; SSR is guarded by
+`isPlatformBrowser`. Outputs: `mounted` and `error`. The selector is
+deliberately not `dataflow-player`, which belongs to the custom element — a
+consumer may use both packages.
 
-@Component({
-  imports: [DataFlowPlayerComponent],
-  template: `<dfa-player [spec]="spec" [height]="420" theme="blueprint" />`,
-})
-export class DemoComponent {
-  readonly spec = { … };
-}
-```
-
-- **Requires Angular 22.** `@angular/core` and `@angular/common` are peer
-  dependencies at `^22.0.0`. Inputs are **signal inputs**, outputs are `output()`.
-- **The clock runs outside the Angular zone.** The core's animation loop schedules
-  a frame while playing; mounting inside the zone would trigger change detection
-  on every one of them. The mount goes through `NgZone.runOutsideAngular`, and a
-  test asserts the zone recorded at each `requestAnimationFrame` — not that the
-  call was made.
-- **SSR-safe.** Guarded by `isPlatformBrowser`: a server renders an empty host
-  element and touches no DOM.
-- **Light DOM**, and the host gets `display: contents` so `.rdfa-player` inherits
-  the containing block you gave the tag. Set an inline `display` to opt out.
-- **It ships neither the engine nor the CSS.** `@dataflow-animator/core` is a real
-  dependency at `^0.1.0`, external to the bundle — 13 kB packed, and a `.d.ts` that
-  references the core's types instead of copying them. Import
-  `@dataflow-animator/core/styles.css` once; **without the stylesheet nothing has a
-  size.**
-- **Every option of the core's player is an input** (`spec`, `theme`, `mode`,
-  `density`, `height`, `width`, `playerClass`, `speed`, `initialT`, `controls`,
-  `exportable`, `autoPlay`, `loop`, `debug`, `highlight`).
-- **An input you never bind means "unspecified", not `false`.** The core defaults
-  `controls` to `true`, so `<dfa-player [spec]="spec" />` shows the control bar —
-  bind `[controls]="false"` to hide it. Same for `exportable`, `autoPlay`, `loop`
-  and `debug`.
-- **Changing an input remounts the player**, as in the other bindings: several
-  changes in one change-detection pass coalesce into one remount, the new player
-  reopens at the previous instant and play state, and only the first mount honours
-  `initialT` / `autoPlay`. `spec` is keyed on its **structure**, so
-  `[spec]="buildSpec()"` does not remount on every pass.
-- **Two outputs**: `mounted` (after every mount, remounts included) and `error`
-  (a spec that could not be mounted — reported, never leaving a half-built player).
-- Selector `dfa-player`, deliberately not `dataflow-player`: that tag belongs to
-  the custom element, and a consumer may have both packages.
-
-## `@dataflow-animator/element` 0.1.0
-
-**New package.** `<dataflow-player>`, a custom element over
-`@dataflow-animator/core` — the first binding that is not React, and the one that
-covers plain HTML, Vue, Svelte, Angular and anything else that renders a tag.
-
-```html
-<script type="module">
-  import '@dataflow-animator/element';
-  import '@dataflow-animator/core/styles.css';
-</script>
-
-<dataflow-player height="420" theme="blueprint" spec="{ … }"></dataflow-player>
-```
-
-- **Light DOM, no Shadow DOM.** The core's global `.rdfa-*` stylesheet applies as
-  it is, and you can style the player with ordinary CSS
-  (`dataflow-player .rdfa-player { … }`). Encapsulating would have forced this
-  package to carry its own copy of the CSS, which is exactly what "the stylesheet
-  ships once" exists to prevent. Shadow DOM stays available as a later opt-in.
-- **It ships neither the engine nor the CSS.** `@dataflow-animator/core` is a real
-  dependency at `^0.1.0`, externalised from the bundle — 6.5 kB of JavaScript, and
-  a `.d.ts` that references the core's types instead of copying them. Import
-  `@dataflow-animator/core/styles.css` once; **without the stylesheet nothing has a
-  size.**
-- **Every option of the core's player is reachable**, as a kebab-case attribute or
-  a camelCase property (`spec`, `theme`, `mode`, `density`, `height`, `width`,
-  `player-class`, `speed`, `initial-t`, `controls`, `exportable`, `auto-play`,
-  `loop`, `debug`, plus `highlight` as a property). `spec` takes a JSON string or a
-  real object.
-- **An absent boolean attribute means "unspecified", not `false`.** The core
-  defaults `controls` to `true`, so `<dataflow-player>` with no `controls`
-  attribute still shows the control bar — **write `controls="false"` to hide it.**
-  Same for `exportable`, `auto-play`, `loop` and `debug`.
-- **Changing an option remounts the player**, as in the React binding: several
-  synchronous changes coalesce into one remount, the new player reopens at the
-  previous instant and play state, and only the first mount honours `initial-t` /
-  `auto-play`.
-- **Two events**, because mounting is deferred by a microtask:
-  `dataflow-player:mounted` (after every mount, remounts included) and
-  `dataflow-player:error` (an unreadable `spec` attribute — reported and ignored,
-  never blanking a working player).
-- `defineDataFlowPlayer(tag?)` registers an extra tag name; the default
-  `dataflow-player` is registered when you import the package.
-- **SSR-safe**: importing the package on a server is inert, not fatal.
-
-No CDN bundle in this release, deliberately: `esm.sh`/`jspm` rewrite bare module
-specifiers, and an import map covers the rest, so a self-contained build would only
-add a second copy of the engine. Both recipes are in the package README.
-
-A demo of the element on the documentation site is not part of this release.
-
-## `@dataflow-animator/react` 0.1.0
-
-**Renamed package.** `react-dataflow-animator` becomes
-`@dataflow-animator/react`, and the version restarts at `0.1.0` alongside the
-core rather than continuing to `4.0.0` — the npm name is new, so nothing is
-being upgraded in place. `react-dataflow-animator@3.0.0` is not maintained.
-
-The React binding stops bundling the engine and now **depends** on the published
-core. One engine and one stylesheet on disk instead of two.
-
-### Migrating from `react-dataflow-animator@3.0.0`
-
-```diff
--npm install react-dataflow-animator
-+npm install @dataflow-animator/react
-```
-
-```diff
--import { DataFlowPlayer } from 'react-dataflow-animator';
--import 'react-dataflow-animator/styles.css';
-+import { DataFlowPlayer } from '@dataflow-animator/react';
-+import '@dataflow-animator/core/styles.css';
-```
-
-```diff
--import schema from 'react-dataflow-animator/schema.json';
-+import schema from '@dataflow-animator/core/schema.json';
-```
-
-Every **export name** is unchanged — `DataFlowPlayer`, `NodeView`,
-`registerNodeIcon`/`getNodeIcon`, `registerSubIcon`/`getSubIcon`, `compile`,
-`evaluate`, `computeLayout`, `dataFlowSchema`, every spec and timeline type. Only
-the package name, the stylesheet path and the schema path move.
-
-### Changed
-
-- **`@dataflow-animator/core` is a runtime `dependency`** (`^0.1.0`), externalised
-  from the bundle instead of inlined into it. It installs automatically.
-- **The published `.d.ts` REFERENCES the core's types** instead of copying them,
-  so a consumer resolves one set of spec types whichever package they import
-  from. 106 kB → 6 kB.
-- `dist/index.js`: **290 kB → 3.7 kB**. The engine, the DOM renderer and the
-  stylesheet are no longer duplicated here.
-
-### Removed
-
-- **`@dataflow-animator/react/styles.css`** — the package emits no stylesheet.
-  Import `@dataflow-animator/core/styles.css`, which is the same bytes, shipped
-  once. **This is the one change that silently breaks a page rather than the
-  build**: without it the markup mounts and measures, but nothing has a size, a
-  colour or a transition.
-- **`@dataflow-animator/react/schema.json`** — use
-  `@dataflow-animator/core/schema.json`.
-- `prismjs` as a direct dependency: nothing in this package imports it, and the
-  core already declares it, so it still arrives transitively.
-
-## `@dataflow-animator/core` 0.1.0
-
-The framework-agnostic core becomes a package of its own — the direct entry
-point for a consumer with no framework, and the common dependency every wrapper
-will be built on. Until now it was a private, source-only workspace that
-`react-dataflow-animator` inlined at build time.
-
-### Fixed
-
-The player chrome, carried verbatim through the migration to keep the pixel
-gate, is cleaned up now that it is no longer measured against React:
-
-- the hardcoded French labels (`aria-label`/`title`) are now English;
-- `ArrowRight` **plays** to the next stop, mirroring the "next" button, instead
-  of jumping (the keyboard now matches the buttons);
-- the JSON dialog is a proper modal: `Escape` closes it, `Tab` is trapped in its
-  buttons, focus moves in on open and back to the opener on close, and its
-  pending copied-state timer is cleared on teardown instead of firing into a
-  detached tree;
-- the fullscreen toggle exits only when **this** player is the fullscreen
-  element, not whenever any element is.
-- **SSR hydration**: importing the core no longer lets Prism auto-highlight the
-  host page's own `<pre><code>` blocks on `DOMContentLoaded` (it now sets
-  `Prism.manual`). On a server-rendered host — a Docusaurus/Next site embedding
-  a player — that rewrote markup React had already sent, throwing React error
-  #418; explicit `highlightCode` calls are unaffected.
-
-### Added
-
-- **A public API** (`packages/core/src/index.ts`): `mountPlayer` / `mountStage`
-  and their option and handle types, `createPlayerClock`, `renderNodeVisual`,
-  the icon registries (`registerNodeIcon`, `registerSubIcon`, the `render*`
-  getters returning an `SVGElement`, `IconSource`), `highlightCode` /
-  `escapeHtml`, the engine (`compile`, `evaluate`, `stepIndexAt`, `nextStop`,
-  `prevStop`, `computeLayout`, `Timeline` and the whole `Clip` union),
-  `serializeSpec`, every specification type, and `dataFlowSchema`. The
-  renderer's plumbing stays private.
-- **A build**: ESM bundle, a flattened self-contained `dist/index.d.ts`,
-  `dist/styles.css` and `dist/schema.json`, exported as
-  `@dataflow-animator/core`, `@dataflow-animator/core/styles.css` and
-  `@dataflow-animator/core/schema.json`. `prismjs` stays external.
-- **The renderer's stylesheet** moved here from the React package, next to the
-  markup it styles.
-
-### Changed
-
-- `mountVanillaPlayer` → `mountPlayer`, `mountVanillaStage` → `mountStage`, and
-  their `Vanilla*` option/handle types lose the prefix. None of these names was
-  public, so no consumer is affected: this package **is** the
-  framework-agnostic one, and the name should not have said "vanilla".
-
-### Note for `react-dataflow-animator` consumers
-
-Nothing changes in this release. The React package still inlines the core's
-source, so it ships its own copy of the engine and of the stylesheet. Making it
-depend on the published core — one engine, one stylesheet, and a different CSS
-import path — is a breaking change, and lands as its own major version.
-
-## [3.0.0]
-
-`DataFlowPlayer` no longer renders a React tree. It mounts a framework-agnostic
-DOM renderer and drives it imperatively, which makes a frame **5–7× cheaper in
-script time** — a clock tick now mutates the DOM in place instead of
-re-rendering. The rendering itself is unchanged: a 200-cell pixel-diff gate
-holds the new renderer bit-identical to the old one across five demos, five
-instants, both themes and the full player chrome.
-
-Upgrading costs you nothing unless you use `useClock`, the icon registries, or
-rely on the player being server-rendered.
-
-### Changed (breaking)
-
-- **The player renders nothing on the server.** The DOM renderer mounts in a
-  client effect, so the static HTML contains only a correctly-sized placeholder
-  (plus `fallback`, if given) and the diagram appears on hydration. There is no
-  hydration mismatch — there is nothing to match. Previously the server emitted
-  the full stage markup, hidden until measurement, plus a **visible control
-  bar**; that bar is the one thing that genuinely disappears from prerendered
-  pages. Use `fallback` to put a poster or skeleton in the static HTML.
-- **`registerNodeIcon` / `registerSubIcon` take SVG markup or a factory**,
-  instead of a `ReactNode`:
-
-  ```diff
-  - registerSubIcon('kafka', <SiApachekafka color="#231F20" />);
-  + registerSubIcon('kafka', '<svg viewBox="0 0 24 24">…</svg>');
-  + registerSubIcon('kafka', () => buildMyIcon());   // or a factory
-  ```
-
-  They now drive the core's registry. Had they kept pointing at the React one,
-  they would have gone silently inert — the player no longer renders through it.
-
-- **`getNodeIcon` / `getSubIcon` return an `SVGElement`** rather than a
-  `ReactNode`. To place one in a React tree, mount it in an effect (this is what
-  `NodeView` does).
-- **A registered node icon now overrides `switch` and `push_button`.** In v2
-  those two were resolved before the registry, so registering over them was
-  silently ignored — an accident of ordering rather than a contract.
-- **`NodeView` mounts its content in an effect** and therefore also emits
-  nothing on the server. Its props are unchanged.
-- **`style` values are converted with an explicit unitless table** (`opacity`,
-  `zIndex`, `flex*`, `order`, `lineHeight`, `fontWeight`, `zoom`, `grid*`) rather
-  than React's full one. Anything else numeric gets `px`.
-
-### Removed
-
-- **`useClock` and the `Clock` type.** The player's clock lives in the core and
-  is no longer a React hook, so the exported hook drove nothing the player did.
-
-### Added
-
-- **`width`** — sizes the player before its first measurement. Setting a width
-  afterwards would anchor a `set_content` node's icon→panel morph to a box the
-  player never actually had.
-- **`initialT`** — the instant the player opens at, in ms. Uncontrolled: it
-  seeds the clock at mount. Opening _at_ `t` is not the same rendering as opening
-  at 0 and seeking to `t`, which is why it is a mount option and not a seek.
-- **`IconSource`** — `string | (() => SVGElement)`, the type the icon registries
-  accept.
-
-### Notes
-
-- **Changing `spec` remounts the player**, carrying the current instant and play
-  state across. Remounting is keyed on the spec's _structure_, not the object's
-  identity, so rebuilding an equal spec on every render costs nothing. One
-  visible consequence: a `set_content` in flight when the spec changes will
-  flicker once, because the icon→panel anchor is recaptured at the resumed
-  instant rather than walked to.
-- **`highlight` is read when the player mounts.** An inline arrow function would
-  otherwise be a new value on every render, and since every option change
-  remounts, the player would remount forever. Change it together with `spec`.
-- The new rendering path honours `density` (`'spacious'` included) and a custom
-  `highlight` for panel content exactly as v2's did.
-- Icon glyph geometry now ships inside the published bundle, so the icon packs'
-  attribution ships with it — see `LICENSE`.
-
-The four chrome "known issues" carried through the migration (French labels, the
-`ArrowRight` asymmetry, the un-trapped JSON dialog, the over-eager fullscreen
-toggle) are resolved in the `@dataflow-animator/core` 0.1.0 line above, before
-any release — see its **Fixed** section.
-
-## [2.0.0]
-
-- Spec types, JSON Schema, the pure engine, TeX parsing, syntax highlighting and
-  JSON export extracted into a private `@react-dataflow-animator/core`
-  workspace, inlined into the published bundle. No public API change.
-- Backward-compatible type aliases from 1.x (`StaticObject`, `DynamicObject` and
-  friends) removed.
-
-## [1.0.0]
-
-- First public release.
+All three bindings depend on the core rather than bundling it: one engine and
+one stylesheet on disk, however many bindings a page uses.

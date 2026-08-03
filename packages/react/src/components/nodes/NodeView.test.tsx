@@ -6,7 +6,7 @@ import { NodeView } from './NodeView';
 afterEach(cleanup);
 
 /**
- * Since v3 `NodeView` mounts the core's `renderNodeVisual` in an effect instead
+ * `NodeView` mounts the core's `renderNodeVisual` in an effect instead
  * of rendering JSX, so every assertion waits for the effect. The JSX path it
  * used to take is still covered, by `NodeVisual.test.tsx`.
  */

@@ -143,7 +143,7 @@ skeleton.
 import { registerNodeIcon, registerSubIcon } from '@dataflow-animator/react';
 
 // An icon is SVG MARKUP (or a `() => SVGElement` factory), not a ReactNode:
-// the player renders outside React since v3.
+// the player renders outside React.
 registerNodeIcon('queue', '<svg viewBox="0 0 24 24">…</svg>');
 registerSubIcon('kafka', '<svg viewBox="0 0 24 24">…</svg>');
 ```

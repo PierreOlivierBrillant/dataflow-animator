@@ -89,9 +89,9 @@ const FALLBACK: IconShape[] = [
  * (`switch`, `push_button`); it is ignored by every other type.
  *
  * A `registerNodeIcon` entry wins over everything, the stateful contacts
- * included. v2 tested those two before its registry, so registering over them
- * did nothing at all; "what you register wins" is the only rule that does not
- * need an exception documented next to it.
+ * included. The legacy React renderer tested those two before its registry, so
+ * registering over them did nothing at all; "what you register wins" is the
+ * only rule that does not need an exception documented next to it.
  */
 export function renderNodeIcon(
   type: NodeType,

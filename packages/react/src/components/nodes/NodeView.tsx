@@ -27,7 +27,7 @@ const HOST_STYLE: CSSProperties = { display: 'contents' };
  * sub-icon, spinner or enclosing Stage. Sizes itself on `--rdfa-scale`
  * (fallback `1`), so it's renderable outside a `<DataFlowPlayer>`.
  *
- * Since v3 this mounts the core's `renderNodeVisual` in an effect rather than
+ * This mounts the core's `renderNodeVisual` in an effect rather than
  * rendering JSX, so a single dispatch decides panel/shape/signal/pictogram for
  * both this and the player. Like the player, it therefore emits nothing on the
  * server and fills in on hydration.

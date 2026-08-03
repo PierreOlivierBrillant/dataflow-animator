@@ -30,7 +30,7 @@ export type { DataFlowPlayerProps } from './types';
 
 // Extensibility: register your own icons.
 //
-// v3 — these drive the framework-agnostic registry in the core. An icon is SVG
+// These drive the framework-agnostic registry in the core. An icon is SVG
 // markup or a factory returning an SVGElement, instead of a ReactNode, and the
 // getters return an SVGElement. Pointing them at the React registries would have
 // left them silently inert, since the player no longer renders through it.
@@ -115,12 +115,12 @@ export type {
   PlayerTheme,
   PlayerMode,
   PlayerLabels,
-  // Backward-compatible aliases (removed in v2)
+  // Legacy aliases for the original object vocabulary (see types.ts)
   StaticObject,
   StaticObjectType,
   DynamicObject,
   DynamicObjectType,
 } from '@dataflow-animator/core';
 
-// `useClock` was removed in v3: the player's clock lives in the core and is no
-// longer a React hook.
+// There is no clock hook: the player's clock lives in the core
+// (`createPlayerClock`), not in React.
