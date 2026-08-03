@@ -13,7 +13,7 @@ const base: DataFlowSpec = {
 };
 
 describe('buildStageSignature', () => {
-  it('change quand seul lane change', () => {
+  it('changes when only lane changes', () => {
     const before = buildStageSignature(base);
     const after = buildStageSignature({
       ...base,
@@ -25,7 +25,7 @@ describe('buildStageSignature', () => {
     expect(after).not.toBe(before);
   });
 
-  it('change quand main change', () => {
+  it('changes when main changes', () => {
     const before = buildStageSignature(base);
     const after = buildStageSignature({
       ...base,
@@ -37,7 +37,7 @@ describe('buildStageSignature', () => {
     expect(after).not.toBe(before);
   });
 
-  it('change quand align_with change', () => {
+  it('changes when align_with changes', () => {
     const before = buildStageSignature(base);
     const after = buildStageSignature({
       ...base,
@@ -49,7 +49,7 @@ describe('buildStageSignature', () => {
     expect(after).not.toBe(before);
   });
 
-  it('change quand background_color change (influe sur borderOutset)', () => {
+  it('changes when background_color changes (affects borderOutset)', () => {
     const before = buildStageSignature(base);
     const after = buildStageSignature({
       ...base,
@@ -61,7 +61,7 @@ describe('buildStageSignature', () => {
     expect(after).not.toBe(before);
   });
 
-  it('change quand type change', () => {
+  it('changes when type changes', () => {
     const before = buildStageSignature(base);
     const after = buildStageSignature({
       ...base,
@@ -73,7 +73,7 @@ describe('buildStageSignature', () => {
     expect(after).not.toBe(before);
   });
 
-  it('change quand les connexions changent en mode graph (auto-layout)', () => {
+  it('changes when connections change in graph mode (auto-layout)', () => {
     const graphBase: DataFlowSpec = {
       direction: 'graph',
       nodes: [
@@ -93,7 +93,7 @@ describe('buildStageSignature', () => {
     expect(after).not.toBe(before);
   });
 
-  it('ignore les connexions hors mode graph (pas de re-mesure inutile)', () => {
+  it('ignores connections outside graph mode (no unnecessary re-measure)', () => {
     const before = buildStageSignature(base);
     const after = buildStageSignature({
       ...base,
@@ -102,7 +102,7 @@ describe('buildStageSignature', () => {
     expect(after).toBe(before);
   });
 
-  it('est stable à spec identique', () => {
+  it('is stable for an identical spec', () => {
     expect(buildStageSignature(base)).toBe(buildStageSignature(base));
   });
 });

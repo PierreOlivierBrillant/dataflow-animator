@@ -11,12 +11,12 @@ const baseSpec = clientServer('en');
 
 const locales: Locale[] = ['en', 'fr'];
 
-describe('validateSpec — validation de schéma', () => {
-  it('retourne un tableau vide pour une spec valide', () => {
+describe('validateSpec — schema validation', () => {
+  it('returns an empty array for a valid spec', () => {
     expect(validateSpec(baseSpec)).toEqual([]);
   });
 
-  it("signale un type d'action inconnu avec la liste des valeurs acceptées", () => {
+  it('reports an unknown action type with the list of accepted values', () => {
     const spec = {
       ...baseSpec,
       timeline: [{ type: 'mov', object: 'req', from: 'browser', to: 'api' }],
@@ -29,7 +29,7 @@ describe('validateSpec — validation de schéma', () => {
     expect(err!.message).toContain('"move"');
   });
 
-  it('signale un type de nœud invalide avec la liste des valeurs acceptées', () => {
+  it('reports an invalid node type with the list of accepted values', () => {
     const spec = {
       ...baseSpec,
       nodes: [{ id: 'x', type: 'pc', lane: 1 }],
@@ -43,7 +43,7 @@ describe('validateSpec — validation de schéma', () => {
     expect(err!.message).toContain('"laptop"');
   });
 
-  it('signale un champ required manquant avec le nom du champ', () => {
+  it('reports a missing required field with the field name', () => {
     const spec = {
       ...baseSpec,
       nodes: [{ type: 'laptop', lane: 1 }],
@@ -54,7 +54,7 @@ describe('validateSpec — validation de schéma', () => {
     expect(err!.message).toContain('"id"');
   });
 
-  it('signale un type incorrect avec le type attendu', () => {
+  it('reports a wrong type with the expected type', () => {
     const spec = {
       ...baseSpec,
       nodes: [{ id: 'x', type: 'laptop', lane: '1' }],
@@ -69,12 +69,12 @@ describe('validateSpec — validation de schéma', () => {
   });
 });
 
-describe('validateSpec — toutes les démos de la galerie sont valides', () => {
+describe('validateSpec — every gallery demo is valid', () => {
   // Both locales: a translation can introduce its own invalid content.
   it.each(
     demos.flatMap((d) => locales.map((locale) => [d.id, locale, d] as const))
   )(
-    'la démo « %s » (%s) passe le schéma et la validation des références',
+    'demo "%s" (%s) passes the schema and reference validation',
     (_id, locale, demo) => {
       expect(validateSpec(getSpec(demo, locale))).toEqual([]);
     }
@@ -82,7 +82,7 @@ describe('validateSpec — toutes les démos de la galerie sont valides', () => 
 });
 
 describe('validateSpec — duration, icon, language', () => {
-  it('signale une duration négative', () => {
+  it('reports a negative duration', () => {
     const spec = {
       ...baseSpec,
       timeline: [
@@ -101,7 +101,7 @@ describe('validateSpec — duration, icon, language', () => {
     expect(err!.message).toMatch(/minimum/);
   });
 
-  it('signale une duration nulle', () => {
+  it('reports a zero duration', () => {
     const spec = {
       ...baseSpec,
       timeline: [
@@ -120,7 +120,7 @@ describe('validateSpec — duration, icon, language', () => {
     expect(err!.message).toMatch(/minimum/);
   });
 
-  it('signale une duration non entière', () => {
+  it('reports a non-integer duration', () => {
     const spec = {
       ...baseSpec,
       timeline: [
@@ -139,7 +139,7 @@ describe('validateSpec — duration, icon, language', () => {
     expect(err!.message).toMatch(/entier/);
   });
 
-  it("n'émet pas d'erreur pour une duration entière positive", () => {
+  it('emits no error for a positive integer duration', () => {
     const spec = {
       ...baseSpec,
       timeline: [
@@ -156,7 +156,7 @@ describe('validateSpec — duration, icon, language', () => {
     expect(errors.filter((e) => e.path.includes('duration'))).toEqual([]);
   });
 
-  it('signale un language inconnu dans packet_content', () => {
+  it('reports an unknown language in packet_content', () => {
     const spec = {
       ...baseSpec,
       packets: [
@@ -177,7 +177,7 @@ describe('validateSpec — duration, icon, language', () => {
     expect(err!.message).toMatch(/valeurs acceptées|valeur invalide/);
   });
 
-  it("n'émet pas d'erreur pour un language supporté", () => {
+  it('emits no error for a supported language', () => {
     const spec = {
       ...baseSpec,
       packets: [
@@ -198,7 +198,7 @@ describe('validateSpec — duration, icon, language', () => {
     expect(errors.filter((e) => e.path.includes('language'))).toEqual([]);
   });
 
-  it("n'émet pas d'erreur pour une icône libre (texte)", () => {
+  it('emits no error for a free-form (text) icon', () => {
     const spec = {
       ...baseSpec,
       nodes: [{ id: 'browser', type: 'laptop', lane: 1, icon: 'v2' }],
@@ -209,8 +209,8 @@ describe('validateSpec — duration, icon, language', () => {
   });
 });
 
-describe('validateSpec — validation des références croisées', () => {
-  it('signale un ID dynamique inconnu dans move.object avec les IDs disponibles', () => {
+describe('validateSpec — cross-reference validation', () => {
+  it('reports an unknown dynamic ID in move.object with the available IDs', () => {
     const spec = {
       ...baseSpec,
       timeline: [{ type: 'move', object: 'ghost', from: 'browser', to: 'api' }],
@@ -223,7 +223,7 @@ describe('validateSpec — validation des références croisées', () => {
     expect(err!.message).toContain('"req"');
   });
 
-  it('signale un ID statique inconnu dans move.from avec les IDs disponibles', () => {
+  it('reports an unknown static ID in move.from with the available IDs', () => {
     const spec = {
       ...baseSpec,
       timeline: [{ type: 'move', object: 'req', from: 'nowhere', to: 'api' }],
@@ -235,7 +235,7 @@ describe('validateSpec — validation des références croisées', () => {
     expect(err!.message).toContain('"browser"');
   });
 
-  it('signale un ID inconnu dans connections.from', () => {
+  it('reports an unknown ID in connections.from', () => {
     const spec = {
       ...baseSpec,
       connections: [{ from: 'ghost', to: 'api' }],
@@ -247,7 +247,7 @@ describe('validateSpec — validation des références croisées', () => {
     expect(err!.message).toContain('"browser"');
   });
 
-  it("signale un wait_for qui pointe vers un ID d'action inexistant", () => {
+  it('reports a wait_for that points to a non-existent action ID', () => {
     const spec = {
       ...baseSpec,
       timeline: [
@@ -266,7 +266,7 @@ describe('validateSpec — validation des références croisées', () => {
     expect(err!.message).toContain('"no_such_action"');
   });
 
-  it('ne signale aucune erreur de référence pour la spec clientServer', () => {
+  it('reports no reference error for the clientServer spec', () => {
     const refErrors = validateSpec(baseSpec).filter((e) =>
       e.message.startsWith('ID inconnu')
     );

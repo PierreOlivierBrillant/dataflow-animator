@@ -11,8 +11,8 @@ afterEach(cleanup);
  * used to take is still covered, by `NodeVisual.test.tsx`.
  */
 
-describe('NodeView — rendu isolé du cœur visuel', () => {
-  it('type pictogramme : rend une icône, pas de panneau', async () => {
+describe('NodeView — isolated rendering of the core visual', () => {
+  it('pictogram type: renders an icon, no panel', async () => {
     const { container } = render(
       <NodeView node={{ id: 'srv', type: 'server' }} />
     );
@@ -23,7 +23,7 @@ describe('NodeView — rendu isolé du cœur visuel', () => {
     expect(container.querySelector('.rdfa-node-panel')).toBeNull();
   });
 
-  it('simple_node : rend un panneau avec le corps', async () => {
+  it('simple_node: renders a panel with the body', async () => {
     const { container } = render(
       <NodeView node={{ id: 'w', type: 'simple_node', body: 'Worker' }} />
     );
@@ -34,7 +34,7 @@ describe('NodeView — rendu isolé du cœur visuel', () => {
     expect(container.textContent).toContain('Worker');
   });
 
-  it('échappe le code par défaut, sans coloration', async () => {
+  it('escapes the code by default, with no highlighting', async () => {
     const { container } = render(
       <NodeView
         node={{
@@ -54,7 +54,7 @@ describe('NodeView — rendu isolé du cœur visuel', () => {
     );
   });
 
-  it('utilise le highlighter fourni', async () => {
+  it('uses the provided highlighter', async () => {
     const highlight = vi.fn(() => '<em>hl</em>');
     const { container } = render(
       <NodeView
@@ -67,7 +67,7 @@ describe('NodeView — rendu isolé du cœur visuel', () => {
     expect(container.querySelector('.rdfa-code em')).not.toBeNull();
   });
 
-  it('forme : rend le fond SVG de la forme', async () => {
+  it('shape: renders the shape SVG background', async () => {
     const { container } = render(
       <NodeView node={{ id: 'd', type: 'diamond', body: 'OK' }} />
     );
@@ -77,7 +77,7 @@ describe('NodeView — rendu isolé du cœur visuel', () => {
     );
   });
 
-  it('pad signal : affiche la valeur live plutôt que l’icône statique', async () => {
+  it('signal pad: shows the live value instead of the static icon', async () => {
     const { container } = render(
       <NodeView node={{ id: 's', type: 'signal', icon: '0' }} signalValue="1" />
     );
@@ -87,7 +87,7 @@ describe('NodeView — rendu isolé du cœur visuel', () => {
     );
   });
 
-  it('ne réempile pas le visuel quand un nœud identique est repassé', async () => {
+  it('does not remount the visual when an identical node is passed again', async () => {
     const node = { id: 'srv', type: 'server' } as const;
     const { container, rerender } = render(<NodeView node={node} />);
     await waitFor(() =>
@@ -99,7 +99,7 @@ describe('NodeView — rendu isolé du cœur visuel', () => {
     expect(container.querySelectorAll('.rdfa-node-icon')).toHaveLength(1);
   });
 
-  it('remplace le visuel quand le nœud change vraiment', async () => {
+  it('replaces the visual when the node actually changes', async () => {
     const { container, rerender } = render(
       <NodeView node={{ id: 'a', type: 'server' }} />
     );
@@ -115,7 +115,7 @@ describe('NodeView — rendu isolé du cœur visuel', () => {
     expect(container.querySelectorAll('.rdfa-node-icon')).toHaveLength(0);
   });
 
-  it('nettoie derrière lui au démontage', async () => {
+  it('cleans up after itself on unmount', async () => {
     const { container, unmount } = render(
       <NodeView node={{ id: 'srv', type: 'server' }} />
     );

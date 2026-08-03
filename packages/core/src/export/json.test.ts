@@ -9,7 +9,7 @@ afterEach(() => {
 });
 
 describe('serializeSpec', () => {
-  it('formate la spec en JSON indenté', () => {
+  it('formats the spec as indented JSON', () => {
     const spec: DataFlowSpec = { nodes: [], packets: [], timeline: [] };
     expect(serializeSpec(spec)).toBe(
       '{\n  "nodes": [],\n  "packets": [],\n  "timeline": []\n}'
@@ -18,7 +18,7 @@ describe('serializeSpec', () => {
 });
 
 describe('copyText', () => {
-  it('délègue à navigator.clipboard.writeText', async () => {
+  it('delegates to navigator.clipboard.writeText', async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     vi.stubGlobal('navigator', { clipboard: { writeText } });
     await copyText('hello');
@@ -27,7 +27,7 @@ describe('copyText', () => {
 });
 
 describe('downloadJson', () => {
-  it('crée une ancre .json, clique et révoque l’URL', () => {
+  it('creates a .json anchor, clicks it and revokes the URL', () => {
     const createUrl = vi.fn(() => 'blob:fake');
     const revokeUrl = vi.fn();
     vi.stubGlobal('URL', {

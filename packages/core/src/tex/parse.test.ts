@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { isPlainText, parseMath, parseRichText } from './parse';
 
-describe('parseRichText — segmentation $…$', () => {
-  it('sans $, la chaîne reste un unique littéral', () => {
+describe('parseRichText — $…$ segmentation', () => {
+  it('without $, the string stays a single literal', () => {
     expect(parseRichText('R1 · 10 kΩ')).toEqual([
       { kind: 'literal', value: 'R1 · 10 kΩ' },
     ]);
   });
 
-  it('isolate le segment math et garde la prose autour', () => {
+  it('isolates the math segment and keeps the surrounding prose', () => {
     const segs = parseRichText('Retenue $B_{in}$ à 1');
     expect(segs).toHaveLength(3);
     expect(segs[0]).toEqual({ kind: 'literal', value: 'Retenue ' });
@@ -16,31 +16,31 @@ describe('parseRichText — segmentation $…$', () => {
     expect(segs[2]).toEqual({ kind: 'literal', value: ' à 1' });
   });
 
-  it('un $ non apparié reste littéral (pas de math à moitié ouverte)', () => {
+  it('an unpaired $ stays literal (no half-open math)', () => {
     expect(parseRichText('coût: 5$')).toEqual([
       { kind: 'literal', value: 'coût: 5$' },
     ]);
   });
 
-  it('\\$ produit un dollar littéral sans ouvrir de math', () => {
+  it('\\$ produces a literal dollar sign without opening math', () => {
     expect(parseRichText('\\$5 et \\$7')).toEqual([
       { kind: 'literal', value: '$5 et $7' },
     ]);
   });
 
-  it('un $ échappé À L’INTÉRIEUR ne ferme pas le segment', () => {
+  it('an escaped $ INSIDE the segment does not close it', () => {
     const segs = parseRichText('$a \\$ b$ fin');
     expect(segs[0].kind).toBe('math');
     expect(segs[1]).toEqual({ kind: 'literal', value: ' fin' });
   });
 
-  it('$$ (display math, non supporté) reste littéral au lieu d’être avalé', () => {
+  it('$$ (display math, unsupported) stays literal instead of being swallowed', () => {
     expect(parseRichText('a $$ b')).toEqual([
       { kind: 'literal', value: 'a $$ b' },
     ]);
   });
 
-  it('un underscore hors math ne devient PAS un indice (rétrocompatibilité)', () => {
+  it('an underscore outside math does NOT become a subscript (backwards compatibility)', () => {
     expect(isPlainText('snake_case')).toBe(true);
     expect(parseRichText('snake_case')).toEqual([
       { kind: 'literal', value: 'snake_case' },
@@ -48,44 +48,44 @@ describe('parseRichText — segmentation $…$', () => {
   });
 });
 
-describe('parseMath — sous-ensemble LaTeX', () => {
-  it('indice à accolades', () => {
+describe('parseMath — LaTeX subset', () => {
+  it('braced subscript', () => {
     expect(parseMath('B_{in}')).toEqual([
       { kind: 'var', value: 'B' },
       { kind: 'sub', children: [{ kind: 'var', value: 'in' }] },
     ]);
   });
 
-  it('indice à caractère unique : x_1 == x_{1}', () => {
+  it('single-character subscript: x_1 == x_{1}', () => {
     expect(parseMath('x_1')).toEqual(parseMath('x_{1}'));
   });
 
-  it('exposant', () => {
+  it('superscript', () => {
     expect(parseMath('x^2')).toEqual([
       { kind: 'var', value: 'x' },
       { kind: 'sup', children: [{ kind: 'text', value: '2' }] },
     ]);
   });
 
-  it('sépare variables (italique) et non-variables (droit) dans un même run', () => {
+  it('splits variables (italic) and non-variables (upright) within the same run', () => {
     expect(parseMath('2x')).toEqual([
       { kind: 'text', value: '2' },
       { kind: 'var', value: 'x' },
     ]);
   });
 
-  it('\\overline — le complément logique', () => {
+  it('\\overline — the logical complement', () => {
     expect(parseMath('\\overline{A}')).toEqual([
       { kind: 'over', children: [{ kind: 'var', value: 'A' }] },
     ]);
   });
 
-  it('grec minuscule = variable (italique), majuscule et unité = droit', () => {
+  it('lowercase Greek = variable (italic), uppercase and units = upright', () => {
     expect(parseMath('\\mu')).toEqual([{ kind: 'var', value: 'μ' }]);
     expect(parseMath('\\Omega')).toEqual([{ kind: 'text', value: 'Ω' }]);
   });
 
-  it('opérateurs et flèches', () => {
+  it('operators and arrows', () => {
     expect(parseMath('\\cdot\\to\\leq')).toEqual([
       { kind: 'text', value: '·' },
       { kind: 'text', value: '→' },
@@ -93,18 +93,18 @@ describe('parseMath — sous-ensemble LaTeX', () => {
     ]);
   });
 
-  it('\\text rend son argument droit, espaces compris', () => {
+  it('\\text renders its argument upright, spaces included', () => {
     expect(parseMath('\\text{in out}')).toEqual([
       { kind: 'text', value: 'in out' },
     ]);
   });
 
-  it('commandes d’espacement', () => {
+  it('spacing commands', () => {
     expect(parseMath('\\,')).toEqual([{ kind: 'space', em: 0.167 }]);
     expect(parseMath('\\quad')).toEqual([{ kind: 'space', em: 1 }]);
   });
 
-  it('groupe : plusieurs atomes sous un même indice', () => {
+  it('group: several atoms under the same subscript', () => {
     expect(parseMath('A_{n+1}')).toEqual([
       { kind: 'var', value: 'A' },
       {
@@ -119,7 +119,7 @@ describe('parseMath — sous-ensemble LaTeX', () => {
     ]);
   });
 
-  it('une commande inconnue est ignorée plutôt que rendue littéralement', () => {
+  it('an unknown command is ignored rather than rendered literally', () => {
     expect(parseMath('A\\frobnicate B')).toEqual([
       { kind: 'var', value: 'A' },
       { kind: 'text', value: ' ' },
@@ -127,7 +127,7 @@ describe('parseMath — sous-ensemble LaTeX', () => {
     ]);
   });
 
-  it('ne boucle pas sur des entrées malformées', () => {
+  it('does not loop on malformed input', () => {
     // Each of these once risked leaving the cursor un-advanced.
     for (const src of ['_', '^', '{', '}', '\\', 'a_{', '\\overline', '_{}']) {
       expect(() => parseMath(src)).not.toThrow();

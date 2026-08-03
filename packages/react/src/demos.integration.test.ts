@@ -140,7 +140,7 @@ describe.each(demos)('demo %s', (name, spec) => {
   const broken = KNOWN_BROKEN.has(name);
 
   // it.fails: the test is expected to fail (known bug); passes when the assertion fails.
-  (broken ? it.fails : it)('ne produit aucun warning', () => {
+  (broken ? it.fails : it)('produces no warnings', () => {
     expect(result.warnings).toEqual([]);
   });
 
@@ -148,19 +148,19 @@ describe.each(demos)('demo %s', (name, spec) => {
     expect(result.timeline.durationMs).toBeGreaterThan(0);
   });
 
-  it('au moins une étape', () => {
+  it('has at least one step', () => {
     expect(result.timeline.steps.length).toBeGreaterThan(0);
   });
 
   (broken ? it.fails : it)(
-    'tous les actionIds référencés (wait_for, keep_until) existent',
+    'all referenced actionIds (wait_for, keep_until) exist',
     () => {
       const allIds = collectIds(spec.timeline);
       const allRefs = collectRefs(spec.timeline);
       for (const ref of allRefs) {
         expect(
           allIds.has(ref),
-          `actionId "${ref}" référencé mais non défini dans ${name}`
+          `actionId "${ref}" referenced but not defined in ${name}`
         ).toBe(true);
       }
     }

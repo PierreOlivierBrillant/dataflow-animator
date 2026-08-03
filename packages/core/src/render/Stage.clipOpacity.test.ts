@@ -5,60 +5,60 @@ import { APPEAR_HOLD } from '../engine/compiler';
 // Minimal clip visible for a very long time (no exit constraint).
 const farEnd = 99_999;
 
-describe("clipOpacity — fondu d'entrée avec hold (inDur > 0)", () => {
+describe('clipOpacity — fade-in with hold (inDur > 0)', () => {
   const clip = { startMs: 0, animStartMs: APPEAR_HOLD, visibleUntilMs: farEnd };
 
-  it('opacité 0 au premier instant', () => {
+  it('opacity 0 at the first instant', () => {
     expect(clipOpacity(clip, 0)).toBe(0);
   });
 
-  it('opacité ~0.5 à mi-hold', () => {
+  it('opacity ~0.5 mid-hold', () => {
     expect(clipOpacity(clip, APPEAR_HOLD / 2)).toBeCloseTo(0.5);
   });
 
-  it('opacité 1 à la fin du hold', () => {
+  it('opacity 1 at the end of the hold', () => {
     expect(clipOpacity(clip, APPEAR_HOLD)).toBe(1);
   });
 
-  it('reste à 1 longtemps après le hold', () => {
+  it('stays at 1 long after the hold', () => {
     expect(clipOpacity(clip, APPEAR_HOLD + 1000)).toBe(1);
   });
 });
 
-describe("clipOpacity — fondu d'entrée sans hold (inDur = 0, sur FADE_MS)", () => {
+describe('clipOpacity — fade-in without hold (inDur = 0, over FADE_MS)', () => {
   const clip = { startMs: 0, animStartMs: 0, visibleUntilMs: farEnd };
 
-  it('opacité 0 à t=0', () => {
+  it('opacity 0 at t=0', () => {
     expect(clipOpacity(clip, 0)).toBe(0);
   });
 
-  it('opacité ~0.5 à t=FADE_MS/2', () => {
+  it('opacity ~0.5 at t=FADE_MS/2', () => {
     expect(clipOpacity(clip, FADE_MS / 2)).toBeCloseTo(0.5);
   });
 
-  it('opacité 1 à t=FADE_MS', () => {
+  it('opacity 1 at t=FADE_MS', () => {
     expect(clipOpacity(clip, FADE_MS)).toBe(1);
   });
 });
 
-describe('clipOpacity — fondu de sortie sur FADE_MS', () => {
+describe('clipOpacity — fade-out over FADE_MS', () => {
   const clip = { startMs: 0, animStartMs: 0, visibleUntilMs: 1000 };
 
-  it('opacité 1 avant le début du fondu de sortie', () => {
+  it('opacity 1 before the fade-out starts', () => {
     // outStart = 1000 - FADE_MS; checking an instant slightly before
     expect(clipOpacity(clip, 1000 - FADE_MS - 1)).toBe(1);
   });
 
-  it('opacité ~0.5 à mi-sortie', () => {
+  it('opacity ~0.5 mid-fade-out', () => {
     expect(clipOpacity(clip, 1000 - FADE_MS / 2)).toBeCloseTo(0.5);
   });
 
-  it('opacité 0 à visibleUntilMs', () => {
+  it('opacity 0 at visibleUntilMs', () => {
     expect(clipOpacity(clip, 1000)).toBe(0);
   });
 });
 
-describe('clipOpacity — keepEnd supprime le fondu de sortie', () => {
+describe('clipOpacity — keepEnd suppresses the fade-out', () => {
   const clip = {
     startMs: 0,
     animStartMs: 0,
@@ -66,21 +66,21 @@ describe('clipOpacity — keepEnd supprime le fondu de sortie', () => {
     keepEnd: true,
   };
 
-  it('opacité 1 à mi-sortie théorique', () => {
+  it('opacity 1 at the theoretical fade-out midpoint', () => {
     expect(clipOpacity(clip, 1000 - FADE_MS / 2)).toBe(1);
   });
 
-  it('opacité 1 à visibleUntilMs exact', () => {
+  it('opacity 1 at visibleUntilMs exactly', () => {
     expect(clipOpacity(clip, 1000)).toBe(1);
   });
 
-  it('opacité 1 au-delà de visibleUntilMs', () => {
+  it('opacity 1 past visibleUntilMs', () => {
     expect(clipOpacity(clip, 1500)).toBe(1);
   });
 });
 
-describe('clipOpacity — fadeInMs personnalisé', () => {
-  it("fade_in_ms: 100 remplace FADE_MS pour le fondu d'entrée", () => {
+describe('clipOpacity — custom fadeInMs', () => {
+  it('fade_in_ms: 100 overrides FADE_MS for the fade-in', () => {
     const clip = {
       startMs: 0,
       animStartMs: 0,
@@ -93,7 +93,7 @@ describe('clipOpacity — fadeInMs personnalisé', () => {
     expect(clipOpacity(clip, 200)).toBe(1);
   });
 
-  it('fade_in_ms: 0 = apparition instantanée', () => {
+  it('fade_in_ms: 0 = instant appearance', () => {
     const clip = {
       startMs: 0,
       animStartMs: 0,
@@ -104,7 +104,7 @@ describe('clipOpacity — fadeInMs personnalisé', () => {
     expect(clipOpacity(clip, 500)).toBe(1);
   });
 
-  it('fade_in_ms remplace aussi le hold de départ (move)', () => {
+  it('fade_in_ms also overrides the starting hold (move)', () => {
     // For a move, inDur = APPEAR_HOLD = 300; fadeInMs = 100 takes precedence.
     const clip = {
       startMs: 0,
@@ -118,17 +118,17 @@ describe('clipOpacity — fadeInMs personnalisé', () => {
   });
 });
 
-describe('contentCrossfade — fondu set_content adouci (easeInOutCubic)', () => {
+describe('contentCrossfade — eased set_content fade (easeInOutCubic)', () => {
   // inDur = 0 → fade in over FADE_MS.
   const clip = { startMs: 0, animStartMs: 0, visibleUntilMs: farEnd };
 
-  it('partage les points fixes de clipOpacity (0, 0.5, 1)', () => {
+  it('shares the fixed points of clipOpacity (0, 0.5, 1)', () => {
     expect(contentCrossfade(clip, 0)).toBe(0);
     expect(contentCrossfade(clip, FADE_MS / 2)).toBeCloseTo(0.5);
     expect(contentCrossfade(clip, FADE_MS)).toBe(1);
   });
 
-  it('démarre plus lentement que le linéaire (départ ralenti)', () => {
+  it('starts slower than linear (eased start)', () => {
     // At quarter fade, linear is 0.25; eased stays under 0.25.
     const linear = clipOpacity(clip, FADE_MS / 4);
     const eased = contentCrossfade(clip, FADE_MS / 4);
@@ -136,7 +136,7 @@ describe('contentCrossfade — fondu set_content adouci (easeInOutCubic)', () =>
     expect(eased).toBeLessThan(linear);
   });
 
-  it('finit plus lentement que le linéaire (arrivée ralentie)', () => {
+  it('finishes slower than linear (eased end)', () => {
     // At three quarters, eased overtakes linear (it accelerates in the middle).
     const linear = clipOpacity(clip, (FADE_MS * 3) / 4);
     const eased = contentCrossfade(clip, (FADE_MS * 3) / 4);
@@ -144,8 +144,8 @@ describe('contentCrossfade — fondu set_content adouci (easeInOutCubic)', () =>
   });
 });
 
-describe('clipOpacity — fadeOutMs personnalisé', () => {
-  it('fade_out_ms: 100 remplace FADE_MS pour le fondu de sortie', () => {
+describe('clipOpacity — custom fadeOutMs', () => {
+  it('fade_out_ms: 100 overrides FADE_MS for the fade-out', () => {
     const clip = {
       startMs: 0,
       animStartMs: 0,
@@ -157,7 +157,7 @@ describe('clipOpacity — fadeOutMs personnalisé', () => {
     expect(clipOpacity(clip, 1000)).toBe(0);
   });
 
-  it("fade_out_ms: 0 = disparition instantanée (opacité 1 jusqu'à la fin)", () => {
+  it('fade_out_ms: 0 = instant disappearance (opacity 1 until the end)', () => {
     const clip = {
       startMs: 0,
       animStartMs: 0,
