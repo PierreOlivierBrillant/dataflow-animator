@@ -41,10 +41,18 @@ export interface DataFlowPlayerProps {
    * Uncontrolled: it seeds the clock when the player mounts and is not read
    * again. Opening AT `t` is not the same rendering as opening at 0 and seeking
    * to `t` — the icon→panel morph is anchored to the state actually measured
-   * first — which is why this is a mount-time option rather than a seek.
+   * first — which is why this is a mount-time option rather than a seek. Only
+   * the **first** mount honours it: any later remount (a changed `spec`,
+   * `theme`, or even a changed `initialT` itself) reopens at the instant and
+   * play state the player was already at, not at this value.
    */
   initialT?: number;
-  /** Starts playback automatically. Default: false. */
+  /**
+   * Starts playback automatically. Default: false.
+   *
+   * Like `initialT`, only honoured on the **first** mount — a remount resumes
+   * the current play state instead of restarting it.
+   */
   autoPlay?: boolean;
   /** Replays in a loop at the end. Default: false. */
   loop?: boolean;

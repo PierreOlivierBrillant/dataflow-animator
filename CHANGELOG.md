@@ -257,7 +257,9 @@ gate, is cleaned up now that it is no longer measured against React:
 - `ArrowRight` **plays** to the next stop, mirroring the "next" button, instead
   of jumping (the keyboard now matches the buttons);
 - the JSON dialog is a proper modal: `Escape` closes it, `Tab` is trapped in its
-  buttons, and focus moves in on open and back to the opener on close;
+  buttons, focus moves in on open and back to the opener on close, and its
+  pending copied-state timer is cleared on teardown instead of firing into a
+  detached tree;
 - the fullscreen toggle exits only when **this** player is the fullscreen
   element, not whenever any element is.
 - **SSR hydration**: importing the core no longer lets Prism auto-highlight the

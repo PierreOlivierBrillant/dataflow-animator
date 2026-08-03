@@ -55,6 +55,10 @@ référentielle : un objet littéral reconstruit à chaque rendu du parent coût
 sérialisation, pas une reconstruction. Le mémoïser reste utile sur un chemin de
 rendu chaud, mais ce n'est plus la différence entre fluide et saccadé.
 
+Seul le **premier** montage honore `initialT` et `autoPlay` : tout remontage
+suivant reprend à l'instant et à l'état de lecture courants, ce qui rend
+invisible le fait de changer une option en cours de scrub.
+
 ```tsx
 // très bien — une spec équivalente ne remonte rien
 <DataFlowPlayer spec={{ nodes: [...], timeline: [...] }} />

@@ -55,6 +55,10 @@ literal object rebuilt on every parent render costs a serialisation, not a
 rebuild. Memoizing it is still worthwhile on a hot render path, but it is no
 longer the difference between smooth and stuttering.
 
+Only the **first** mount honours `initialT` and `autoPlay`: every remount after
+that reopens at the current instant and play state instead, which is exactly
+what makes editing options mid-scrub invisible.
+
 ```tsx
 // fine — an equal spec does not remount anything
 <DataFlowPlayer spec={{ nodes: [...], timeline: [...] }} />
