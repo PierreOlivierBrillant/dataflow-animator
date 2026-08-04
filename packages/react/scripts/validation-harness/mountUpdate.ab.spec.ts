@@ -42,7 +42,38 @@ import { appendAbResult } from './abResults';
  */
 
 const THEMES = ['light', 'dark'] as const;
-const PROBE_PCTS = [0, 0.25, 0.5, 0.75, 1] as const;
+
+/**
+ * The probe grid, plus one instant that is not on the quarter grid.
+ *
+ * A quarter grid samples where the timeline happens to be at 0/25/50/75/100%,
+ * which is fine for a demo whose interesting states are spread evenly — but an
+ * ANIMATED TRANSITION only occupies its own window, and a short one falls
+ * between two quarters. `avlTree`'s `rotate_subtree` compiles to a reflow
+ * running 40450→42150ms of a 45550ms timeline, i.e. 88.8%→92.5%: the grid steps
+ * from 75% straight over it to 100%, so every sample sees a SETTLED layout and
+ * the interpolation between the two placements is never rendered at all.
+ *
+ * 0.9 lands 545ms into that 1700ms window. It matters here specifically: this
+ * gate compares a fresh mount at `t` against a mount walked to `t`, and the walk
+ * (…→75%→90%) enters the reflow through a single `update()` that must land
+ * mid-flight. That is the one thing that actually exercises reflow
+ * interpolation in retained mode — a settled instant would be reproduced by an
+ * `update()` that ignored the interpolation entirely.
+ *
+ * The instant was falsified rather than assumed, by reading the rendered node
+ * centres out of panel A across the window: at 88.8% and at 92.5% the layout is
+ * exactly the pre- and post-rotation one, while at 90% all five moving nodes sit
+ * 13.2% along their travel (4.2px for `20`, up to 16.8px for `70`) — a placement
+ * reachable by neither endpoint. Move this value and check that still holds;
+ * a probe that coincides with a settled layout asserts nothing.
+ *
+ * Only this gate gets the extra instant. The self-test and element gates
+ * compare two renderings PRODUCED THE SAME WAY, so a mid-reflow sample there
+ * would re-ask a question this gate already answers exactly (its panel A is a
+ * fresh mount at mid-reflow, so a nondeterministic one would show up here).
+ */
+const PROBE_PCTS = [0, 0.25, 0.5, 0.75, 0.9, 1] as const;
 
 for (const demo of RISK_DEMOS) {
   for (const pct of PROBE_PCTS) {

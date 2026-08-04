@@ -99,6 +99,28 @@ cells at 0.0000%), not in any file here.
 | element         | `npm run harness:element`     | the `<dataflow-player>` wrapper adds no pixel over a bare `mountPlayer`                       | yes — 0.0000% required                      |
 | reference grid  | `npm run test:visual`         | no regression over time: the render matches a frozen golden                                   | approximate — pixels, font/Chrome-dependent |
 
+#### What the four gates are pointed AT: `riskDemos.ts`
+
+All four read the same list, so what is missing from it is invisible to every one
+of them at once — the list is a single point of failure and deserves the same
+scrutiny as the gates themselves. Each entry buys a risk area: `set_content`
+(`spa`, `messageQueue`), dense `move` (`clientServer`), parallel composition
+(`microservices`), tight layout (`collision`), tree layout (`avlTree`).
+
+`avlTree` is there because of a regression that actually shipped. Every other
+entry is a linear or graph layout, whose edges all come from `connections[]`;
+`direction: 'tree'` is a second, independent path where the parent→child edges are
+DERIVED from `tree` rather than declared. The vanilla renderer shipped without
+drawing those edges at all — they were lost with the React renderer in `cf96860`
+— and all four gates stayed green through it, because not one of them rendered a
+tree. `avlTree` covers that path end to end in a single spec: auto-drawn edges, a
+`set_visible` reveal with its staggered edge draw-in, and a `rotate_subtree`
+reflow that interpolates placements.
+
+The lesson generalises past trees: **a gate only guards the code its fixtures
+reach**. When a spec feature gets a rendering path of its own, adding it to
+`RISK_DEMOS` is the one edit that arms all four gates at once.
+
 ### mount-vs-update — the primary structural gate (`?mu=1`)
 
 ```bash
@@ -113,10 +135,28 @@ screenshot. It therefore depends on no font, no Chrome version, no external
 reference — it asserts an internal invariant (retained mode == remount) and stays
 exact everywhere. It is also the only gate that exercises `update()` at all.
 
+Its probe grid is `0/25/50/75/**90**/100%` — one instant off the quarter grid, and
+the reason generalises. A quarter grid samples wherever the timeline happens to
+be; an ANIMATED TRANSITION only occupies its own window, and a short one falls
+between two quarters. `avlTree`'s `rotate_subtree` compiles to a reflow spanning
+88.8%→92.5%, so the quarters step from 75% straight over it to 100% and every
+sample sees a SETTLED layout — the interpolation between the two placements is
+never rendered. 90% lands 545ms into that 1700ms window, and the walk reaches it
+from 75% in a single `update()` that must therefore land mid-flight.
+
+That instant was **falsified rather than assumed**: reading the rendered node
+centres out of panel A across the window gives exactly the pre-rotation layout at
+88.8% and exactly the post-rotation one at 92.5%, while at 90% all five moving
+nodes sit 13.2% along their travel — a placement neither endpoint can produce. If
+you move the value, re-check that; a probe that coincides with a settled layout
+asserts nothing. Only this gate carries the extra instant: the self-test and
+element gates compare two renderings produced the SAME way, so a mid-reflow
+sample there would re-ask what this gate already answers exactly.
+
 The one class of cell it does not assert on is a `set_content` caught
 mid-crossfade — a documented path dependence of the renderer (the icon geometry
 anchoring the icon→panel morph is captured once), detected from the spec rather
-than listed by hand.
+than listed by hand. `avlTree` has no `set_content`, so all of its cells assert.
 
 ### self-test — the measurement floor (`?ab=1`)
 
@@ -127,7 +167,7 @@ npm run harness:selftest -w @dataflow-animator/react
 `selftest.ab.spec.ts` renders two INDEPENDENT vanilla panels of the same spec at
 the same frozen `t` (480×320), over every risk demo (`riskDemos.ts`) × both
 themes × two configs (`stage`, `chrome`), and requires exactly 0.00% on two
-checks (120 total):
+checks (144 total):
 
 - **successive capture** — screenshot one panel twice in a row: a non-zero diff
   means something is still settling (fonts, ResizeObserver, a wall-clock CSS
@@ -155,7 +195,7 @@ and a `<dataflow-player>` carrying the equivalent attributes in panel B, at a
 frozen `t`. `@dataflow-animator/element` has no rendering of its own — its
 `connectedCallback` calls `mountPlayer` and the element itself is the container —
 so the requirement is **exactly 0.0000%**, and the self-test is what proves that
-floor is reachable at all. 60 cells, in two sweeps:
+floor is reachable at all. 70 cells, in two sweeps:
 
 - **frames** — every risk demo × the probe grid (0/25/50/75/100%) × both themes:
   does the element reproduce the renderer across the whole timeline?
@@ -193,7 +233,7 @@ npm run test:visual -w @dataflow-animator/react -- --update-snapshots  # regener
 ```
 
 `referenceGrid.visual.spec.ts` captures a **contact sheet** per risk demo × theme
-(10 fullPage goldens): one frozen frame of the vanilla stage at every
+(12 fullPage goldens): one frozen frame of the vanilla stage at every
 `timeline.stops[]`, so a single image covers every settled instant. It pins the
 renderer against its own past — a future change that moves a pixel is flagged.
 
@@ -219,7 +259,8 @@ the final tables exactly once, in the main process.
 `window.__AB__` also carries `passes` and `converged` from the settle loop.
 `converged: false` means the measurement BUDGET stopped the loop rather than the
 geometry settling — the fix is not to raise the budget (see
-`core/src/dom/settle.ts`). Every risk demo settles in 3 passes.
+`core/src/dom/settle.ts`). Every risk demo converges: 3 settle passes, 4 on `spa`
+at the instants where its `set_content` is re-fitting.
 
 ### Perf baseline
 

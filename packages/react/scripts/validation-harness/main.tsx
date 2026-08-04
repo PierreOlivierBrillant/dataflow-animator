@@ -404,13 +404,20 @@ function ABApp() {
 // ─── Mount-vs-update mode (?mu=1) ──────────────────────────────────────────
 
 /**
- * The instants the walked panel passes through on its way to `t`: the compare
- * grid's own checkpoints, up to the target.
+ * The instants the walked panel passes through on its way to `t`: a fixed
+ * quarter-grid walk, up to the target.
  *
  * Cumulative rather than a single jump on purpose. One `update()` would only
- * prove that a lone transition lands correctly; walking the whole grid is what
+ * prove that a lone transition lands correctly; walking the quarters is what
  * catches an error that ACCUMULATES over a sequence of frames, which is the
  * actual failure mode of a retained renderer.
+ *
+ * These checkpoints are the walk's GRANULARITY, deliberately not the gate's list
+ * of probe targets — the two are different questions and the gate's grid carries
+ * an instant (0.9) that is not a checkpoint here. Keeping the walk coarse is what
+ * makes the last hop land INSIDE a short transition rather than on its edge: the
+ * 0.9 target is reached from 0.75 in one `update()`, mid-reflow, which is the
+ * point of sampling it. See PROBE_PCTS in mountUpdate.ab.spec.ts.
  */
 function cumulativePath(durationMs: number, pct: number): number[] {
   const checkpoints = [0, 0.25, 0.5, 0.75].filter((p) => p < pct);
