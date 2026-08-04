@@ -37,6 +37,32 @@ function stubScale(value: string): void {
   }));
 }
 
+/**
+ * What an ancestor `transform: scale(k)` does to a rect: lengths multiplied,
+ * position pulled toward the transform origin — which the stage's own top-left
+ * stands in for here, since only the DELTA to it is ever measured.
+ */
+function scaled(r: Rect, origin: Rect, k: number): Rect {
+  return {
+    left: origin.left + (r.left - origin.left) * k,
+    top: origin.top + (r.top - origin.top) * k,
+    width: r.width * k,
+    height: r.height * k,
+  };
+}
+
+/** jsdom lays nothing out, so `offsetWidth`/`offsetHeight` are stubbed too. */
+function stubLayoutBox(el: HTMLElement, width: number, height: number): void {
+  Object.defineProperty(el, 'offsetWidth', {
+    value: width,
+    configurable: true,
+  });
+  Object.defineProperty(el, 'offsetHeight', {
+    value: height,
+    configurable: true,
+  });
+}
+
 interface NodeOptions {
   id: string;
   visual?: Rect;
@@ -45,21 +71,38 @@ interface NodeOptions {
   icon?: boolean;
 }
 
-/** Builds a stage whose rect is 0,0 → 400×250 unless overridden. */
-function buildStage(nodes: NodeOptions[], stageRect?: Rect): HTMLElement {
+/**
+ * Builds a stage whose rect is 0,0 → 400×250 unless overridden.
+ *
+ * `ancestorScale` renders the whole subtree under a `transform: scale(k)`: every
+ * rect comes back k×, while the stage's layout box — what `offsetWidth` reports
+ * and what a `ResizeObserver` would see — stays untouched.
+ */
+function buildStage(
+  nodes: NodeOptions[],
+  stageRect?: Rect,
+  ancestorScale = 1
+): HTMLElement {
+  const k = ancestorScale;
+  const layout = stageRect ?? { left: 0, top: 0, width: 400, height: 250 };
   const stage = document.createElement('div');
-  stubRect(stage, stageRect ?? { left: 0, top: 0, width: 400, height: 250 });
+  stubRect(stage, scaled(layout, layout, k));
+  stubLayoutBox(stage, layout.width, layout.height);
 
   for (const n of nodes) {
     const el = document.createElement('div');
     el.setAttribute('data-node-id', n.id);
     if (n.tinted) el.classList.add('rdfa-node--tinted');
     // The node element itself is never what gets measured when a visual exists.
-    stubRect(el, { left: -999, top: -999, width: 1, height: 1 });
+    const offstage = { left: -999, top: -999, width: 1, height: 1 };
+    stubRect(el, scaled(offstage, layout, k));
 
     const visual = document.createElement('span');
     visual.className = 'rdfa-node-visual';
-    stubRect(visual, n.visual ?? { left: 0, top: 0, width: 40, height: 40 });
+    stubRect(
+      visual,
+      scaled(n.visual ?? { left: 0, top: 0, width: 40, height: 40 }, layout, k)
+    );
     if (n.icon) {
       const icon = document.createElement('span');
       icon.className = 'rdfa-node-icon';
@@ -70,7 +113,7 @@ function buildStage(nodes: NodeOptions[], stageRect?: Rect): HTMLElement {
     if (n.label) {
       const label = document.createElement('span');
       label.className = 'rdfa-node-label';
-      stubRect(label, n.label);
+      stubRect(label, scaled(n.label, layout, k));
       el.appendChild(label);
     }
     stage.appendChild(el);
@@ -215,6 +258,94 @@ describe('measure', () => {
         createGeometryTracker(stage).measure(INITIAL_METRICS).geometry
       )
     ).toEqual([]);
+  });
+});
+
+describe('measure — under an ancestor transform', () => {
+  /** Every number of a metrics object, to 6 decimals. */
+  function rounded(m: StageMetrics): unknown {
+    return JSON.parse(
+      JSON.stringify(m, (_k, v) =>
+        typeof v === 'number' ? Math.round(v * 1e6) / 1e6 : v
+      )
+    );
+  }
+
+  const stageRect: Rect = { left: 20, top: 10, width: 400, height: 250 };
+  const nodes: NodeOptions[] = [
+    {
+      id: 'a',
+      visual: { left: 100, top: 50, width: 40, height: 30 },
+      label: { left: 90, top: 86, width: 60, height: 14 },
+    },
+    { id: 'b', visual: { left: 300, top: 150, width: 40, height: 30 } },
+  ];
+
+  it('measures a scaled stage exactly as an unscaled one', () => {
+    // The modal case: the player mounts while its dialog is still animating in
+    // at `scale(0.96)`. Nothing re-measures afterwards — a `ResizeObserver`
+    // reports the untransformed border box, so the transform settling back to
+    // `none` is invisible to it — which is why the reading taken here has to be
+    // the settled one already.
+    stubScale('1');
+    const plain = createGeometryTracker(buildStage(nodes, stageRect)).measure(
+      INITIAL_METRICS
+    );
+    document.body.innerHTML = '';
+    const shrunk = createGeometryTracker(
+      buildStage(nodes, stageRect, 0.96)
+    ).measure(INITIAL_METRICS);
+
+    // Dividing by 0.96 lands within a float ulp of the undivided reading, not
+    // on it — the pipeline reads pixels, so that is exact enough.
+    expect(rounded(shrunk)).toEqual(rounded(plain));
+  });
+
+  it('publishes the LAYOUT size, not the rendered one', () => {
+    stubScale('1');
+    const stage = buildStage([], stageRect, 0.5);
+
+    const m = createGeometryTracker(stage).measure(INITIAL_METRICS);
+
+    expect({ width: m.width, height: m.height, aspect: m.aspect }).toEqual({
+      width: 400,
+      height: 250,
+      aspect: 1.6,
+    });
+  });
+
+  it('keeps the FRACTIONAL rect of an untransformed stage', () => {
+    // `offsetWidth` rounds to 400 what the rect reports as 400.4. Reading that
+    // gap as a 0.1% scale would round every node position along with it, on
+    // every stage, to fix nothing.
+    stubScale('1');
+    const stage = buildStage(
+      [{ id: 'a', visual: { left: 100, top: 50, width: 40, height: 30 } }],
+      { left: 0, top: 0, width: 400.4, height: 250.4 }
+    );
+    stubLayoutBox(stage, 400, 250);
+
+    const m = createGeometryTracker(stage).measure(INITIAL_METRICS);
+
+    expect(m.width).toBe(400.4);
+    expect(m.geometry.a).toMatchObject({ x: 120, y: 65, width: 40 });
+  });
+
+  it('takes the rect as-is when the stage has no layout box', () => {
+    // Bare jsdom, and any stage not laid out yet: `offsetWidth` is 0, so there
+    // is no scale to divide by and the raw reading stands.
+    stubScale('1');
+    const stage = document.createElement('div');
+    stubRect(stage, { left: 0, top: 0, width: 400, height: 250 });
+    const el = document.createElement('div');
+    el.setAttribute('data-node-id', 'a');
+    stubRect(el, { left: 10, top: 20, width: 30, height: 40 });
+    stage.appendChild(el);
+
+    const m = createGeometryTracker(stage).measure(INITIAL_METRICS);
+
+    expect(m.width).toBe(400);
+    expect(m.geometry.a).toMatchObject({ x: 25, y: 40, width: 30, height: 40 });
   });
 });
 

@@ -105,6 +105,24 @@ export function sameMetrics(a: StageMetrics, b: StageMetrics): boolean {
   );
 }
 
+/**
+ * Ratio between a RENDERED length (`getBoundingClientRect`, which every ancestor
+ * `transform: scale(...)` multiplies) and the LAYOUT length of the same box
+ * (`offsetWidth`/`offsetHeight`, which no transform touches).
+ *
+ * 1 when either is unavailable — an unlaid-out stage (SSR, jsdom) or a
+ * zero-sized one — so the measurement degrades to the raw reading.
+ */
+function scaleFactor(rendered: number, layout: number): number {
+  if (!(rendered > 0) || !(layout > 0)) return 1;
+  // `offsetWidth` is rounded to the whole pixel while the rect is fractional,
+  // so any gap up to a pixel is that rounding and nothing else. Dividing by it
+  // would spread a sub-pixel error over an untransformed stage — every reading
+  // off by ~0.05% — to correct a scale that isn't there. Past a pixel, it is.
+  if (Math.abs(rendered - layout) <= 1) return 1;
+  return rendered / layout;
+}
+
 export function createGeometryTracker(stage: HTMLElement): GeometryTracker {
   let ro: ResizeObserver | undefined;
   /**
@@ -118,13 +136,26 @@ export function createGeometryTracker(stage: HTMLElement): GeometryTracker {
 
   const measure = (previous: StageMetrics): StageMetrics => {
     const sr = stage.getBoundingClientRect();
+    // An ancestor `transform: scale(...)` — a modal opening animation, a zoomed
+    // container — multiplies every rect read below, and a `ResizeObserver`
+    // NEVER fires on it: it reports the untransformed border box, so a scale
+    // that starts at 0.96 and settles at 1 is invisible to it. Measuring under
+    // one would freeze a shrunken geometry into the overlay layers for the rest
+    // of the mount, while the nodes themselves stay placed in layout pixels —
+    // arrows falling short of their nodes by exactly that factor. Dividing by
+    // the cumulative scale brings every reading back into LAYOUT pixels, the
+    // one space the whole pipeline already agrees on (`offsetWidth` in
+    // `commentElement`, `clientWidth` in `contentElement`, CSS percentages for
+    // node placement).
+    const kx = scaleFactor(sr.width, stage.offsetWidth);
+    const ky = scaleFactor(sr.height, stage.offsetHeight);
     let { aspect, width, height } = previous;
     // A zero-sized (hidden) stage publishes no size — the previous values are
     // carried forward. Node measurement still proceeds.
     if (sr.width > 0 && sr.height > 0) {
-      aspect = sr.width / sr.height;
-      width = sr.width;
-      height = sr.height;
+      width = sr.width / kx;
+      height = sr.height / ky;
+      aspect = width / height;
     }
 
     // Stage scale (--rdfa-scale), inherent to all nodes: read only once on the
@@ -143,18 +174,18 @@ export function createGeometryTracker(stage: HTMLElement): GeometryTracker {
       const r = target.getBoundingClientRect();
       const node: NodeGeom = {
         id,
-        x: r.left - sr.left + r.width / 2,
-        y: r.top - sr.top + r.height / 2,
-        width: r.width,
-        height: r.height,
+        x: (r.left - sr.left + r.width / 2) / kx,
+        y: (r.top - sr.top + r.height / 2) / ky,
+        width: r.width / kx,
+        height: r.height / ky,
         scale,
       };
       // Measures the text label (under the visual) for arrow routing.
       const labelEl = el.querySelector<HTMLElement>('.rdfa-node-label');
       if (labelEl) {
         const lr = labelEl.getBoundingClientRect();
-        node.labelH = lr.height;
-        node.labelW = lr.width;
+        node.labelH = lr.height / ky;
+        node.labelW = lr.width / kx;
       }
       // Tinted pictogram: the pill (`background_color`) overhangs the measured
       // glyph. Arrows snap to this colored outline → we expose the overhang, at

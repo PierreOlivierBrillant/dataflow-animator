@@ -100,6 +100,19 @@ lifetime of a mount, and the key covers the whole spec, so such an edit remounts
 and remeasures from scratch. Narrowing that key to the fields believed to bear on
 position would put the burden back on a hand-maintained list.
 
+A `ResizeObserver` has a second blind spot, and that one no key can cover: it
+reports the UNTRANSFORMED border box, so an ancestor `transform: scale(...)` —
+a modal animating in, a zoomed container — never notifies it, while every
+`getBoundingClientRect` under it comes back multiplied. Mounting inside one and
+measuring naively would freeze a shrunken geometry into the overlay layers for
+the whole mount: the nodes stay placed by CSS percentages, the arrows land short
+of them by exactly that factor, and nothing ever re-measures. `measure()`
+therefore divides every reading by the cumulative scale (rect ÷ `offsetWidth`),
+publishing LAYOUT pixels — the space `commentElement` (`offsetWidth`),
+`contentElement` (`clientWidth`) and node placement already work in. A gap of up
+to one pixel is left alone: `offsetWidth` is integer-rounded, and correcting that
+rounding would spread a sub-pixel error over every untransformed stage.
+
 The React renderer that preceded this design (`Stage.tsx`, `Controls.tsx`,
 `nodes/`, `dynamic/`, `hooks/`, `tex/`) was removed at step 2.6b, once the
 migration no longer needed it as the A/B gate's reference. The proof that the two
