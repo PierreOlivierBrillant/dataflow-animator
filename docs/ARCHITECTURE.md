@@ -92,6 +92,14 @@ spec's structure rather than its identity, carrying the current instant and play
 state across. Live per-option updates would be a second renderer's worth of
 work.
 
+That structural key is also the DISPLACEMENT safeguard. A `ResizeObserver` only
+reports size changes, so a spec edit that moves nodes without resizing any of
+them — a lane, an `align_with`, an anchor, a graph edge feeding the auto-layout —
+is invisible to the tracker. Nothing has to detect it: the spec is frozen for the
+lifetime of a mount, and the key covers the whole spec, so such an edit remounts
+and remeasures from scratch. Narrowing that key to the fields believed to bear on
+position would put the burden back on a hand-maintained list.
+
 The React renderer that preceded this design (`Stage.tsx`, `Controls.tsx`,
 `nodes/`, `dynamic/`, `hooks/`, `tex/`) was removed at step 2.6b, once the
 migration no longer needed it as the A/B gate's reference. The proof that the two
@@ -118,9 +126,6 @@ packages/
       render/
         clipOpacity.ts                crossfade / geometry-lerp progress (pure)
         nodeColors.ts, nodeKinds.ts    pure render-side lookups (no CSSProperties — see below)
-        stageSignature.ts              remeasure signature — ORPHANED since the
-                                       React renderer went away; only its own
-                                       test still reaches it
       tex/                            TeX-like inline markup parser (RichText's input)
       highlight/                      Prism wrapper (replaceable)
       export/

@@ -155,7 +155,7 @@ The current locale for content (specs, localized fields) is obtained with `useLo
 Pitfalls already encountered in this repo — check them when you touch the affected area (case details are in `todo.md` as long as it exists):
 
 - **No dead IR fields**: any data computed by the compiler must be consumed by the renderer, otherwise deleted. Do not export an unhooked API.
-- **DOM measurement**: the `useStageGeometry` `signature` must reflect ANY spec field that influences the _position_ of nodes — a ResizeObserver only sees resizes, not displacements.
+- **DOM measurement**: a ResizeObserver only sees resizes, never displacements — a spec edit that MOVES nodes without changing any size is invisible to `geometryTracker`. What covers it is that the spec is frozen for the lifetime of a mount (`mountStage` closes over it, `update(t)` only moves time) and that every wrapper remounts on a STRUCTURAL key over the WHOLE spec (`serializeSpec`). Keep that key whole: narrowing it to the fields believed to influence position puts the burden back on a hand-maintained list.
 - **Consistent units in geometry**: horizontal/vertical decisions and offsets are taken in measured pixels, not in 0..1 ratios (or else by correcting by the Stage aspect). Two modules that decide differently contradict each other on non-square stages.
 - **rAF loops**: cap the time delta (inactive tab → huge `dt` upon return).
 - **Dual paths**: if a function has an optimized path and a fallback (e.g. `evaluate`), a test must prove their equivalence — the prod path is not necessarily the one tests exercise.
