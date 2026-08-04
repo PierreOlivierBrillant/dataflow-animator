@@ -28,6 +28,7 @@ export const en: Messages = {
     ctaPlayground: 'Try it in the playground',
     ctaDocs: 'Documentation',
     targetsLabel: 'Works with',
+    targetsAria: 'Choose which target to install',
   },
   showcase: {
     eyebrow: 'Demos',

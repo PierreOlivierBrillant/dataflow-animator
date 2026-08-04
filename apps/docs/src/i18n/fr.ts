@@ -37,8 +37,10 @@ export const fr = {
       "Un moteur qui transforme une spécification JSON en animation déterministe et navigable, avec une liaison par framework. Idéal pour vos démonstrations d'architecture, tutoriels et documentation interactive.",
     ctaPlayground: 'Essayer dans le terrain de jeu',
     ctaDocs: 'Documentation',
-    // The target names are language invariants — only the lead-in is translated.
+    // The target names are language invariants — only the lead-in and the
+    // group's accessible name are translated.
     targetsLabel: 'Fonctionne avec',
+    targetsAria: 'Choisir la cible à installer',
   },
   showcase: {
     eyebrow: 'Démonstrations',

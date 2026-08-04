@@ -1,12 +1,13 @@
 # DataFlow Animator
 
 [![CI](https://github.com/PierreOlivierBrillant/dataflow-animator/actions/workflows/ci-cd.yml/badge.svg?branch=main)](https://github.com/PierreOlivierBrillant/dataflow-animator/actions/workflows/ci-cd.yml)
-[![npm version](https://img.shields.io/npm/v/@dataflow-animator/react.svg)](https://www.npmjs.com/package/@dataflow-animator/react)
-[![npm downloads](https://img.shields.io/npm/dm/@dataflow-animator/react.svg)](https://www.npmjs.com/package/@dataflow-animator/react)
-[![bundle size](https://img.shields.io/bundlephobia/minzip/@dataflow-animator/react)](https://bundlephobia.com/package/@dataflow-animator/react)
-[![license](https://img.shields.io/npm/l/@dataflow-animator/react.svg)](./LICENSE)
+[![license](https://img.shields.io/npm/l/@dataflow-animator/core.svg)](./LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178c6)](https://www.typescriptlang.org/)
-[![React](https://img.shields.io/badge/React-%3E%3D18-61dafb)](https://react.dev/)
+
+[![core](https://img.shields.io/npm/v/@dataflow-animator/core?label=core)](https://www.npmjs.com/package/@dataflow-animator/core)
+[![react](https://img.shields.io/npm/v/@dataflow-animator/react?label=react)](https://www.npmjs.com/package/@dataflow-animator/react)
+[![element](https://img.shields.io/npm/v/@dataflow-animator/element?label=element)](https://www.npmjs.com/package/@dataflow-animator/element)
+[![angular](https://img.shields.io/npm/v/@dataflow-animator/angular?label=angular)](https://www.npmjs.com/package/@dataflow-animator/angular)
 
 A JSON specification compiled into a deterministic, scrubbable dataflow
 animation (client/server, SQL queries, microservices, logic circuits...) —

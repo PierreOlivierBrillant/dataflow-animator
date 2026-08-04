@@ -6,19 +6,31 @@ import { demosById, getSpec } from '../site-content';
 import Link from '@docusaurus/Link';
 import { useLocale, useTranslation } from '../i18n';
 
-const INSTALL_CMD = 'npm install @dataflow-animator/react';
+// One package per target — framework names and package names are language
+// invariants, so they stay out of the dictionary (only the `Works with`
+// lead-in and the group's aria-label are translated). Every binding needs the
+// core installed alongside it, because that is where the stylesheet is
+// imported from; the core on its own is the whole install.
+const TARGETS = [
+  { label: 'React', pkg: '@dataflow-animator/react' },
+  { label: 'Angular', pkg: '@dataflow-animator/angular' },
+  { label: 'Web Components', pkg: '@dataflow-animator/element' },
+  { label: 'Vanilla JS', pkg: '@dataflow-animator/core' },
+];
 
-// Framework names — language invariants, so they stay out of the dictionary
-// (only the `Works with` lead-in is translated).
-const TARGETS = ['React', 'Angular', 'Web Components', 'Vanilla JS'];
+const CORE = '@dataflow-animator/core';
+
+const installCmd = (pkg: string): string =>
+  pkg === CORE ? `npm install ${CORE}` : `npm install ${pkg} ${CORE}`;
 
 export function HeroSection() {
   const t = useTranslation();
   const locale = useLocale();
+  const [target, setTarget] = useState(TARGETS[0]);
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(INSTALL_CMD);
+    navigator.clipboard.writeText(installCmd(target.pkg));
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -113,7 +125,7 @@ export function HeroSection() {
           >
             <span className="text-slate-400 dark:text-white/25">$</span>
             <code className="text-violet-700 dark:text-violet-400 flex-1 text-left bg-transparent border-none p-0">
-              {INSTALL_CMD}
+              {installCmd(target.pkg)}
             </code>
             <span
               className={`transition-colors duration-200 ${copied ? 'text-emerald-500 dark:text-emerald-400/90' : 'text-slate-400 dark:text-white/25'}`}
@@ -122,23 +134,39 @@ export function HeroSection() {
             </span>
           </motion.button>
 
-          {/* The suite is four packages: say so where the install command is,
-              or the React one above reads as the only way in. */}
+          {/* The suite is four packages, one per target. These pick which one
+              the command above installs, so the React package never reads as
+              the only way in. */}
           <motion.div
             className="flex flex-wrap items-center gap-2 mt-4 text-xs font-sans text-slate-500 dark:text-white/40"
+            role="group"
+            aria-label={t.hero.targetsAria}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.44 }}
           >
             <span>{t.hero.targetsLabel}</span>
-            {TARGETS.map((target) => (
-              <span
-                key={target}
-                className="px-2 py-0.5 rounded-md border border-slate-900/10 dark:border-white/10 bg-slate-900/[0.03] dark:bg-white/[0.03] text-slate-600 dark:text-white/55"
-              >
-                {target}
-              </span>
-            ))}
+            {TARGETS.map((candidate) => {
+              const isActive = candidate.pkg === target.pkg;
+              return (
+                <button
+                  key={candidate.pkg}
+                  type="button"
+                  aria-pressed={isActive}
+                  onClick={() => {
+                    setTarget(candidate);
+                    setCopied(false);
+                  }}
+                  className={`px-2 py-0.5 rounded-md border cursor-pointer transition-colors ${
+                    isActive
+                      ? 'border-violet-500/40 bg-violet-600/10 text-violet-700 dark:text-violet-300'
+                      : 'border-slate-900/10 dark:border-white/10 bg-slate-900/[0.03] dark:bg-white/[0.03] text-slate-600 dark:text-white/55 hover:border-slate-900/20 dark:hover:border-white/20'
+                  }`}
+                >
+                  {candidate.label}
+                </button>
+              );
+            })}
           </motion.div>
         </div>
 
