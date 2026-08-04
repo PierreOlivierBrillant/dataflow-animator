@@ -17,7 +17,7 @@ import {
   type MoveClip,
   type SetContentClip,
 } from '../engine/timeline';
-import { computeLayout, type LayoutMap } from '../engine/layout';
+import { computeLayout, treeEdgeStyle, type LayoutMap } from '../engine/layout';
 import type { Density } from '../engine/scale';
 import {
   collectArrowConnections,
@@ -90,6 +90,7 @@ import {
   type NodeElement,
   type NodeElementOptions,
 } from './nodeElement';
+import { computeTreeStateAtT, type TreeStateAtT } from './treeStateAtT';
 
 /** Options accepted by {@link mountStage}. */
 export interface StageOptions {
@@ -271,6 +272,7 @@ export function mountStage(
   );
   const netColorById = netColorMap(spec);
   const isCircuit = (spec.direction ?? 'left-to-right') === 'circuit';
+  const isTree = (spec.direction ?? 'left-to-right') === 'tree';
 
   // ─── Retained layers ──────────────────────────────────────────────────────
   const nodeEls = new Map<string, NodeElement>();
@@ -292,6 +294,8 @@ export function mountStage(
   > = {};
   let revealByNode: Record<string, number> = {};
   let activeContentNodeIds = new Set<string>();
+  /** `direction: 'tree'` only: the moving layout and the edges to draw at `t`. */
+  let treeState: TreeStateAtT | null = null;
 
   /**
    * Recomputes everything that is a pure function of `t`. No DOM is touched
@@ -334,6 +338,15 @@ export function mountStage(
       const op = contentByNode[nodeId].opacity;
       if (op < 1) revealByNode[nodeId] = op;
     }
+
+    // Tree mode: node positions are a function of `t` too (a rotation glides
+    // them), and so is the set of parent→child edges. `initialLayout` is the
+    // right base at any time because `treeLayout` — unlike `circularLayout` —
+    // ignores the aspect, so a tree's static layout never changes across
+    // measurement passes.
+    treeState = isTree
+      ? computeTreeStateAtT(spec, initialLayout, active, tMs)
+      : null;
 
     // Here rather than in `update`, so the overlay is also correct on the very
     // first frame — this is the one place `active` is recomputed.
@@ -487,6 +500,10 @@ export function mountStage(
     const model = buildStageModel({
       spec,
       layout,
+      // A rotation in flight places the nodes from the interpolated layout —
+      // sizes and limits keep coming from the static one, so a gliding node
+      // never changes size on the way.
+      placementLayout: treeState?.reflowing ? treeState.layout : undefined,
       metrics,
       density,
       labelSides,
@@ -518,6 +535,28 @@ export function mountStage(
       apply: applyMetrics,
       maxPasses,
     });
+
+  /**
+   * The model this frame's nodes are placed from.
+   *
+   * The settled one everywhere except while a tree rotation is in flight: there
+   * the placements are a function of `t`, and no geometry change triggers a
+   * settle pass, so the frame has to derive them itself. Rebuilding the whole
+   * model is deliberate — `buildStageModel` is the single place placements come
+   * from — and cheap: it is two O(n²) passes over a handful of tree nodes, and
+   * only on the frames of a rotation.
+   */
+  const frameModel = (): StageModel =>
+    treeState?.reflowing
+      ? buildStageModel({
+          spec,
+          layout: settled.layout,
+          placementLayout: treeState.layout,
+          metrics: settled.metrics,
+          density,
+          labelSides: settled.labelSides,
+        })
+      : settled.model;
 
   // ─── Geometry-derived caches ──────────────────────────────────────────────
   // Port offsets, the wire context and the circuit routes depend on the LAYOUT
@@ -615,9 +654,14 @@ export function mountStage(
    * screen. The factor is `contentCrossfade`, the same eased number driving the
    * opacity. Zones and node PLACEMENTS keep reading the raw geometry, as in
    * `Stage`.
+   *
+   * A gliding tree node is the same idea applied to POSITION instead of size:
+   * the box keeps its measured dimensions and takes the placement it is drawn
+   * at this frame, so the parent→child edges follow it through the rotation
+   * without a DOM re-measure.
    */
-  const effectiveGeometryNow = (): GeometryMap => {
-    const { geometry } = settled.metrics;
+  const effectiveGeometryNow = (model: StageModel): GeometryMap => {
+    const { geometry, width, height } = settled.metrics;
     let effective: GeometryMap = geometry;
     let overridden = false;
     for (const a of active) {
@@ -654,6 +698,20 @@ export function mountStage(
         ...(currGeom.scale != null ? { scale: currGeom.scale } : {}),
       };
     }
+    // Position last, and unconditionally: where a gliding node IS this frame is
+    // decided by the layout, never by a crossfade, which only owns its size.
+    if (treeState?.reflowing && width && height) {
+      if (!overridden) effective = { ...geometry };
+      for (const id in geometry) {
+        const placement = model.placements[id];
+        if (!placement) continue;
+        effective[id] = {
+          ...effective[id],
+          x: placement.cx * width,
+          y: placement.cy * height,
+        };
+      }
+    }
     return effective;
   };
 
@@ -668,15 +726,50 @@ export function mountStage(
   const reconcileOverlays = (): void => {
     rebuildZones();
 
-    const { model } = settled;
+    const model = frameModel();
     const { metrics } = settled;
     const { portOffsets, ctx, circuit, routeByNodePair } = wireData();
-    const effectiveGeometry = effectiveGeometryNow();
+    const effectiveGeometry = effectiveGeometryNow(model);
     // Identity when nothing is mid-crossfade.
     const obstacles = Object.values(effectiveGeometry);
 
-    // ─── Arrows: baseline connections then `arrow` clips ────────────────────
+    // ─── Arrows: tree edges, baseline connections, then `arrow` clips ───────
     const arrowDesired: KeyedItem<ArrowDescriptor>[] = [];
+
+    // Parent→child edges of a `tree`, drawn from the topology reached at `t` so
+    // they re-route as the nodes glide through a rotation. Styling is resolved
+    // per edge from the `tree` block, keyed by CHILD id so it follows the node
+    // through rotations. Anchored bottom-of-parent → top-of-child (vertical
+    // axis), and never port-spread: a hierarchy link is the only thing joining
+    // its two nodes.
+    if (spec.tree) {
+      for (const edge of treeState?.edges ?? []) {
+        const f = effectiveGeometry[edge.from];
+        const tg = effectiveGeometry[edge.to];
+        if (!f || !tg || edge.progress <= 0) continue;
+        const style = treeEdgeStyle(spec.tree, edge.to);
+        arrowDesired.push({
+          key: `tree:${edge.from}|${edge.to}`,
+          data: {
+            from: f,
+            to: tg,
+            startPortOffset: 0,
+            endPortOffset: 0,
+            style: style.style,
+            path: style.path,
+            arrow_head: style.arrow_head,
+            text: style.text,
+            color: style.color,
+            highlighted: style.highlighted,
+            progress: edge.progress,
+            obstacles,
+            axis: 'vertical',
+            fromContour: ctx.contourFor(edge.from),
+            toContour: ctx.contourFor(edge.to),
+          },
+        });
+      }
+    }
 
     (spec.connections ?? []).forEach((link, i) => {
       const f = effectiveGeometry[refNode(link.from)];
@@ -988,7 +1081,7 @@ export function mountStage(
       // Applying the nodes is unconditional — it is the mutation this whole
       // step exists for. Re-MEASURING is not: geometry only moves when a panel
       // grows or shrinks, or when a node enters or leaves the tree.
-      const setChanged = applyNodes(settled.model);
+      const setChanged = applyNodes(frameModel());
 
       if (hasNew || hasGone || setChanged) {
         outcome = run();

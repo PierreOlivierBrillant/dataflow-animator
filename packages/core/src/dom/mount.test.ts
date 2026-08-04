@@ -216,6 +216,95 @@ describe('mountStage — dynamic clips', () => {
   });
 });
 
+describe('mountStage — tree edges', () => {
+  /**
+   * A `tree` draws no `connections`: its parent→child links are auto-drawn from
+   * the topology. Nothing else on the stage emits them, so this is the whole
+   * proof that a binary-tree demo has links at all.
+   */
+  const treeSpec: Partial<DataFlowSpec> = {
+    direction: 'tree',
+    tree: {
+      root: 'g',
+      children: { g: { left: 'p', right: 'u' }, p: { left: 'n' } },
+    },
+    nodes: ['g', 'p', 'u', 'n'].map((id) => ({
+      id,
+      type: 'simple_node' as const,
+      text: id,
+    })),
+    connections: [],
+    timeline: [],
+  };
+
+  it('draws one edge per parent→child pair', () => {
+    const { container } = mount(treeSpec);
+
+    expect(container.querySelectorAll('.rdfa-arrow-svg > g')).toHaveLength(3);
+  });
+
+  it('styles an edge from the `tree` block, keyed by child id', () => {
+    const { container } = mount({
+      ...treeSpec,
+      tree: {
+        ...treeSpec.tree!,
+        edge_style: { color: 'gray' },
+        edges: { p: { color: 'crimson', text: 'L' } },
+      },
+    });
+    const labelled = [
+      ...container.querySelectorAll('.rdfa-arrow-svg > g'),
+    ].find((g) => g.textContent === 'L');
+
+    expect(labelled).toBeDefined();
+    expect(
+      (labelled as SVGGElement).style.getPropertyValue('--rdfa-arrow')
+    ).toBe('crimson');
+  });
+
+  it('re-links the nodes the way a rotation left them', () => {
+    // Edge styling is keyed by CHILD id, so a label names the edge ABOVE that
+    // node — which is exactly what a rotation swaps: `p` rises to the root
+    // (losing its incoming edge) and `g` sinks under it (gaining one).
+    const rotating: Partial<DataFlowSpec> = {
+      ...treeSpec,
+      tree: {
+        ...treeSpec.tree!,
+        edges: { p: { text: 'above-p' }, g: { text: 'above-g' } },
+      },
+      timeline: [
+        { type: 'wait', duration: 1_000 },
+        { type: 'rotate_subtree', id: 'rot', object: 'g', rotation: 'right' },
+        { type: 'wait', duration: 2_000 },
+      ],
+    };
+    const { timeline } = compile({ ...spec, ...rotating });
+    const clip = timeline.clips.find((c) => c.kind === 'reflow')!;
+    const { container, handle } = mount(rotating, 0);
+    const labels = () =>
+      [...container.querySelectorAll('.rdfa-arrow-svg > g')].map(
+        (g) => g.textContent
+      );
+
+    // Before the rotation opens, the spec's own topology is what is drawn.
+    expect(labels()).toContain('above-p');
+    expect(labels()).not.toContain('above-g');
+
+    handle.update(clip.endMs + 1_000);
+
+    expect(container.querySelectorAll('.rdfa-arrow-svg > g')).toHaveLength(3);
+    expect(labels()).toContain('above-g');
+    expect(labels()).not.toContain('above-p');
+  });
+
+  it('emits no tree edge for a stage that is not a tree', () => {
+    const { container } = mount();
+
+    // The baseline `a → b` connection, and nothing auto-drawn beside it.
+    expect(container.querySelectorAll('.rdfa-arrow-svg > g')).toHaveLength(1);
+  });
+});
+
 describe('mountStage — convergence', () => {
   it('stops on the equality bailout rather than on the budget', () => {
     // Nothing moves between passes in jsdom, so the second measurement equals
