@@ -17,7 +17,8 @@ with one thin binding per framework.
   (`<DataFlowPlayer>`), Angular (`<dfa-player>`) and a custom element
   (`<dataflow-player>`) for everything else. They render the same pixels.
 - No coordinates to provide — the engine places the nodes.
-- Built-in player: play, pause, step navigation, fullscreen.
+- Built-in player: play, pause, step navigation, fullscreen, keyboard
+  shortcuts, and a chrome you can localise key by key.
 - Renders in the browser, safe to import from Docusaurus, Next.js, Vite, etc.
   (the diagram appears on hydration — see [SSR](#ssr)).
 - Built-in syntax highlighting (Prism, replaceable).
@@ -59,7 +60,7 @@ import '@dataflow-animator/core/styles.css';
 const spec = {
   direction: 'left-to-right',
   nodes: [
-    { id: 'browser', type: 'laptop', text: 'Navigateur', lane: 1 },
+    { id: 'browser', type: 'laptop', text: 'Browser', lane: 1 },
     { id: 'api', type: 'server', text: 'API', lane: 2 },
     { id: 'db', type: 'database', text: 'PostgreSQL', lane: 3 },
   ],
@@ -86,22 +87,30 @@ export default function Example() {
 }
 ```
 
-> **Memoize your spec.** If the spec is defined within a parent component's body
-> (inline literal object or computed without `useMemo`), it receives a new identity
-> on each render. The compiler then recompiles the entire timeline, and the DOM measurement
-> (`useStageGeometry`) is needlessly invalidated. Define the spec outside the
-> component, or protect it with `useMemo` / a stable value.
+> **Changing an option remounts the player.** Every option is read once, at
+> mount — so changing any of them, `spec` included, rebuilds the player. The
+> current instant and play state carry across, which is what makes editing a
+> spec live stay smooth. Only the **first** mount honours `initialT` and
+> `autoPlay`.
+>
+> Remounting is keyed on the spec's **structure**, not its referential identity:
+> a literal object rebuilt on every parent render costs a serialisation, not a
+> rebuild. `useMemo` is still worthwhile on a hot render path, but it is no
+> longer the difference between smooth and stuttering. `labels` is compared the
+> same way.
 
 ## One-page concepts
 
 A **spec** describes three things:
 
-1. **`nodes`** — the diagram nodes (servers, clients, databases...).
-   Automatic placement according to `direction` (linear or `circular`) and `lane`.
+1. **`nodes`** — the diagram nodes (servers, clients, databases, logic gates...).
+   Automatic placement according to `direction` — linear (`left-to-right` and
+   its three siblings), `circular`, `graph`, `tree` or `circuit` — and `lane`.
 2. **`packets`** — the payloads that will flow between nodes
    (HTTP packets, SQL requests/responses).
 3. **`timeline`** — the chronology: `move`, `arrow`, `parallel`, `loading`,
-   `set_content`, `comment`, `highlight`.
+   `set_content`, `comment`, `highlight`, `set_visible`, `set_color`,
+   `set_icon`, `rotate`, `flow`, `toggle`, `wait`.
 
 The engine compiles the spec into a deterministic chronology: the time `t` (ms)
 is the single source of truth, which makes seek and step navigation trivial —
@@ -124,8 +133,11 @@ and keeps the whole compilation step free of any DOM.
 | `density`    | `'compact' \| 'comfortable' \| 'spacious'` | `'comfortable'` | Visual scale.                                                                          |
 | `speed`      | `number`                                   | `1`             | Playback speed.                                                                        |
 | `highlight`  | `Highlighter`                              | Prism           | Override syntax highlighting.                                                          |
+| `labels`     | `Partial<PlayerLabels>`                    | English         | Localises the chrome (tooltips, `aria-label`s, the JSON dialog), key by key.           |
 | `debug`      | `boolean`                                  | `false`         | Timeline debugging overlay.                                                            |
 | `fallback`   | `ReactNode`                                | —               | Rendered on the server and until the player mounts (see [SSR](#ssr)).                  |
+| `className`  | `string`                                   | —               | Extra class on the root container.                                                     |
+| `style`      | `CSSProperties`                            | —               | Inline styles on the root container.                                                   |
 
 ## Extensibility
 
@@ -167,9 +179,11 @@ skeleton into the static HTML:
 <DataFlowPlayer spec={spec} fallback={<img src="/diagram.png" alt="…" />} />
 ```
 
-`NodeView` behaves the same way. `<dataflow-player>` is client-only in the same
-sense: importing `@dataflow-animator/element` on a server is inert, and the tag
-renders nothing until it reaches a browser.
+`NodeView` behaves the same way, and so do the other two bindings:
+`<dataflow-player>` and `<dfa-player>` are client-only in the same sense —
+importing either package on a server is inert, and the tag renders nothing
+until it reaches a browser. The Angular component guards every DOM touch with
+`isPlatformBrowser`.
 
 ## Documentation
 

@@ -118,7 +118,9 @@ packages/
       render/
         clipOpacity.ts                crossfade / geometry-lerp progress (pure)
         nodeColors.ts, nodeKinds.ts    pure render-side lookups (no CSSProperties — see below)
-        stageSignature.ts              useStageGeometry's remeasure signature
+        stageSignature.ts              remeasure signature — ORPHANED since the
+                                       React renderer went away; only its own
+                                       test still reaches it
       tex/                            TeX-like inline markup parser (RichText's input)
       highlight/                      Prism wrapper (replaceable)
       export/
