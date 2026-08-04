@@ -8,9 +8,14 @@ import { useLocale, useTranslation } from '../i18n';
 
 // One package per target — framework names and package names are language
 // invariants, so they stay out of the dictionary (only the `Works with`
-// lead-in and the group's aria-label are translated). Every binding needs the
-// core installed alongside it, because that is where the stylesheet is
-// imported from; the core on its own is the whole install.
+// lead-in and the group's aria-label are translated).
+//
+// One package per command, deliberately: the core is a real dependency of every
+// binding, so this install works on its own. Adding it explicitly — what the
+// Installation page recommends, since you import its stylesheet by name — makes
+// the longest command 469px of text in a 559px column, which wraps on a laptop
+// and never fits a phone. The hero is the hook; the rigour belongs on the page
+// that teaches the install.
 const TARGETS = [
   { label: 'React', pkg: '@dataflow-animator/react' },
   { label: 'Angular', pkg: '@dataflow-animator/angular' },
@@ -18,10 +23,7 @@ const TARGETS = [
   { label: 'Vanilla JS', pkg: '@dataflow-animator/core' },
 ];
 
-const CORE = '@dataflow-animator/core';
-
-const installCmd = (pkg: string): string =>
-  pkg === CORE ? `npm install ${CORE}` : `npm install ${pkg} ${CORE}`;
+const installCmd = (pkg: string): string => `npm install ${pkg}`;
 
 export function HeroSection() {
   const t = useTranslation();
@@ -124,7 +126,9 @@ export function HeroSection() {
             transition={{ delay: 0.36 }}
           >
             <span className="text-slate-400 dark:text-white/25">$</span>
-            <code className="text-violet-700 dark:text-violet-400 flex-1 text-left bg-transparent border-none p-0">
+            {/* nowrap: the command must stay on ONE line — it is the first
+                thing a reader copies, and a wrapped one reads as two. */}
+            <code className="text-violet-700 dark:text-violet-400 flex-1 text-left bg-transparent border-none p-0 whitespace-nowrap overflow-x-auto">
               {installCmd(target.pkg)}
             </code>
             <span
