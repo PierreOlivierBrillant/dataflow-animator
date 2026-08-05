@@ -322,6 +322,80 @@ describe('mountStage — convergence', () => {
   });
 });
 
+/**
+ * The convergence run WRITES sizes back (the common code font scale resizes a
+ * panel), so running it inside the observer's delivery cycle makes the browser
+ * report "ResizeObserver loop completed with undelivered notifications". These
+ * assert the deferral that keeps the write out of that cycle —
+ * `getBoundingClientRect` standing in for "a measurement pass happened", since
+ * `measure` opens with one.
+ */
+describe('mountStage — geometry notifications', () => {
+  /** Mounts with the observer callback and the frame queue in hand. */
+  function mountObserved() {
+    let notify: () => void = () => {};
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(callback: () => void) {
+          notify = callback;
+        }
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      }
+    );
+    const frames: FrameRequestCallback[] = [];
+    const cancel = vi.fn();
+    vi.stubGlobal('requestAnimationFrame', (fn: FrameRequestCallback) =>
+      frames.push(fn)
+    );
+    vi.stubGlobal('cancelAnimationFrame', cancel);
+
+    const mounted = mount();
+    const rect = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect');
+    rect.mockClear();
+    return { ...mounted, notify: () => notify(), frames, cancel, rect };
+  }
+
+  it('re-measures on the next frame, never inside the observer callback', () => {
+    const { notify, frames, rect } = mountObserved();
+
+    notify();
+    expect(rect).not.toHaveBeenCalled();
+
+    frames.forEach((frame) => frame(0));
+    expect(rect).toHaveBeenCalled();
+  });
+
+  it('coalesces a burst of notifications into a single run', () => {
+    const { notify, frames, rect } = mountObserved();
+
+    notify();
+    notify();
+    notify();
+    expect(frames).toHaveLength(1);
+
+    frames.forEach((frame) => frame(0));
+    const measured = rect.mock.calls.length;
+
+    // The frame released the coalescing slot: a later notification schedules
+    // again, and does not measure until that frame runs either.
+    notify();
+    expect(frames).toHaveLength(2);
+    expect(rect.mock.calls.length).toBe(measured);
+  });
+
+  it('destroy() cancels a run the observer had scheduled', () => {
+    const { notify, handle, cancel } = mountObserved();
+
+    notify();
+    handle.destroy();
+
+    expect(cancel).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('mountStage — teardown', () => {
   it('destroy() detaches the render', () => {
     const { container, handle } = mount();

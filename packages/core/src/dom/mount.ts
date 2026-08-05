@@ -1041,9 +1041,36 @@ export function mountStage(
   let outcome = run();
   reconcileOverlays();
 
-  const onGeometryChange = (): void => {
+  const resettle = (): void => {
     outcome = run();
     reconcileOverlays();
+  };
+
+  /**
+   * The observer notifies from INSIDE the browser's resize-delivery loop, and
+   * `resettle` writes sizes back: the common code font scale shrinks a panel,
+   * which resizes the very node whose notification is being handled. That
+   * second-order change cannot be delivered in the same cycle, and the browser
+   * reports the leftover as "ResizeObserver loop completed with undelivered
+   * notifications" — a real event, logged by any dev overlay listening for it.
+   *
+   * Deferring to the next frame takes the write out of the delivery cycle, so
+   * the change is a first-order notification like any other. It is also what the
+   * React version did implicitly: a `setState` from the callback re-renders
+   * afterwards, never inside it. Coalescing a burst of notifications into one
+   * convergence run comes for free.
+   */
+  let pendingFrame: number | undefined;
+  const onGeometryChange = (): void => {
+    if (typeof requestAnimationFrame === 'undefined') {
+      resettle(); // SSR / no frame loop: nothing can be deferred to.
+      return;
+    }
+    if (pendingFrame !== undefined) return;
+    pendingFrame = requestAnimationFrame(() => {
+      pendingFrame = undefined;
+      resettle();
+    });
   };
 
   // Fonts settle AFTER mount: when the webfont lands, every label reflows, the
@@ -1095,6 +1122,9 @@ export function mountStage(
       reconcileOverlays();
     },
     destroy() {
+      // A convergence run scheduled by the observer would otherwise land on a
+      // torn-down stage.
+      if (pendingFrame !== undefined) cancelAnimationFrame(pendingFrame);
       tracker.disconnect();
       root.remove();
       nodeEls.clear();

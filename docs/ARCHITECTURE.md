@@ -117,6 +117,18 @@ publishing LAYOUT pixels — the space `commentElement` (`offsetWidth`),
 to one pixel is left alone: `offsetWidth` is integer-rounded, and correcting that
 rounding would spread a sub-pixel error over every untransformed stage.
 
+What the observer notifies is handled on the NEXT FRAME, never inside the
+callback. The convergence run it triggers writes sizes back — the common code
+font scale shrinks a panel, which resizes the very node whose notification is
+being handled — and a browser cannot deliver that second-order change within the
+same delivery cycle: it reports the leftover as a `ResizeObserver loop completed
+with undelivered notifications` error event, which any dev overlay listening on
+`window` surfaces as if the page had thrown. Deferring to a coalesced
+`requestAnimationFrame` takes the write out of the cycle and turns it into an
+ordinary first-order notification. React's version had this for free (a
+`setState` from the callback re-renders afterwards, never inside it), which is
+why the hazard only appeared once the renderer became imperative.
+
 The React renderer that preceded this design (`Stage.tsx`, `Controls.tsx`,
 `nodes/`, `dynamic/`, `hooks/`, `tex/`) was removed at step 2.6b, once the
 migration no longer needed it as the A/B gate's reference. The proof that the two
