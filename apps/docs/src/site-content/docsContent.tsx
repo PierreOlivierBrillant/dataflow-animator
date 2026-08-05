@@ -12,7 +12,8 @@ import { useLocale, useTranslation } from '../i18n';
 // ---------------------------------------------------------------------------
 
 interface SchemaNode {
-  type?: string;
+  // Un tableau pour une union (`"type": ["string", "number"]`).
+  type?: string | string[];
   const?: string;
   title?: string;
   description?: string;
@@ -63,10 +64,11 @@ function nodeSample(type: NodeType): Node {
  * les players animés (autoplay/loop) feraient tourner leur boucle rAF en
  * permanence.
  *
- * IMPORTANT : la classe de taille (largeur + hauteur fixes) est portée par CE
- * conteneur, pas par un wrapper interne — il occupe donc la MÊME boîte que le
- * player soit monté ou non. Sinon, en scrollant, chaque montage/démontage
- * changerait la largeur de la cellule et le tableau se réagencerait (bug visuel).
+ * IMPORTANT : la HAUTEUR est réservée par CE conteneur, pas par un wrapper
+ * interne — il occupe donc la même boîte que le player soit monté ou non. Sinon,
+ * en scrollant, chaque montage/démontage changerait la hauteur de la ligne. La
+ * largeur, elle, vient de la colonne (`table-layout: fixed`, cf. CSS
+ * `.api-col-*`) : elle ne dépend plus de ce qui est monté dans la cellule.
  */
 function InView({
   className,
@@ -177,6 +179,9 @@ function typeLabel(node: SchemaNode): string {
   if (node.enum) return 'enum';
   if (node.type === 'array')
     return `${node.items ? typeLabel(node.items) : 'any'}[]`;
+  // Union : sans ce cas, le tableau était rendu par React tel quel, membres
+  // collés (« stringnumber »).
+  if (Array.isArray(node.type)) return node.type.join(' | ');
   return node.type ?? 'object';
 }
 
@@ -191,6 +196,18 @@ const SECTION_ANCHORS: Record<string, string> = {
   Action: 'api-actions',
 };
 
+/** Un nom de type en PascalCase (`HighlightLanguage`) ou un discriminant
+ *  (`"set_content"`) est UN seul mot pour le moteur de retour à la ligne : dans la
+ *  colonne Type, étroite, il se couperait n'importe où (« Highligh / tLanguag /
+ *  e »). `<wbr>` offre une coupure entre les mots — avant une majuscule, après un
+ *  souligné — et n'ajoute rien au texte copié. La colonne est dimensionnée pour
+ *  le plus long de ces MOTS, pas pour le plus long label. */
+function withWordBreaks(label: string): ReactNode[] {
+  return label
+    .split(/(?=[A-Z])|(?<=_)/)
+    .flatMap((word, i) => (i === 0 ? [word] : [<wbr key={i} />, word]));
+}
+
 /** Rend le type d'un champ ; si c'est une réf. vers une définition documentée,
  *  le rend cliquable vers sa section. Les tableaux relaient sur le type d'item
  *  (`Node[]` → lien sur `Node`). */
@@ -199,6 +216,9 @@ function TypeCell({ node }: { node: SchemaNode }): ReactNode {
     return (
       <>
         <TypeCell node={node.items} />
+        {/* Sans ce `<wbr>`, `Connection[]` est un mot insécable de plus que la
+            colonne : il se couperait au milieu du nom plutôt qu'avant les crochets. */}
+        <wbr />
         []
       </>
     );
@@ -209,13 +229,13 @@ function TypeCell({ node }: { node: SchemaNode }): ReactNode {
     const anchor = SECTION_ANCHORS[name];
     return anchor ? (
       <a className="api-type-link" href={`#${anchor}`}>
-        {label}
+        {withWordBreaks(label)}
       </a>
     ) : (
-      <>{label}</>
+      <>{withWordBreaks(label)}</>
     );
   }
-  return <>{typeLabel(node)}</>;
+  return <>{withWordBreaks(typeLabel(node))}</>;
 }
 
 interface Row {
@@ -254,81 +274,98 @@ function PropsTable({ node, defName }: { node: SchemaNode; defName: string }) {
   const noteOf = (row: Row): string | undefined =>
     notes[`${defName}.${row.name}`];
   const hasExamples = rows.some((row) => demoOf(row) != null);
+  // Le wrapper est le CONTENEUR de requête (cf. CSS `.api-table-wrap`) : la
+  // largeur disponible dépend de la sidebar ET du sommaire de droite, qui
+  // apparaissent à des largeurs de viewport différentes — seule la largeur réelle
+  // du conteneur dit si les 4 colonnes tiennent. Les `<col>` portent ces largeurs
+  // (`table-layout: fixed`) pour que rien ne puisse dépasser horizontalement.
   return (
-    <table className="api-table">
-      <thead>
-        <tr>
-          <th>{t.apiRef.property}</th>
-          <th>Type</th>
-          <th>Description</th>
-          {hasExamples ? <th>{t.apiRef.examples}</th> : null}
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((row) => {
-          const enumValues = row.node.$ref
-            ? defs[refName(row.node.$ref)]?.enum
-            : row.node.enum;
-          // La galerie des `NodeType` reste INLINE dans la Description (exception
-          // demandée). Les autres énums (options acceptées) s'affichent aussi dans
-          // la Description ; seule la colonne « Exemples » porte démos + `@example`.
-          const isNodeType =
-            row.node.$ref != null && refName(row.node.$ref) === 'NodeType';
-          return (
-            <tr key={row.name} id={`api-${defName}-${row.name}`}>
-              <td className="name">
-                <a
-                  className="api-prop-anchor"
-                  href={`#api-${defName}-${row.name}`}
-                  aria-label={t.apiRef.linkTo(row.name)}
-                >
-                  #
-                </a>
-                {row.name}
-                {row.required ? <span className="api-req"> *</span> : null}
-              </td>
-              <td>
-                <span className="api-type">
-                  <TypeCell node={row.node} />
-                </span>
-              </td>
-              <td>
-                {renderInlineMarkdown(row.node.description ?? '')}
-                {enumValues ? (
-                  isNodeType ? (
-                    <div className="rdfa-player api-node-enum" data-mode="auto">
-                      {enumValues.map((v) => (
-                        <div className="api-node-enum-item" key={v}>
-                          <div className="api-node-enum-visual">
-                            <NodeView node={nodeSample(v as NodeType)} />
-                          </div>
-                          <code className="api-enum">{v}</code>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="api-enum-list">
-                      {enumValues.map((v) => (
-                        <span className="api-enum" key={v}>
-                          {v}
-                        </span>
-                      ))}
-                    </div>
-                  )
-                ) : null}
-              </td>
-              {hasExamples ? (
+    <div className="api-table-wrap">
+      <table className="api-table">
+        <colgroup>
+          <col className="api-col-name" />
+          <col className="api-col-type" />
+          <col className="api-col-desc" />
+          {hasExamples ? <col className="api-col-demo" /> : null}
+        </colgroup>
+        <thead>
+          <tr>
+            <th>{t.apiRef.property}</th>
+            <th>Type</th>
+            <th>Description</th>
+            {hasExamples ? <th>{t.apiRef.examples}</th> : null}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => {
+            const enumValues = row.node.$ref
+              ? defs[refName(row.node.$ref)]?.enum
+              : row.node.enum;
+            // La galerie des `NodeType` reste INLINE dans la Description
+            // (exception demandée). Les autres énums (options acceptées)
+            // s'affichent aussi dans la Description ; seule la colonne
+            // « Exemples » porte démos + `@example`.
+            const isNodeType =
+              row.node.$ref != null && refName(row.node.$ref) === 'NodeType';
+            return (
+              <tr key={row.name} id={`api-${defName}-${row.name}`}>
+                <td className="name">
+                  <a
+                    className="api-prop-anchor"
+                    href={`#api-${defName}-${row.name}`}
+                    aria-label={t.apiRef.linkTo(row.name)}
+                  >
+                    #
+                  </a>
+                  {row.name}
+                  {row.required ? <span className="api-req"> *</span> : null}
+                </td>
                 <td>
-                  {demoOf(row) ? (
-                    <PropDemo spec={demoOf(row)!} note={noteOf(row)} />
+                  <span className="api-type">
+                    <TypeCell node={row.node} />
+                  </span>
+                </td>
+                <td>
+                  {renderInlineMarkdown(row.node.description ?? '')}
+                  {enumValues ? (
+                    isNodeType ? (
+                      <div
+                        className="rdfa-player api-node-enum"
+                        data-mode="auto"
+                      >
+                        {enumValues.map((v) => (
+                          <div className="api-node-enum-item" key={v}>
+                            <div className="api-node-enum-visual">
+                              <NodeView node={nodeSample(v as NodeType)} />
+                            </div>
+                            <code className="api-enum">{v}</code>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="api-enum-list">
+                        {enumValues.map((v) => (
+                          <span className="api-enum" key={v}>
+                            {v}
+                          </span>
+                        ))}
+                      </div>
+                    )
                   ) : null}
                 </td>
-              ) : null}
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
+                {hasExamples ? (
+                  <td>
+                    {demoOf(row) ? (
+                      <PropDemo spec={demoOf(row)!} note={noteOf(row)} />
+                    ) : null}
+                  </td>
+                ) : null}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 }
 

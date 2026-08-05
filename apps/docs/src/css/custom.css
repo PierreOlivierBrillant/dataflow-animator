@@ -260,12 +260,41 @@ footer__link-item > svg {
   font-family: 'JetBrains Mono', monospace;
 }
 
-/* API Tables */
+/* API Tables
+   Aucun dépassement horizontal, jamais : `table-layout: fixed` + des largeurs de
+   colonnes déclarées (`.api-col-*`) font que les colonnes ne dépendent PLUS du
+   contenu — un nom long ou une démo large passe à la ligne au lieu de pousser le
+   tableau hors de son conteneur. Corollaire utile : une cellule ne peut plus
+   changer la largeur de sa colonne, donc le montage/démontage des players
+   (`InView`) ne réagence plus rien.
+   Docusaurus (Infima) pose `table { display: block; overflow: auto }`, c'est-à-dire
+   exactement la barre de défilement qu'on ne veut pas → on rétablit `display: table`. */
 .api-table {
+  display: table;
+  table-layout: fixed;
   width: 100%;
   border-collapse: collapse;
   margin: 8px 0 4px;
   font-size: 14px;
+}
+/* Conteneur de requête : la largeur disponible ne se déduit PAS du viewport (la
+   sidebar et le sommaire de droite apparaissent à des seuils différents — la
+   colonne de doc fait 692 px à 1280 px de large mais ~450 px à 1100 px, où les
+   deux cohabitent). Seule la largeur réellement reçue dit si 4 colonnes tiennent. */
+.api-table-wrap {
+  container-type: inline-size;
+}
+/* Largeur fixe = le plus long nom de propriété sans retour à la ligne ; les noms
+   ne gagnent rien à s'élargir davantage sur grand écran. La Description prend le
+   reste (pas de largeur déclarée) : c'est elle qui porte la galerie de NodeType. */
+.api-col-name {
+  width: 170px;
+}
+.api-col-type {
+  width: 15%;
+}
+.api-col-demo {
+  width: 26%;
 }
 .api-table th {
   text-align: left;
@@ -283,7 +312,9 @@ footer__link-item > svg {
 .api-table td.name {
   font-family: 'JetBrains Mono', monospace;
   font-weight: 600;
-  white-space: nowrap;
+  /* La colonne est dimensionnée pour le plus long nom : ce filet ne sert que dans
+     un conteneur étroit — un nom coupé vaut mieux qu'une barre de défilement. */
+  overflow-wrap: anywhere;
 }
 .api-prop-anchor {
   opacity: 0;
@@ -310,6 +341,9 @@ footer__link-item > svg {
   font-family: 'JetBrains Mono', monospace;
   font-size: 12.5px;
   color: #22d3ee;
+  /* Les `<wbr>` posés par `withWordBreaks` coupent aux frontières de mots
+     (« Highlight / Language ») ; ceci est le filet pour un mot seul trop large. */
+  overflow-wrap: anywhere;
 }
 /* Lien d'un type référençant une définition documentée (saut vers sa section). */
 .api-type-link {
@@ -356,7 +390,9 @@ footer__link-item > svg {
   flex-direction: row;
   flex-wrap: wrap;
   align-items: flex-start;
-  gap: 14px;
+  /* Serré : la galerie vit dans la cellule Description, dont la largeur est
+     désormais bornée (cf. `.api-col-*`) — chaque pixel d'écart en coûte une rangée. */
+  gap: 12px 10px;
   width: auto;
   margin-top: 8px;
   padding: 0;
@@ -393,8 +429,14 @@ footer__link-item > svg {
    `--rdfa-scale` SANS plafond : un mono-nœud a donc une grande échelle pour
    rester lisible, alors que les démos à 2+ nœuds doivent rester plus petites
    pour ne pas se chevaucher. */
+/* La largeur suit la COLONNE : `table-layout: fixed` la rend indépendante du
+   contenu, donc la démo n'a plus besoin d'une largeur en px pour empêcher la
+   colonne de sauter au montage/démontage du player (le `InView` interne, lui,
+   réserve toujours la hauteur). Le plafond évite qu'un grand écran ne dilate la
+   démo hors de proportion. */
 .api-prop-demo {
   margin-top: 4px;
+  max-width: 330px;
 }
 .api-prop-demo .rdfa-player {
   width: 100%;
@@ -402,27 +444,15 @@ footer__link-item > svg {
 .api-prop-demo-stage {
   width: 100%;
 }
-/* Largeur FIXE (pas seulement max-width) : portée par CE conteneur (toujours
-   monté), sinon la colonne se réagencerait au montage/démontage du player en
-   scrollant (le `InView` interne, lui, ne réserve que la hauteur). */
-.api-prop-demo--single {
-  width: 320px;
-}
 .api-prop-demo--single .rdfa-stage {
   --rdfa-scale: 1.5 !important;
   --rdfa-content-scale: 1.15 !important;
   --rdfa-content-maxh: 210px !important;
 }
-.api-prop-demo--pair {
-  width: 330px;
-}
 .api-prop-demo--pair .rdfa-stage {
   --rdfa-scale: 0.92 !important;
   --rdfa-content-scale: 1 !important;
   --rdfa-content-maxh: 200px !important;
-}
-.api-prop-demo--multi {
-  width: 330px;
 }
 .api-prop-demo--multi .rdfa-stage {
   --rdfa-scale: 0.62 !important;
@@ -446,6 +476,47 @@ footer__link-item > svg {
   font-size: 12px;
   line-height: 1.45;
   color: #94a3b8;
+}
+
+/* Sous ce seuil, 4 colonnes ne tiennent plus lisiblement (la Description tomberait
+   à deux mots par ligne et la démo serait rognée) : chaque propriété devient une
+   carte empilée — nom, type, description, démo. Il n'y a donc plus rien à faire
+   défiler latéralement, à aucune largeur. Ce bloc vient APRÈS les règles de
+   table : à spécificité égale, c'est l'ordre du fichier qui tranche. */
+@container (max-width: 639px) {
+  .api-table,
+  .api-table tbody,
+  .api-table tr,
+  .api-table td {
+    display: block;
+    width: auto;
+  }
+  /* Les en-têtes n'ont plus de colonne à coiffer ; le nom en gras et le type en
+     mono coloré identifient déjà chaque bloc. */
+  .api-table thead {
+    display: none;
+  }
+  .api-table tr {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--rdfa-hairline);
+  }
+  /* `border: 0` et pas `border-bottom` : Infima encadre chaque cellule sur ses
+     quatre côtés, ce qui dessinerait une boîte autour de chaque bloc empilé. */
+  .api-table td {
+    border: 0;
+    padding: 3px 0;
+  }
+  /* Une cellule Exemples vide (propriété sans démo) ne doit pas creuser un trou. */
+  .api-table td:empty {
+    display: none;
+  }
+  /* L'ancre occupe sa place même invisible (opacity), ce qui décalerait le nom
+     par rapport aux lignes en dessous : on la sort dans la marge pour que tous
+     les blocs d'une carte démarrent au même x. */
+  .api-prop-anchor {
+    float: left;
+    margin-left: -17px;
+  }
 }
 
 /* Erreurs de validation de schéma dans le playground */
