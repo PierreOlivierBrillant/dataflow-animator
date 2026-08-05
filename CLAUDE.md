@@ -200,6 +200,14 @@ Pitfalls already encountered in this repo — check them when you touch the affe
   both watchers report their first bundle; the fix is a barrier on the watcher's `END` event, never a
   delay. If those warnings ever come back, look for something reading a `dist` concurrently with a
   build — not for a missing export.
+- **…and webpack's persistent cache FREEZES that warning**: the tear has to happen only once. Webpack
+  snapshots the module it read together with the mtime of the file it read it from — and the torn read
+  and the final write share a millisecond, so the recorded timestamp matches the complete file on disk
+  forever after. `apps/docs/node_modules/.cache/webpack` then replays
+  `export 'dataFlowSchema' … was not found` on every `docusaurus start`, for as long as the cache
+  lives, with a `dist` that is provably intact (`grep dataFlowSchema packages/*/dist/index.js`). So the
+  warning surviving a restart does NOT mean it is real: check the dist first, and if the exports are
+  there, the cure is `npm run clear -w @dataflow-animator/docs`, not a change to any barrel.
 
 ## Available scripts (quick reference)
 

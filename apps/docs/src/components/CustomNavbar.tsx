@@ -2,6 +2,11 @@ import { useState, useEffect, type ReactNode } from 'react';
 import Link from '@docusaurus/Link';
 import { useLocation } from '@docusaurus/router';
 import useBaseUrl from '@docusaurus/useBaseUrl';
+import {
+  useLockBodyScroll,
+  useNavbarMobileSidebar,
+  useNavbarSecondaryMenu,
+} from '@docusaurus/theme-common/internal';
 import SearchBar from '@theme/SearchBar';
 import { Menu, X, BookOpen, LayoutGrid, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -17,7 +22,20 @@ const GITHUB_URL = 'https://github.com/PierreOlivierBrillant/dataflow-animator';
 export function CustomNavbar() {
   const t = useTranslation();
   const [scrolled, setScrolled] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
+  // The open/closed state of the mobile menu is Docusaurus', not ours. It has to
+  // be: the doc sidebar it hosts is rendered by `DocSidebar/Mobile`, whose items
+  // call `mobileSidebar.toggle()` on click. Owning a second `useState` here left
+  // that call toggling a state nobody read, so the menu stayed open across the
+  // navigation. Reusing the framework's also gets the Android back button and the
+  // automatic close when the viewport crosses back into desktop.
+  const mobileSidebar = useNavbarMobileSidebar();
+  // The doc sidebar arrives through the navbar's secondary-menu portal: on a
+  // /docs page below 997px, Docusaurus renders no sidebar of its own and fills
+  // this instead. Rendering it is the ONLY way the sub-sections are reachable —
+  // this navbar replaces the theme's, which is what used to render it.
+  const secondaryMenu = useNavbarSecondaryMenu();
+  const mobileOpen = mobileSidebar.shown;
+  useLockBodyScroll(mobileOpen);
   const location = useLocation().pathname;
   // Derived, never hardcoded: `useBaseUrl('/')` already carries baseUrl AND the
   // locale prefix, so the transparent navbar follows the home page of BOTH
@@ -59,14 +77,14 @@ export function CustomNavbar() {
           </Link>
 
           {/* Algolia search */}
-          <div className="hidden md:flex items-center">
+          <div className="hidden nav:flex items-center">
             <SearchBar />
           </div>
 
           {/* Links + actions */}
           <div className="flex items-center gap-1 ml-auto">
             {/* Desktop links */}
-            <nav className="hidden md:flex items-center gap-1">
+            <nav className="hidden nav:flex items-center gap-1">
               <NavLink
                 to="/docs/intro"
                 label={t.nav.documentation}
@@ -86,12 +104,12 @@ export function CustomNavbar() {
             </nav>
 
             {/* Mobile search (Algolia) */}
-            <div className="md:hidden flex items-center">
+            <div className="nav:hidden flex items-center">
               <SearchBar />
             </div>
 
             {/* Separator + language + GitHub (desktop) */}
-            <div className="hidden md:flex items-center gap-2">
+            <div className="hidden nav:flex items-center gap-2">
               <div className="w-px h-4 bg-slate-900/10 dark:bg-white/10 mx-1" />
               <LanguageSwitcher />
               <ThemeToggle />
@@ -101,14 +119,14 @@ export function CustomNavbar() {
                 rel="noopener noreferrer"
                 className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-white/70 dark:hover:text-white rounded-lg transition-all no-underline hover:no-underline"
               >
-                <FaGithub size={25} />
+                <FaGithub size={18} />
               </a>
             </div>
 
             {/* Mobile menu button */}
             <button
-              className="md:hidden p-2 text-slate-500 hover:text-slate-900 dark:text-white/50 dark:hover:text-white cursor-pointer bg-transparent border-none"
-              onClick={() => setMobileOpen((v) => !v)}
+              className="nav:hidden p-2 text-slate-500 hover:text-slate-900 dark:text-white/50 dark:hover:text-white cursor-pointer bg-transparent border-none"
+              onClick={mobileSidebar.toggle}
               aria-expanded={mobileOpen}
               aria-label={t.nav.toggleMenu}
             >
@@ -125,9 +143,12 @@ export function CustomNavbar() {
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.2 }}
-              className="md:hidden absolute top-full left-0 right-0 w-full overflow-hidden border-b border-slate-900/[0.08] dark:border-white/[0.06] bg-white dark:bg-[#05040e] shadow-2xl"
+              className="nav:hidden absolute top-full left-0 right-0 w-full overflow-hidden border-b border-slate-900/[0.08] dark:border-white/[0.06] bg-white dark:bg-[#05040e] shadow-2xl"
             >
-              <div className="px-5 pb-5">
+              {/* The doc tree makes this panel arbitrarily tall, so the scroll
+                  belongs INSIDE it — the panel itself keeps `overflow-hidden`,
+                  which is what the height animation needs. */}
+              <div className="max-h-[calc(100dvh_-_var(--ifm-navbar-height))] overflow-y-auto px-5 pb-5">
                 <div className="flex flex-col gap-1 pt-3">
                   {[
                     { label: t.nav.documentation, to: '/docs/intro' },
@@ -138,7 +159,7 @@ export function CustomNavbar() {
                       key={to}
                       to={to}
                       className="px-3 py-2.5 text-sm text-slate-600 hover:text-slate-900 dark:text-white/60 dark:hover:text-white rounded-lg hover:bg-slate-900/[0.05] dark:hover:bg-white/[0.05] transition-colors no-underline hover:no-underline"
-                      onClick={() => setMobileOpen(false)}
+                      onClick={mobileSidebar.toggle}
                     >
                       {label}
                     </Link>
@@ -148,7 +169,7 @@ export function CustomNavbar() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 px-3 py-2.5 text-sm text-slate-600 hover:text-slate-900 dark:text-white/60 dark:hover:text-white rounded-lg hover:bg-slate-900/[0.05] dark:hover:bg-white/[0.05] transition-colors no-underline hover:no-underline"
-                    onClick={() => setMobileOpen(false)}
+                    onClick={mobileSidebar.toggle}
                   >
                     <FaGithub size={15} /> {t.nav.sources}
                   </a>
@@ -157,6 +178,15 @@ export function CustomNavbar() {
                     <ThemeToggle />
                   </div>
                 </div>
+                {/* Present only on a /docs page: the sidebar of the current
+                    version, straight from the theme (`menu` carries the Infima
+                    styles the items are written against). Its own items close
+                    the panel — they call `mobileSidebar.toggle()`. */}
+                {secondaryMenu.content && (
+                  <div className="menu mt-3 border-t border-slate-900/[0.08] pt-1 dark:border-white/[0.06]">
+                    {secondaryMenu.content}
+                  </div>
+                )}
               </div>
             </motion.div>
           )}
@@ -187,7 +217,7 @@ function NavLink({ to, label, icon, exact = false }: NavLinkProps) {
     <Link
       key={label}
       to={to}
-      className={`flex items-center gap-1.5 px-3 py-2 text-lg rounded-lg transition-colors no-underline hover:no-underline font-sans border ${
+      className={`flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg transition-colors no-underline hover:no-underline font-sans border ${
         isActive
           ? 'text-violet-700 bg-violet-600/10 border-violet-500/25 dark:text-violet-300'
           : 'text-slate-600 hover:text-slate-900 border-transparent dark:text-white/50 dark:hover:text-white'

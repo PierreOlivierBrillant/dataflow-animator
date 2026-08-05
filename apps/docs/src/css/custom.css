@@ -5,6 +5,15 @@
 @import '@dataflow-animator/core/styles.css';
 
 @theme {
+  /* THE navbar breakpoint, and it is not a free choice: 997px is Docusaurus'
+     own desktop threshold (`useWindowSize`'s `DesktopBreakpoint = 996`, and the
+     `min-width: 997px` Infima uses to show the doc sidebar). Below it, the doc
+     sidebar only exists as the navbar's mobile secondary menu — so a navbar that
+     switched to its desktop layout any earlier (Tailwind's `md`, 768px, did)
+     would leave a band where the sub-sections are reachable from nowhere.
+     Both halves of the chrome must flip on the same pixel. */
+  --breakpoint-nav: 997px;
+
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-heading: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
   --color-primary: var(--ifm-color-primary);
@@ -100,6 +109,18 @@ html {
 .navbar {
   padding: 0;
   box-shadow: none;
+}
+
+/* The desktop row has to fit from 997px up (see `--breakpoint-nav`), and the
+   full DocSearch button — placeholder + the Ctrl-K keys — is 174px of it. Below
+   1200px it collapses to its magnifier, which is the same compact form DocSearch
+   itself falls back to on narrow screens (`@media (max-width: 768px)` in
+   @docsearch/css); we only move the threshold up to where the row needs it. */
+@media (max-width: 1199px) {
+  .navbar .DocSearch-Button-Placeholder,
+  .navbar .DocSearch-Button-Keys {
+    display: none;
+  }
 }
 
 /* Ensure the sidebar stays below the custom navbar */
