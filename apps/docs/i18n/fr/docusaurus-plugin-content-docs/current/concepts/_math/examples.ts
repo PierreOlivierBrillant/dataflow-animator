@@ -14,9 +14,9 @@ export const subscriptExample: DataFlowSpec = {
     { id: 'out', type: 'signal', text: '$\\overline{A}$', icon: '1', lane: 3 },
   ],
   connections: [
-    { from: 'a', to: 'gate' },
-    { from: 'bin', to: 'gate' },
-    { from: 'gate', to: 'out' },
+    { from: 'a', to: 'gate:a' },
+    { from: 'bin', to: 'gate:b' },
+    { from: 'gate:y', to: 'out' },
   ],
   packets: [],
   timeline: [],
