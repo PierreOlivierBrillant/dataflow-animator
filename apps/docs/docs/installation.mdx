@@ -275,12 +275,18 @@ correctly-sized placeholder and the diagram appears on hydration. There is no
 hydration mismatch — there is nothing to match — and importing any of these
 packages on a server is safe: nothing touches the DOM at module scope.
 
-What that costs you: a prerendered page shows an empty box where the diagram
-will be. In React, use `fallback` to put something meaningful in the static
-HTML — a poster image, a caption, a skeleton:
+What that costs you: a prerendered page shows a placeholder where the diagram
+will be. In React that placeholder is not blank — it carries a **loading
+indicator**, revealed only if the wait lasts long enough to be worth naming
+(the reveal is delayed in CSS, so a fast hydration flashes nothing). Its text
+is the `loading` key of
+[`labels`](./reference/components.mdx#labels).
+
+Pass `fallback` to put something of your own there instead — a poster image, a
+caption, a skeleton. It replaces the indicator entirely:
 
 ```tsx
-<DataFlowPlayer spec={spec} fallback={<div>Loading animation...</div>} />
+<DataFlowPlayer spec={spec} fallback={<img src="/diagram.png" alt="…" />} />
 ```
 
 `NodeView` behaves the same way. `<dataflow-player>` and `<dfa-player>` are

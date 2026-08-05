@@ -5,7 +5,12 @@ import type { DataFlowPlayerProps } from './types';
 // renderer, not anything React draws, so it ships once with the core and the
 // consumer imports `@dataflow-animator/core/styles.css`. A side-effect import
 // here would re-emit the same bytes a second time.
-import { mountPlayer, serializeSpec } from '@dataflow-animator/core';
+import {
+  DEFAULT_PLAYER_LABELS,
+  mountPlayer,
+  serializeSpec,
+  type PlayerHandle,
+} from '@dataflow-animator/core';
 import { toStyleMap } from './utils/styleMap';
 
 /**
@@ -17,11 +22,16 @@ import { toStyleMap } from './utils/styleMap';
  * children. That is what makes a frame ~6x cheaper: a clock tick mutates the
  * DOM in place instead of re-rendering a tree.
  *
- * Two consequences worth knowing:
+ * Three consequences worth knowing:
  *
  *  - **No server markup.** The renderer needs a DOM, so the server emits only
- *    `fallback` (or an empty, correctly-sized box). There is no hydration
- *    mismatch because there is nothing to match.
+ *    the placeholder — `fallback`, or a correctly-sized box carrying the
+ *    loading indicator. There is no hydration mismatch because there is nothing
+ *    to match.
+ *  - **The first mount waits for a paint.** Two frames, so the placeholder is
+ *    actually on screen before the spec is compiled and measured. A remount
+ *    does not wait: the old player is still there, and swapping it for an empty
+ *    box would be a blink.
  *  - **Every option is read once, at mount.** The core reads its options when it
  *    builds; changing any of them — `spec` included — remounts the player. The
  *    current instant and play state are carried across, so this is invisible
@@ -96,31 +106,67 @@ export function DataFlowPlayer({
     const host = hostRef.current;
     if (!host) return;
 
-    const resume = resumeRef.current;
-    const player = mountPlayer(host, specRef.current, {
-      height,
-      width,
-      className,
-      theme,
-      mode,
-      density,
-      controls,
-      exportable,
-      loop,
-      speed,
-      debug,
-      style: toStyleMap(style),
-      labels,
-      highlight: highlightRef.current,
-      initialT: resume?.t ?? initialT,
-      autoPlay: resume?.playing ?? autoPlay,
-    });
-    setMounted(true);
+    let player: PlayerHandle | undefined;
+    let frame = 0;
 
-    if (debug && player.warnings.length)
-      console.warn('[DataFlowAnimator]', ...player.warnings);
+    const mount = (): void => {
+      const resume = resumeRef.current;
+      player = mountPlayer(host, specRef.current, {
+        height,
+        width,
+        className,
+        theme,
+        mode,
+        density,
+        controls,
+        exportable,
+        loop,
+        speed,
+        debug,
+        style: toStyleMap(style),
+        labels,
+        highlight: highlightRef.current,
+        initialT: resume?.t ?? initialT,
+        autoPlay: resume?.playing ?? autoPlay,
+      });
+      setMounted(true);
+
+      if (debug && player.warnings.length)
+        console.warn('[DataFlowAnimator]', ...player.warnings);
+    };
+
+    /**
+     * The FIRST mount waits for the browser to paint; a remount does not.
+     *
+     * Two nested frames is the only reliable "the placeholder is on screen"
+     * signal — a single `requestAnimationFrame` still runs before that frame's
+     * paint. Without the wait, the placeholder is committed and replaced inside
+     * one task, so it is never painted: the loading indicator could then only
+     * ever cover the gap between prerendered HTML and hydration, which a
+     * client-only mount (a gallery thumbnail, a modal, an editor) does not
+     * have. Compiling and measuring a heavy spec would freeze the page on a
+     * blank box — the wait most worth naming, and the one that was invisible.
+     *
+     * The two frames cost ~32ms and show nothing: the reveal is delayed far
+     * past them. Once the mount starts it stays synchronous, so the
+     * placeholder's last painted frame is what the reader looks at while the
+     * main thread is busy — and it keeps fading in and spinning, both being
+     * compositor-driven properties.
+     *
+     * A REMOUNT (a changed option, a live-edited spec) keeps the old player on
+     * screen right up to the cleanup, so waiting would swap a rendered player
+     * for two frames of empty box. `resumeRef` is the flag: it is null exactly
+     * until this component has mounted a player once.
+     */
+    if (resumeRef.current !== null) mount();
+    else
+      frame = requestAnimationFrame(() => {
+        frame = requestAnimationFrame(mount);
+      });
 
     return () => {
+      cancelAnimationFrame(frame);
+      if (!player) return;
       // Captured BEFORE destroy: the clock is released in there.
       resumeRef.current = {
         t: player.clock.t,
@@ -167,6 +213,11 @@ export function DataFlowPlayer({
       {mounted ? null : (
         <div
           className={`rdfa-player${className ? ` ${className}` : ''}`}
+          // It wears `.rdfa-player` to reserve the box and inherit the theme
+          // tokens, so this attribute is what tells the two apart while both
+          // are in the document — which, now that the mount waits for a paint,
+          // is a window a test or a consumer can actually land in.
+          data-placeholder=""
           data-theme={theme}
           data-mode={mode}
           style={{
@@ -177,7 +228,27 @@ export function DataFlowPlayer({
         >
           {fallback ? (
             <div className="rdfa-stage rdfa-fallback">{fallback}</div>
-          ) : null}
+          ) : (
+            /*
+              The loading indicator, which is what an EMPTY box says out loud:
+              the bundle arriving, the page hydrating, and — since the mount
+              waits for a paint — compiling and measuring the spec itself.
+
+              It is in the markup from the first paint and hides itself in CSS
+              until the wait is long enough to be worth naming (see
+              `.rdfa-loading`), so a fast mount shows nothing at all and no
+              timer, state or extra render is needed here. A caller who passes
+              `fallback` has said what to show instead, and keeps it.
+
+              No `.rdfa-stage` here, unlike the fallback: `.rdfa-loading` brings
+              its own box, and leaving that class off keeps `.rdfa-stage`
+              meaning "a mounted stage" for anything that waits on it.
+            */
+            <div className="rdfa-loading" role="status">
+              <span className="rdfa-loading-ring" aria-hidden="true" />
+              <span>{labels?.loading ?? DEFAULT_PLAYER_LABELS.loading}</span>
+            </div>
+          )}
         </div>
       )}
       <div ref={hostRef} style={HOST_STYLE} />

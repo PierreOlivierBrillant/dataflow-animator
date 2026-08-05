@@ -33,26 +33,26 @@ import '@dataflow-animator/core/styles.css';
 Le composant qui compile une `spec` et l'affiche dans un lecteur multimédia.
 Seule la prop `spec` est requise.
 
-| Prop         | Type                                       | Défaut          | Rôle                                                              |
-| ------------ | ------------------------------------------ | --------------- | ----------------------------------------------------------------- |
-| `spec`       | `DataFlowSpec`                             | — (requis)      | La spécification à animer.                                        |
-| `height`     | `number \| string`                         | `420`           | Hauteur de la scène (ex. `420`, `'60vh'`).                        |
-| `controls`   | `boolean`                                  | `true`          | Affiche la barre de lecture et la navigation par étapes.          |
-| `exportable` | `boolean`                                  | `false`         | Ajoute un bouton qui ouvre la spec JSON (copie / téléchargement). |
-| `autoPlay`   | `boolean`                                  | `false`         | Démarre la lecture automatiquement.                               |
-| `loop`       | `boolean`                                  | `false`         | Rejoue en boucle à la fin.                                        |
-| `speed`      | `number`                                   | `1`             | Vitesse de lecture (`1` = normal).                                |
-| `theme`      | `PlayerTheme`                              | `'default'`     | Palette visuelle ([voir plus bas](#themes)).                      |
-| `mode`       | `'light' \| 'dark' \| 'auto'`              | `'auto'`        | Variante de `theme` à afficher.                                   |
-| `density`    | `'compact' \| 'comfortable' \| 'spacious'` | `'comfortable'` | Densité visuelle (taille des éléments / espacement).              |
-| `width`      | `number \| string`                         | conteneur       | Largeur de la scène. Lue au montage, avant la première mesure.    |
-| `initialT`   | `number`                                   | `0`             | Instant d'ouverture du player, en ms. Lu une seule fois.          |
-| `debug`      | `boolean`                                  | `false`         | Overlay d'inspection de la timeline interne.                      |
-| `highlight`  | `Highlighter`                              | Prism           | Coloration syntaxique personnalisée (cf. plus bas).               |
-| `fallback`   | `ReactNode`                                | —               | Rendu côté serveur et jusqu'au montage du player.                 |
-| `className`  | `string`                                   | —               | Classe CSS additionnelle sur le conteneur racine.                 |
-| `style`      | `CSSProperties`                            | —               | Styles inline sur le conteneur racine.                            |
-| `labels`     | `Partial<PlayerLabels>`                    | anglais         | Localise le chrome du player ([voir plus bas](#labels)).          |
+| Prop         | Type                                       | Défaut          | Rôle                                                                                        |
+| ------------ | ------------------------------------------ | --------------- | ------------------------------------------------------------------------------------------- |
+| `spec`       | `DataFlowSpec`                             | — (requis)      | La spécification à animer.                                                                  |
+| `height`     | `number \| string`                         | `420`           | Hauteur de la scène (ex. `420`, `'60vh'`).                                                  |
+| `controls`   | `boolean`                                  | `true`          | Affiche la barre de lecture et la navigation par étapes.                                    |
+| `exportable` | `boolean`                                  | `false`         | Ajoute un bouton qui ouvre la spec JSON (copie / téléchargement).                           |
+| `autoPlay`   | `boolean`                                  | `false`         | Démarre la lecture automatiquement.                                                         |
+| `loop`       | `boolean`                                  | `false`         | Rejoue en boucle à la fin.                                                                  |
+| `speed`      | `number`                                   | `1`             | Vitesse de lecture (`1` = normal).                                                          |
+| `theme`      | `PlayerTheme`                              | `'default'`     | Palette visuelle ([voir plus bas](#themes)).                                                |
+| `mode`       | `'light' \| 'dark' \| 'auto'`              | `'auto'`        | Variante de `theme` à afficher.                                                             |
+| `density`    | `'compact' \| 'comfortable' \| 'spacious'` | `'comfortable'` | Densité visuelle (taille des éléments / espacement).                                        |
+| `width`      | `number \| string`                         | conteneur       | Largeur de la scène. Lue au montage, avant la première mesure.                              |
+| `initialT`   | `number`                                   | `0`             | Instant d'ouverture du player, en ms. Lu une seule fois.                                    |
+| `debug`      | `boolean`                                  | `false`         | Overlay d'inspection de la timeline interne.                                                |
+| `highlight`  | `Highlighter`                              | Prism           | Coloration syntaxique personnalisée (cf. plus bas).                                         |
+| `fallback`   | `ReactNode`                                | —               | Rendu côté serveur et jusqu'au montage du player, à la place de l'indicateur de chargement. |
+| `className`  | `string`                                   | —               | Classe CSS additionnelle sur le conteneur racine.                                           |
+| `style`      | `CSSProperties`                            | —               | Styles inline sur le conteneur racine.                                                      |
+| `labels`     | `Partial<PlayerLabels>`                    | anglais         | Localise le chrome du player ([voir plus bas](#labels)).                                    |
 
 :::info Changer la spec remonte le player
 
@@ -68,6 +68,12 @@ rendu chaud, mais ce n'est plus la différence entre fluide et saccadé.
 Seul le **premier** montage honore `initialT` et `autoPlay` : tout remontage
 suivant reprend à l'instant et à l'état de lecture courants, ce qui rend
 invisible le fait de changer une option en cours de scrub.
+
+Le premier montage est aussi le seul à **attendre un affichage** (deux frames),
+afin que l'emplacement — et son indicateur de chargement — soit réellement à
+l'écran avant que la spec ne soit compilée et mesurée. Un remontage, lui, est
+immédiat : le player précédent est encore là, et l'échanger contre deux frames
+de boîte vide serait un clignotement.
 
 ```tsx
 // très bien — une spec équivalente ne remonte rien
@@ -239,7 +245,15 @@ omise garde sa valeur anglaise :
 La liste complète des clés est le type exporté `PlayerLabels` : `restart`,
 `play`, `pause`, `prevStep`, `nextStep`, `progressBar`, `fullscreen`,
 `exitFullscreen`, `jsonSpec`, `download`, `copy`, `copied`, `copyToClipboard`,
-`close`, `closeDialog`.
+`close`, `closeDialog`, `loading`.
+
+`loading` est l'intruse : elle n'appartient pas au chrome mais à
+l'**emplacement** que le player affiche avant son montage, et qui révèle un
+indicateur de chargement quand l'attente dure assez longtemps pour mériter
+d'être signalée — voir
+[SSR et hydratation](../installation.mdx#ssr-et-hydratation). Elle vit ici pour
+la même raison que les autres : que la valeur par défaut reste dans le cœur
+plutôt que dans chaque liaison.
 
 Ces chaînes vivent dans des attributs lus par les infobulles et les
 technologies d'assistance — aucune n'est dessinée sur la scène. Ce site passe

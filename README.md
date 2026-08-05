@@ -172,8 +172,15 @@ automatically rendered in a badge.
 The player emits **no markup on the server**: it mounts a framework-agnostic DOM
 renderer in a client effect, so the static HTML holds a correctly-sized
 placeholder and the diagram appears on hydration. There is no hydration mismatch
-— there is nothing to match. Use `fallback` to render a poster, a caption or a
-skeleton into the static HTML:
+— there is nothing to match.
+
+In React that placeholder carries a **loading indicator**, revealed only if the
+wait lasts long enough to be worth naming — the reveal is delayed in CSS, so a
+fast mount flashes nothing, and its text is the `loading` key of `labels`. The
+first mount waits two frames so the placeholder is really painted before the
+spec is compiled and measured; a remount does not wait, so a live-edited spec
+never blinks. Use `fallback` to render a poster, a caption or a skeleton into
+the static HTML instead:
 
 ```tsx
 <DataFlowPlayer spec={spec} fallback={<img src="/diagram.png" alt="…" />} />

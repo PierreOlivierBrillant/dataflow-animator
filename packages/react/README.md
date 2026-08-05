@@ -86,26 +86,26 @@ SSR trivial.
 
 ## `<DataFlowPlayer>` props
 
-| Prop         | Type                                       | Default         | Description                                                 |
-| ------------ | ------------------------------------------ | --------------- | ----------------------------------------------------------- |
-| `spec`       | `DataFlowSpec`                             | —               | The specification to animate.                               |
-| `className`  | `string`                                   | —               | Extra CSS class on the root container.                      |
-| `style`      | `CSSProperties`                            | —               | Inline styles on the root container.                        |
-| `height`     | `number \| string`                         | `420`           | Scene height.                                               |
-| `width`      | `number \| string`                         | container width | Scene width.                                                |
-| `initialT`   | `number`                                   | `0`             | Instant the player opens at, in ms.                         |
-| `autoPlay`   | `boolean`                                  | `false`         | Starts playback automatically.                              |
-| `loop`       | `boolean`                                  | `false`         | Replays in a loop at the end.                               |
-| `controls`   | `boolean`                                  | `true`          | Displays the controls bar.                                  |
-| `exportable` | `boolean`                                  | `false`         | Adds a button that opens the JSON spec (copy / download).   |
-| `theme`      | `PlayerTheme`                              | `'default'`     | Visual palette; each has a light and a dark variant.        |
-| `mode`       | `'auto' \| 'light' \| 'dark'`              | `'auto'`        | Follows an ancestor `[data-theme]`, then the OS preference. |
-| `density`    | `'compact' \| 'comfortable' \| 'spacious'` | `'comfortable'` | Visual scale.                                               |
-| `speed`      | `number`                                   | `1`             | Playback speed.                                             |
-| `highlight`  | `Highlighter`                              | Prism           | Replaces the syntax highlighter.                            |
-| `labels`     | `Partial<PlayerLabels>`                    | English         | Localises the chrome (tooltips, aria, dialog title).        |
-| `debug`      | `boolean`                                  | `false`         | Timeline debug overlay.                                     |
-| `fallback`   | `ReactNode`                                | —               | Rendered on the server and until the player has mounted.    |
+| Prop         | Type                                       | Default         | Description                                                                                 |
+| ------------ | ------------------------------------------ | --------------- | ------------------------------------------------------------------------------------------- |
+| `spec`       | `DataFlowSpec`                             | —               | The specification to animate.                                                               |
+| `className`  | `string`                                   | —               | Extra CSS class on the root container.                                                      |
+| `style`      | `CSSProperties`                            | —               | Inline styles on the root container.                                                        |
+| `height`     | `number \| string`                         | `420`           | Scene height.                                                                               |
+| `width`      | `number \| string`                         | container width | Scene width.                                                                                |
+| `initialT`   | `number`                                   | `0`             | Instant the player opens at, in ms.                                                         |
+| `autoPlay`   | `boolean`                                  | `false`         | Starts playback automatically.                                                              |
+| `loop`       | `boolean`                                  | `false`         | Replays in a loop at the end.                                                               |
+| `controls`   | `boolean`                                  | `true`          | Displays the controls bar.                                                                  |
+| `exportable` | `boolean`                                  | `false`         | Adds a button that opens the JSON spec (copy / download).                                   |
+| `theme`      | `PlayerTheme`                              | `'default'`     | Visual palette; each has a light and a dark variant.                                        |
+| `mode`       | `'auto' \| 'light' \| 'dark'`              | `'auto'`        | Follows an ancestor `[data-theme]`, then the OS preference.                                 |
+| `density`    | `'compact' \| 'comfortable' \| 'spacious'` | `'comfortable'` | Visual scale.                                                                               |
+| `speed`      | `number`                                   | `1`             | Playback speed.                                                                             |
+| `highlight`  | `Highlighter`                              | Prism           | Replaces the syntax highlighter.                                                            |
+| `labels`     | `Partial<PlayerLabels>`                    | English         | Localises the chrome (tooltips, aria, dialog title).                                        |
+| `debug`      | `boolean`                                  | `false`         | Timeline debug overlay.                                                                     |
+| `fallback`   | `ReactNode`                                | —               | Rendered on the server and until the player has mounted, in place of the loading indicator. |
 
 The chrome — the control bar and the JSON dialog — is published in English.
 `labels` overrides its strings key by key, and any key left out keeps the
@@ -127,15 +127,31 @@ rebuilds the player, and:
 - the new player reopens at the **instant and play state** the previous one was
   at, so editing options while scrubbing is invisible;
 - only the **first** mount honours `initialT` and `autoPlay`;
+- only the **first** mount waits for a paint (see below); a remount is
+  immediate, so a live-edited spec never blinks;
 - `spec` is keyed **structurally**, not by identity, so an inline
   `spec={{ … }}` object rebuilt on every render does not remount anything.
 
-## Server-side rendering
+## The placeholder, and the loading indicator
 
-The renderer needs a DOM, so the server emits only `fallback` inside a correctly
-sized box. There is no hydration mismatch — there is nothing to match — but the
-static HTML holds only that placeholder, so use it for a poster, a caption or a
-skeleton.
+Before the player exists, the component renders a correctly sized box — that is
+all the server ever emits, and there is no hydration mismatch because there is
+nothing to match.
+
+The box is not blank: it carries a **loading indicator**, revealed only if the
+wait lasts long enough to be worth naming (the reveal is delayed in CSS, so a
+fast mount flashes nothing). Its text is the `loading` key of `labels`, and
+passing `fallback` replaces it with a poster, a caption or a skeleton of your
+own.
+
+The **first** mount waits two frames before building the player, so that box is
+genuinely painted first. Without that wait it would be committed and replaced
+inside a single task — never shown — and compiling and measuring a heavy spec
+would freeze the page on an empty rectangle. While the main thread is busy the
+indicator keeps fading in and spinning: both are compositor-driven properties.
+
+The placeholder wears `.rdfa-player` to reserve the box, so it is marked
+`data-placeholder` — that attribute is how you tell it from a mounted player.
 
 ## Extensibility
 

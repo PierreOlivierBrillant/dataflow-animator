@@ -1438,3 +1438,66 @@
   color: var(--rdfa-muted);
   font-size: 14px;
 }
+
+/* ---------- Loading indicator ----------
+   Filled into a placeholder a host shows while the real thing is still coming:
+   the React binding's pre-mount box, and the docs playground's editor panel.
+
+   The "only when it takes a while" part is the ANIMATION DELAY, and it is CSS
+   rather than a timer on purpose. A host that raced a `setTimeout` against its
+   own mount would have to start it, clear it on unmount, and hold the extra
+   state — and would still re-render once just to reveal a spinner. Here the
+   element is in the markup from the first paint, invisible (`both` keeps the
+   from-frame before the delay), and reveals itself only if it is still on
+   screen 250ms later. A mount that beats the delay never flashes anything.
+
+   Every custom property is read with a fallback: this block is also used
+   OUTSIDE `.rdfa-player`, where the token layer is not in scope. The text
+   falls back to `currentcolor` — i.e. to whatever the host is already using —
+   rather than to a hard-coded grey, because a host cannot override it: this
+   stylesheet is unlayered and a utility class (Tailwind's, in the docs site)
+   is not, so a `color:` here would beat anything the host put on the element. */
+.rdfa-loading {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--rdfa-muted, currentcolor);
+  font-family: var(--rdfa-font, ui-sans-serif, system-ui, sans-serif);
+  font-size: 14px;
+  animation: rdfa-loading-in 220ms ease-out 250ms both;
+}
+
+@keyframes rdfa-loading-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* A bare arc on a transparent track, the same idiom as `.rdfa-spinner` above:
+   one colour to resolve, so it needs no `color-mix` — which the docs build's
+   Lightning CSS would have to emit an opaque fallback for, turning the quiet
+   track into a solid ring. */
+.rdfa-loading-ring {
+  flex: none;
+  box-sizing: border-box;
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top-color: var(--rdfa-accent, #2563eb);
+  border-radius: 50%;
+  animation: rdfa-spin-corner 0.8s linear infinite;
+}
+
+/* A ring that cannot rotate reads as a broken glyph, so it pulses instead —
+   the indicator still says "working", with no motion. The reveal above stays:
+   it is an opacity fade, and its delay is the whole point. */
+@media (prefers-reduced-motion: reduce) {
+  .rdfa-loading-ring {
+    animation: rdfa-pulse 1.6s ease-in-out infinite;
+  }
+}

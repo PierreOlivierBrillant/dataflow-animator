@@ -351,8 +351,12 @@ function PlaygroundContent() {
             </button>
           </div>
 
-          {/* Editor area */}
-          <div className="relative flex-1 overflow-hidden">
+          {/* Editor area. The text color is set HERE rather than on the
+              loading indicator below: the core's stylesheet is unlayered and
+              Tailwind's utilities are in a layer, so a `text-*` class on the
+              indicator itself would lose to `.rdfa-loading`'s own `color`. It
+              inherits instead. */}
+          <div className="relative flex-1 overflow-hidden text-slate-500 dark:text-white/30">
             <Editor
               height="100%"
               language="json"
@@ -413,8 +417,14 @@ function PlaygroundContent() {
                 overviewRulerBorder: false,
               }}
               loading={
-                <div className="flex items-center justify-center w-full h-full text-slate-500 dark:text-white/30 text-sm font-sans">
-                  {t.playground.loadingEditor}
+                /* The same indicator as the player's pre-mount placeholder,
+                   from the core's stylesheet — one rule, not two lookalikes
+                   to keep in sync. Monaco arrives as a lazily fetched chunk,
+                   so this is the same kind of wait, with the same "reveal
+                   only if it lasts" rule baked into the class. */
+                <div className="rdfa-loading h-full" role="status">
+                  <span className="rdfa-loading-ring" aria-hidden="true" />
+                  <span>{t.playground.loadingEditor}</span>
                 </div>
               }
             />

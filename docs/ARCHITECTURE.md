@@ -58,8 +58,12 @@ See also [SPEC.md](./SPEC.md) (functional specification).
 
 6. **Browser rendering, no server markup**: the player MOUNTS the
    core's DOM renderer in a client effect, so nothing is emitted server-side
-   beyond a sized placeholder (and `fallback`). No DOM is touched at module
-   scope, so importing the package on a server is safe.
+   beyond a sized placeholder — carrying `fallback`, or a loading indicator
+   whose reveal is delayed in CSS so a fast mount flashes nothing. In React the
+   FIRST mount waits two frames so that placeholder is actually painted before
+   the spec is compiled; a remount does not, since the previous player is still
+   on screen. No DOM is touched at module scope, so importing the package on a
+   server is safe.
 7. **Extensible registries** (node icons, sub-icons, highlighter).
 
 ## Rendering pipeline
@@ -255,8 +259,10 @@ ls packages/react/dist   # index.js, index.d.ts, index.js.map — no style.css
 
 Do NOT use an `rdfa-` class name as the canary **for the React bundle**:
 `DataFlowPlayer.tsx` renders its own `rdfa-player` / `rdfa-stage rdfa-fallback`
-placeholder before mount, so those strings legitimately appear there and prove
-nothing.
+/ `rdfa-loading` placeholder before mount, so those strings legitimately appear
+there and prove nothing. (`.rdfa-stage` alone still marks a MOUNTED stage: the
+loading placeholder deliberately does not wear it, so anything waiting on a
+stage cannot latch onto the placeholder.)
 
 For the **element** bundle the probe is stronger, because that package renders no
 markup of its own — so `rdfa-` IS a valid canary, and the import list is a single

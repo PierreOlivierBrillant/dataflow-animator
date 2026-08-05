@@ -287,12 +287,18 @@ diagramme apparaît à l'hydratation. Aucune divergence d'hydratation possible �
 il n'y a rien à faire correspondre — et importer l'un de ces paquets côté
 serveur reste sûr : rien ne touche au DOM au niveau module.
 
-Ce que cela coûte : une page prérendue affiche une boîte vide à l'emplacement du
-diagramme. En React, utilisez `fallback` pour mettre quelque chose d'utile dans
-le HTML statique — une image d'aperçu, une légende, un squelette :
+Ce que cela coûte : une page prérendue affiche un emplacement à la place du
+diagramme. En React, cet emplacement n'est pas vide — il porte un **indicateur
+de chargement**, révélé seulement si l'attente dure assez longtemps pour mériter
+d'être signalée (la révélation est temporisée en CSS : une hydratation rapide ne
+fait rien clignoter). Son texte est la clé `loading` de
+[`labels`](./reference/components.mdx#labels).
+
+Passez `fallback` pour y mettre le vôtre à la place — une image d'aperçu, une
+légende, un squelette. Il remplace entièrement l'indicateur :
 
 ```tsx
-<DataFlowPlayer spec={spec} fallback={<div>Chargement de l'animation…</div>} />
+<DataFlowPlayer spec={spec} fallback={<img src="/diagram.png" alt="…" />} />
 ```
 
 `NodeView` se comporte de la même façon. `<dataflow-player>` et `<dfa-player>`

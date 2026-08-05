@@ -47,7 +47,12 @@ and renders nothing per frame; the engine is a dependency, not a copy, so the
 bundle stays a few kilobytes. `NodeView` renders a single node's visual outside
 any stage. Every option is read at mount: changing one remounts the player,
 which reopens at the current instant and play state (`spec` and `labels` are
-compared structurally, so inline objects cost nothing).
+compared structurally, so inline objects cost nothing). The first mount waits
+two frames so its placeholder is really painted, and that placeholder carries a
+loading indicator revealed by a CSS delay — nothing flashes on a fast mount, and
+a slow one (compiling and measuring a heavy spec) says so instead of freezing on
+an empty box. `fallback` replaces the indicator, `labels.loading` names it, and
+a remount never waits, so a live-edited spec does not blink.
 
 ### `@dataflow-animator/element`
 

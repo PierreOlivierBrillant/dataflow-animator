@@ -33,26 +33,26 @@ import '@dataflow-animator/core/styles.css';
 The component that compiles a `spec` and displays it in a media player.
 Only the `spec` prop is required.
 
-| Prop         | Type                                       | Default         | Role                                                      |
-| ------------ | ------------------------------------------ | --------------- | --------------------------------------------------------- |
-| `spec`       | `DataFlowSpec`                             | — (required)    | The specification to animate.                             |
-| `height`     | `number \| string`                         | `420`           | Scene height (e.g. `420`, `'60vh'`).                      |
-| `controls`   | `boolean`                                  | `true`          | Shows the playback bar and step navigation.               |
-| `exportable` | `boolean`                                  | `false`         | Adds a button that opens the JSON spec (copy / download). |
-| `autoPlay`   | `boolean`                                  | `false`         | Starts playback automatically.                            |
-| `loop`       | `boolean`                                  | `false`         | Loops playback at the end.                                |
-| `speed`      | `number`                                   | `1`             | Playback speed (`1` = normal).                            |
-| `theme`      | `PlayerTheme`                              | `'default'`     | Visual palette ([see below](#themes)).                    |
-| `mode`       | `'light' \| 'dark' \| 'auto'`              | `'auto'`        | Which variant of `theme` to show.                         |
-| `density`    | `'compact' \| 'comfortable' \| 'spacious'` | `'comfortable'` | Visual density (element size / spacing).                  |
-| `width`      | `number \| string`                         | container       | Stage width. Read at mount, before the first measurement. |
-| `initialT`   | `number`                                   | `0`             | Instant the player opens at, in ms. Read once, at mount.  |
-| `debug`      | `boolean`                                  | `false`         | Internal timeline inspection overlay.                     |
-| `highlight`  | `Highlighter`                              | Prism           | Custom syntax highlighting (see below).                   |
-| `fallback`   | `ReactNode`                                | —               | Rendered on the server and until the player mounts.       |
-| `className`  | `string`                                   | —               | Additional CSS class on the root container.               |
-| `style`      | `CSSProperties`                            | —               | Inline styles on the root container.                      |
-| `labels`     | `Partial<PlayerLabels>`                    | English         | Localises the player chrome ([see below](#labels)).       |
+| Prop         | Type                                       | Default         | Role                                                                                   |
+| ------------ | ------------------------------------------ | --------------- | -------------------------------------------------------------------------------------- |
+| `spec`       | `DataFlowSpec`                             | — (required)    | The specification to animate.                                                          |
+| `height`     | `number \| string`                         | `420`           | Scene height (e.g. `420`, `'60vh'`).                                                   |
+| `controls`   | `boolean`                                  | `true`          | Shows the playback bar and step navigation.                                            |
+| `exportable` | `boolean`                                  | `false`         | Adds a button that opens the JSON spec (copy / download).                              |
+| `autoPlay`   | `boolean`                                  | `false`         | Starts playback automatically.                                                         |
+| `loop`       | `boolean`                                  | `false`         | Loops playback at the end.                                                             |
+| `speed`      | `number`                                   | `1`             | Playback speed (`1` = normal).                                                         |
+| `theme`      | `PlayerTheme`                              | `'default'`     | Visual palette ([see below](#themes)).                                                 |
+| `mode`       | `'light' \| 'dark' \| 'auto'`              | `'auto'`        | Which variant of `theme` to show.                                                      |
+| `density`    | `'compact' \| 'comfortable' \| 'spacious'` | `'comfortable'` | Visual density (element size / spacing).                                               |
+| `width`      | `number \| string`                         | container       | Stage width. Read at mount, before the first measurement.                              |
+| `initialT`   | `number`                                   | `0`             | Instant the player opens at, in ms. Read once, at mount.                               |
+| `debug`      | `boolean`                                  | `false`         | Internal timeline inspection overlay.                                                  |
+| `highlight`  | `Highlighter`                              | Prism           | Custom syntax highlighting (see below).                                                |
+| `fallback`   | `ReactNode`                                | —               | Rendered on the server and until the player mounts, in place of the loading indicator. |
+| `className`  | `string`                                   | —               | Additional CSS class on the root container.                                            |
+| `style`      | `CSSProperties`                            | —               | Inline styles on the root container.                                                   |
+| `labels`     | `Partial<PlayerLabels>`                    | English         | Localises the player chrome ([see below](#labels)).                                    |
 
 :::info Changing the spec remounts the player
 
@@ -68,6 +68,12 @@ longer the difference between smooth and stuttering.
 Only the **first** mount honours `initialT` and `autoPlay`: every remount after
 that reopens at the current instant and play state instead, which is exactly
 what makes editing options mid-scrub invisible.
+
+The first mount is also the only one that **waits for a paint** (two frames), so
+the placeholder — and its loading indicator — is really on screen before the
+spec is compiled and measured. A remount happens immediately: the previous
+player is still there, and trading it for two frames of empty box would be a
+blink.
 
 ```tsx
 // fine — an equal spec does not remount anything
@@ -239,7 +245,14 @@ keeps its English default:
 The full key list is the exported `PlayerLabels` type: `restart`, `play`,
 `pause`, `prevStep`, `nextStep`, `progressBar`, `fullscreen`,
 `exitFullscreen`, `jsonSpec`, `download`, `copy`, `copied`, `copyToClipboard`,
-`close`, `closeDialog`.
+`close`, `closeDialog`, `loading`.
+
+`loading` is the odd one out: it is not part of the chrome but of the
+**placeholder** the player shows before it mounts, and which reveals a loading
+indicator when the wait lasts long enough to be worth naming — see
+[SSR and hydration](../installation.mdx#ssr-and-hydration). It lives here for
+the same reason as the others: so the default stays in the core rather than in
+each binding.
 
 These strings live in attributes read by tooltips and assistive technology —
 none of them is drawn on the stage. This site passes `labels` on every player

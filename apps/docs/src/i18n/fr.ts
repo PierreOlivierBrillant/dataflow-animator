@@ -305,7 +305,7 @@ export const fr = {
     themePaper: 'Papier quadrillé',
     themeNeon: 'Néon',
     copy: 'Copier',
-    loadingEditor: "Chargement de l'éditeur...",
+    loadingEditor: "Chargement de l'éditeur…",
     invalidJson: 'JSON invalide :',
     emptyState: "Entrez une spec JSON valide pour voir l'animation.",
     // The playground's schema errors. `validateSpec` holds the English
@@ -351,6 +351,7 @@ export const fr = {
     copyToClipboard: 'Copier dans le presse-papier',
     close: 'Fermer',
     closeDialog: 'Fermer la fenêtre',
+    loading: 'Chargement…',
   } satisfies PlayerLabels,
   apiRef: {
     property: 'Propriété',

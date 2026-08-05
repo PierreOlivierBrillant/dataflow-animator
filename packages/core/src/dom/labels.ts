@@ -43,6 +43,16 @@ export interface PlayerLabels {
   close: string;
   /** The dialog backdrop's accessible name. */
   closeDialog: string;
+  /**
+   * The loading indicator a host shows while the player is still mounting —
+   * the React binding's pre-mount placeholder today.
+   *
+   * It belongs here rather than in the binding for the same reason every other
+   * string does: a default written in a wrapper is a default that drifts from
+   * the core's, and the indicator's markup and stylesheet already ship from
+   * here.
+   */
+  loading: string;
 }
 
 /** The published defaults. English, because the package is. */
@@ -62,6 +72,7 @@ export const DEFAULT_PLAYER_LABELS: PlayerLabels = {
   copyToClipboard: 'Copy to clipboard',
   close: 'Close',
   closeDialog: 'Close the dialog',
+  loading: 'Loading…',
 };
 
 /** Fills a caller's partial overrides with the English defaults. */

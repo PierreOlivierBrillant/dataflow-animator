@@ -288,7 +288,7 @@ export const en: Messages = {
     themePaper: 'Graph paper',
     themeNeon: 'Neon',
     copy: 'Copy',
-    loadingEditor: 'Loading editor...',
+    loadingEditor: 'Loading editor…',
     invalidJson: 'Invalid JSON:',
     emptyState: 'Enter a valid JSON spec to see the animation.',
     // Identical to `validateSpec`'s own English defaults — passed anyway, so
@@ -327,6 +327,7 @@ export const en: Messages = {
     copyToClipboard: 'Copy to clipboard',
     close: 'Close',
     closeDialog: 'Close the dialog',
+    loading: 'Loading…',
   },
   apiRef: {
     property: 'Property',

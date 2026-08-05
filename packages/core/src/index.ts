@@ -28,6 +28,11 @@ export type { PlayerOptions, PlayerHandle } from './dom/player';
 // English defaults live in the core and are resolved there, so a wrapper passes
 // this through untouched instead of re-declaring defaults of its own.
 export type { PlayerLabels } from './dom/labels';
+// The English defaults as a value, for a host that renders chrome of its own
+// BEFORE `mountPlayer` runs — the React binding's pre-mount placeholder reads
+// `loading` from here. Exported so that host can fall back to the core's string
+// instead of writing a default that drifts from it.
+export { DEFAULT_PLAYER_LABELS } from './dom/labels';
 
 // The stage on its own, for a host that brings its own chrome and drives
 // `update(t)` itself. `mountPlayer` is built on top of it.

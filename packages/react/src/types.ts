@@ -106,6 +106,11 @@ export interface DataFlowPlayerProps {
    * DOM renderer in a client effect. There is no hydration mismatch — there is
    * nothing to match — but the static HTML holds only this placeholder, so use
    * it for a poster, a caption or a skeleton.
+   *
+   * Left out, the placeholder shows a loading indicator instead — and only if
+   * the wait lasts long enough to be worth naming (the reveal is delayed in
+   * CSS, so a fast mount flashes nothing). Its text is the `loading` key of
+   * `labels`.
    */
   fallback?: ReactNode;
 }

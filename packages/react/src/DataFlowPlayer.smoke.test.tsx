@@ -64,8 +64,14 @@ const spec: DataFlowSpec = {
   ],
 };
 
+/**
+ * The MOUNTED player, never the placeholder — which wears `.rdfa-player` too,
+ * to reserve the box. The mount waits for a paint, so the two coexist for a
+ * couple of frames and a bare `.rdfa-player` would resolve to the placeholder
+ * and let every assertion below run against markup React owns.
+ */
 const player = (container: HTMLElement) =>
-  container.querySelector('.rdfa-player');
+  container.querySelector('.rdfa-player:not([data-placeholder])');
 
 describe('DataFlowPlayer (real mount)', () => {
   it('renders nodes, controls and highlighted content without crashing', async () => {
@@ -267,6 +273,50 @@ describe('DataFlowPlayer — mount lifecycle', () => {
     expect(container.querySelector('.rdfa-time')?.textContent).toMatch(/^1s/);
   });
 
+  /**
+   * The regression this guards: mounting inside the effect replaces the
+   * placeholder within the same task, so the browser never paints it. The
+   * loading indicator is then unreachable for every client-side mount — a
+   * gallery thumbnail, a modal, a spec edit — however long the mount takes.
+   */
+  it('leaves the placeholder on screen for a paint before mounting', async () => {
+    const { container } = render(<DataFlowPlayer spec={spec} />);
+
+    // Straight after the commit, with no waiting: the placeholder alone.
+    expect(
+      container.querySelector('.rdfa-player[data-placeholder]')
+    ).not.toBeNull();
+    expect(player(container)).toBeNull();
+
+    await waitFor(() => expect(player(container)).not.toBeNull());
+    await waitFor(() =>
+      expect(container.querySelector('[data-placeholder]')).toBeNull()
+    );
+  });
+
+  /** The other half of the rule above: only the FIRST mount waits for a paint. */
+  it('remounts synchronously, so a live spec edit never blinks', async () => {
+    const { container, rerender } = render(<DataFlowPlayer spec={spec} />);
+    await waitFor(() => expect(player(container)).not.toBeNull());
+    const before = player(container);
+
+    rerender(
+      <DataFlowPlayer
+        spec={{
+          ...spec,
+          nodes: [...spec.nodes, { id: 'db', type: 'database', lane: 3 }],
+        }}
+      />
+    );
+
+    // Read with no waiting: the old player was on screen until the cleanup, so
+    // deferring here would trade a rendered player for two frames of empty box.
+    const after = player(container);
+    expect(after).not.toBeNull();
+    expect(after).not.toBe(before);
+    expect(container.querySelector('[data-placeholder]')).toBeNull();
+  });
+
   it('leaves nothing behind on unmount', async () => {
     const { container, unmount } = render(<DataFlowPlayer spec={spec} />);
     await waitFor(() => expect(player(container)).not.toBeNull());
@@ -286,6 +336,10 @@ describe('DataFlowPlayer — mount lifecycle', () => {
     await waitFor(() => expect(player(second.container)).not.toBeNull());
 
     // Exactly one: the first mount left nothing behind for this one to join.
-    expect(document.querySelectorAll('.rdfa-player')).toHaveLength(1);
+    // Placeholders excluded — this one's may not have been swept yet, and it is
+    // not what the test is about.
+    expect(
+      document.querySelectorAll('.rdfa-player:not([data-placeholder])')
+    ).toHaveLength(1);
   });
 });
