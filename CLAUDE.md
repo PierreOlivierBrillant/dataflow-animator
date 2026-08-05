@@ -191,24 +191,33 @@ Pitfalls already encountered in this repo — check them when you touch the affe
   else. npm nests them correctly, but after any dependency change run `npm ci` and rerun
   `test:coverage` on core, react AND element — the package a re-hoist breaks is a neighbour, not the
   one you edited.
+- **A `dist/index.js` being rewritten is briefly EMPTY**: rollup writes in place, so the file goes
+  291522 → 0 → 262144 → 291522 bytes inside one millisecond. Any reader that lands in that window
+  sees a module exporting nothing. The React binding re-exports most of its surface from the core, so
+  when the core is the torn file, webpack reports every one of those names as
+  `not found in '@dataflow-animator/react' (possible exports: DataFlowPlayer, NodeView)` — those two
+  being all the binding declares itself. That is why `scripts/dev.mjs` starts the site only after
+  both watchers report their first bundle; the fix is a barrier on the watcher's `END` event, never a
+  delay. If those warnings ever come back, look for something reading a `dist` concurrently with a
+  build — not for a missing export.
 
 ## Available scripts (quick reference)
 
 Monorepo root:
 
-| Script                  | Effect                                                                                                                                                                                       |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run dev`           | Builds the libs, then watches core + react + the Docusaurus site (3 processes). The element is absent on purpose: the site does not consume it, so there is nothing for a watcher to refresh |
-| `npm run build`         | Full build (all three packages + site)                                                                                                                                                       |
-| `npm run build:lib`     | Core build (isolated typecheck included), then react, then element                                                                                                                           |
-| `npm run build:docs`    | Site build only                                                                                                                                                                              |
-| `npm run lint`          | ESLint on all workspaces that expose it                                                                                                                                                      |
-| `npm run format:check`  | Checks Prettier formatting                                                                                                                                                                   |
-| `npm run format:write`  | Applies Prettier                                                                                                                                                                             |
-| `npm test`              | vitest tests of core, react and element (each has its own coverage threshold)                                                                                                                |
-| `npm run test:coverage` | Same, with coverage thresholds                                                                                                                                                               |
-| `npm run deadcode`      | knip — dead code detection                                                                                                                                                                   |
-| `npm run check:schema`  | Verifies core's generated JSON Schema is fresh                                                                                                                                               |
+| Script                  | Effect                                                                                                                                                                                                                                  |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run dev`           | Builds the libs, then `scripts/dev.mjs`: core + react watchers, and the site only ONCE THEY HAVE WRITTEN their first bundle (see the truncation-window vigilance point). The element is absent on purpose: the site does not consume it |
+| `npm run build`         | Full build (all three packages + site)                                                                                                                                                                                                  |
+| `npm run build:lib`     | Core build (isolated typecheck included), then react, then element                                                                                                                                                                      |
+| `npm run build:docs`    | Site build only                                                                                                                                                                                                                         |
+| `npm run lint`          | ESLint on all workspaces that expose it                                                                                                                                                                                                 |
+| `npm run format:check`  | Checks Prettier formatting                                                                                                                                                                                                              |
+| `npm run format:write`  | Applies Prettier                                                                                                                                                                                                                        |
+| `npm test`              | vitest tests of core, react and element (each has its own coverage threshold)                                                                                                                                                           |
+| `npm run test:coverage` | Same, with coverage thresholds                                                                                                                                                                                                          |
+| `npm run deadcode`      | knip — dead code detection                                                                                                                                                                                                              |
+| `npm run check:schema`  | Verifies core's generated JSON Schema is fresh                                                                                                                                                                                          |
 
 Package (`packages/core/` — published as `@dataflow-animator/core`):
 

@@ -13,7 +13,7 @@
     "build": "npm run build:lib && npm run build:docs",
     "build:lib": "npm run build -w @dataflow-animator/core && npm run build -w @dataflow-animator/react && npm run build -w @dataflow-animator/element && npm run build -w @dataflow-animator/angular",
     "build:docs": "npm run build -w @dataflow-animator/docs",
-    "dev": "npm run build:lib && concurrently \"npm run dev -w @dataflow-animator/core\" \"npm run dev -w @dataflow-animator/react\" \"npm run dev -w @dataflow-animator/docs\"",
+    "dev": "npm run build:lib && node scripts/dev.mjs",
     "lint": "npm run lint --workspaces --if-present",
     "test": "npm run test -w @dataflow-animator/core -w @dataflow-animator/react -w @dataflow-animator/element -w @dataflow-animator/angular -w @dataflow-animator/docs",
     "test:coverage": "npm run test:coverage -w @dataflow-animator/core -w @dataflow-animator/react -w @dataflow-animator/element -w @dataflow-animator/angular",
@@ -24,8 +24,8 @@
     "check:subicons": "npm run check:subicons -w @dataflow-animator/core"
   },
   "devDependencies": {
-    "concurrently": "^10.0.3",
     "knip": "^6.16.1",
-    "prettier": "^3.8.4"
+    "prettier": "^3.8.4",
+    "vite": "^8.0.12"
   }
 }
