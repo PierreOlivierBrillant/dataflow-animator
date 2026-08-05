@@ -519,7 +519,7 @@ export const demos: Demo[] = [
     category: 'engine',
     tags: {
       fr: ['disposition', 'circulaire', 'orchestrateur', 'layout', 'fan-out'],
-      en: ['layout', 'circular', 'orchestrator', 'layout', 'fan-out'],
+      en: ['layout', 'circular', 'orchestrator', 'radial', 'fan-out'],
     },
     spec: circular,
   },
