@@ -152,6 +152,8 @@ indicator keeps fading in and spinning: both are compositor-driven properties.
 
 The placeholder wears `.rdfa-player` to reserve the box, so it is marked
 `data-placeholder` — that attribute is how you tell it from a mounted player.
+It leaves within the very frame the player arrives in: the two share a place in
+the flow, and a frame holding both would stack them and double the height.
 
 ## Extensibility
 

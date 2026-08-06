@@ -1,6 +1,7 @@
 /** @vitest-environment jsdom */
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -66,9 +67,9 @@ const spec: DataFlowSpec = {
 
 /**
  * The MOUNTED player, never the placeholder — which wears `.rdfa-player` too,
- * to reserve the box. The mount waits for a paint, so the two coexist for a
- * couple of frames and a bare `.rdfa-player` would resolve to the placeholder
- * and let every assertion below run against markup React owns.
+ * to reserve the box. The mount waits for a paint, so the placeholder is what a
+ * bare `.rdfa-player` resolves to for the first couple of frames, which would
+ * let every assertion below run against markup React owns.
  */
 const player = (container: HTMLElement) =>
   container.querySelector('.rdfa-player:not([data-placeholder])');
@@ -292,6 +293,46 @@ describe('DataFlowPlayer — mount lifecycle', () => {
     await waitFor(() =>
       expect(container.querySelector('[data-placeholder]')).toBeNull()
     );
+  });
+
+  /**
+   * The regression this guards: the placeholder is React's and the player is
+   * the core's, so the two halves of one swap have different clocks. A plain
+   * `setMounted` is committed in a task that runs after the frame the mount ran
+   * in has painted — and that frame holds BOTH boxes, stacked in the same flow,
+   * so the host doubles in height and everything around it jumps.
+   *
+   * The assertion is taken INSIDE the frame, right after the last `rAF`
+   * callback returned, because that is where the browser paints. Reading after
+   * `act` returns would prove nothing: act flushes the pending update itself,
+   * so the stacked state it is meant to catch is already gone.
+   */
+  it('swaps the placeholder for the player within a single frame', async () => {
+    const queue: FrameRequestCallback[] = [];
+    const raf = vi
+      .spyOn(globalThis, 'requestAnimationFrame')
+      .mockImplementation((cb) => queue.push(cb));
+    const caf = vi
+      .spyOn(globalThis, 'cancelAnimationFrame')
+      .mockImplementation(() => {});
+
+    const { container } = render(<DataFlowPlayer spec={spec} />);
+    let painted: { placeholder: boolean; player: boolean } | null = null;
+
+    // Two frames: the mount waits for the placeholder to be painted first.
+    for (let i = 0; i < 2; i++)
+      await act(async () => {
+        for (const cb of queue.splice(0)) cb(performance.now());
+        painted = {
+          placeholder: !!container.querySelector('[data-placeholder]'),
+          player: !!player(container),
+        };
+      });
+
+    expect(painted).toEqual({ placeholder: false, player: true });
+
+    raf.mockRestore();
+    caf.mockRestore();
   });
 
   /** The other half of the rule above: only the FIRST mount waits for a paint. */

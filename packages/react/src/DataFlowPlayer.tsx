@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
+import { flushSync } from 'react-dom';
 import type { DataFlowPlayerProps } from './types';
 // This package emits no stylesheet of its own: the CSS styles the CORE's
 // renderer, not anything React draws, so it ships once with the core and the
@@ -29,9 +30,10 @@ import { toStyleMap } from './utils/styleMap';
  *    loading indicator. There is no hydration mismatch because there is nothing
  *    to match.
  *  - **The first mount waits for a paint.** Two frames, so the placeholder is
- *    actually on screen before the spec is compiled and measured. A remount
- *    does not wait: the old player is still there, and swapping it for an empty
- *    box would be a blink.
+ *    actually on screen before the spec is compiled and measured. The swap back
+ *    is then committed synchronously, so no frame ever holds both boxes. A
+ *    remount does not wait at all: the old player is still there, and swapping
+ *    it for an empty box would be a blink.
  *  - **Every option is read once, at mount.** The core reads its options when it
  *    builds; changing any of them — `spec` included — remounts the player. The
  *    current instant and play state are carried across, so this is invisible
@@ -109,7 +111,7 @@ export function DataFlowPlayer({
     let player: PlayerHandle | undefined;
     let frame = 0;
 
-    const mount = (): void => {
+    const mount = (revealSync: boolean): void => {
       const resume = resumeRef.current;
       player = mountPlayer(host, specRef.current, {
         height,
@@ -129,7 +131,26 @@ export function DataFlowPlayer({
         initialT: resume?.t ?? initialT,
         autoPlay: resume?.playing ?? autoPlay,
       });
-      setMounted(true);
+
+      /**
+       * The swap has to be ATOMIC, and only `flushSync` makes it so.
+       *
+       * The placeholder is React's and the player is the core's, so the two
+       * halves of one visual swap have different clocks: `mountPlayer` inserted
+       * the real player synchronously, while a plain `setMounted` is committed
+       * in a task that runs AFTER this frame paints. That frame paints both
+       * boxes — in the same flow, one under the other — so the host doubles in
+       * height for a frame and everything around it jumps. In the docs gallery
+       * the modal is centred, so the whole dialog visibly leaps; a mount slow
+       * enough to reveal the loading indicator (250ms, see `.rdfa-loading`)
+       * shows it stacked against the player it was supposed to replace.
+       *
+       * Only the FIRST mount needs it. A remount already has `mounted` true, so
+       * this would be a no-op update — and `flushSync` from inside an effect,
+       * which is where a remount calls `mount`, is what React warns about.
+       */
+      if (revealSync) flushSync(() => setMounted(true));
+      else setMounted(true);
 
       if (debug && player.warnings.length)
         console.warn('[DataFlowAnimator]', ...player.warnings);
@@ -158,10 +179,10 @@ export function DataFlowPlayer({
      * for two frames of empty box. `resumeRef` is the flag: it is null exactly
      * until this component has mounted a player once.
      */
-    if (resumeRef.current !== null) mount();
+    if (resumeRef.current !== null) mount(false);
     else
       frame = requestAnimationFrame(() => {
-        frame = requestAnimationFrame(mount);
+        frame = requestAnimationFrame(() => mount(true));
       });
 
     return () => {
