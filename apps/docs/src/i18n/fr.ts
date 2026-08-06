@@ -118,6 +118,15 @@ export const fr = {
       Changelog: 'Notes de version',
     } as Record<string, string>,
   },
+  // Headings of the docs chrome (sidebar, table of contents). They are drawn by
+  // `::before` pseudo-elements in custom.css, because the Docusaurus components
+  // that own those boxes cannot be wrapped without ejecting them; `Root.tsx`
+  // publishes these strings as CSS custom properties so the dictionary stays the
+  // single translation surface.
+  docsChrome: {
+    sidebarTitle: 'Navigation',
+    tocTitle: 'Sur cette page',
+  },
   intro: {
     leadPost:
       ' compile une spécification JSON en animation déterministe et navigable de flux de données.',

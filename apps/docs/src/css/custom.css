@@ -625,9 +625,12 @@ select option {
   padding: 1rem 0.75rem 2rem;
 }
 
-/* Intitulé de section au-dessus de la navigation (« NAVIGATION »). */
+/* Section heading above the navigation. The label comes from the i18n
+   dictionary through `Root.tsx`: no user-visible text is hardcoded here. A
+   missing variable makes `content` invalid, so the pseudo-element is simply not
+   generated — never a heading in the wrong language. */
 .theme-doc-sidebar-menu::before {
-  content: 'Navigation';
+  content: var(--rdfa-docs-sidebar-title);
   display: block;
   padding: 0 0.65rem 0.4rem;
   margin-bottom: 0.35rem;
@@ -710,8 +713,9 @@ select option {
 }
 
 /* --- Table des matières (colonne droite) -------------------------------- */
+/* Same mechanism as the sidebar heading above: label from the dictionary. */
 .theme-doc-toc-desktop .table-of-contents::before {
-  content: 'Sur cette page';
+  content: var(--rdfa-docs-toc-title);
   display: block;
   padding: 0 0.75rem 0.55rem;
   font-size: 0.68rem;

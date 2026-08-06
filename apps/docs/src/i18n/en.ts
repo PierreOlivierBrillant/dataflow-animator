@@ -101,6 +101,10 @@ export const en: Messages = {
       Changelog: 'Changelog',
     },
   },
+  docsChrome: {
+    sidebarTitle: 'Navigation',
+    tocTitle: 'On this page',
+  },
   intro: {
     leadPost:
       ' compiles a JSON specification into a deterministic, navigable data flow animation.',

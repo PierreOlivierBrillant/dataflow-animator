@@ -141,6 +141,7 @@ Depending on the location, the mechanism differs:
 3. **Demo metadata** (`demos.ts`) → `Localized<T> = { fr: T; en?: T }` (FR fallback via `pickLocale`). `category` = stable KEY; displayed labels are translated in `gallery.categories`.
 4. **MDX docs** → English is the SOURCE in `docs/*.mdx`; French lives in `i18n/fr/docusaurus-plugin-content-docs/current/*.mdx`. Exception: `intro.mdx` renders `<IntroDoc>` which self-localizes (no i18n/fr copy).
 5. **API Reference** (`docsContent.tsx`, `apiExamples.ts`) → same rules: prose and `note:`/`text:` of examples go through the dictionary / a localized table, no hardcoded French.
+6. **CSS `content:` labels** (the docs sidebar and TOC headings in `custom.css`) → the stylesheet reads `var(--rdfa-docs-*-title)`, and the `rdfa-docs-chrome-labels` plugin in `docusaurus.config.ts` injects those custom properties per locale from the SAME dictionary. Never write a literal string in a `content:` — it would ship in one language on both sites. The indirection exists because those two boxes belong to Docusaurus components no wrapper can reach (a heading rendered around `@theme/TOC` lands outside its sticky container), and because Docusaurus only serializes Helmet's title/meta/link/script into the static HTML, so a `<style>` in `<Head>` would appear only after hydration.
 
 The current locale for content (specs, localized fields) is obtained with `useLocale()` (`src/i18n`).
 

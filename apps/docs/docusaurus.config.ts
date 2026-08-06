@@ -1,4 +1,5 @@
 import { themes as prismThemes } from 'prism-react-renderer';
+import { translations, type Locale } from './src/i18n/translations';
 
 const config = {
   title: 'DataFlow Animator',
@@ -44,6 +45,41 @@ const config = {
     ],
   ],
   plugins: [
+    // The docs sidebar and table-of-contents headings are drawn by `::before`
+    // pseudo-elements (custom.css), and those two boxes belong to Docusaurus
+    // components no WRAPPER can reach: a heading rendered around `@theme/TOC`
+    // lands outside its sticky container, so moving the labels into JSX would
+    // mean EJECTING theme internals and forking their CSS modules for two
+    // decorative words. Feeding the pseudo-elements from custom properties keeps
+    // `fr.ts`/`en.ts` the single translation surface instead — each locale is a
+    // separate static build, so the label is baked in, never picked at runtime.
+    // It is injected from here rather than from a React component because
+    // Docusaurus only serializes Helmet's title/meta/link/script into the static
+    // HTML: a `<style>` inside `<Head>` would appear only after hydration.
+    function docsChromeLabelsPlugin(context: {
+      i18n: { currentLocale: string };
+    }) {
+      const t =
+        translations[context.i18n.currentLocale as Locale] ?? translations.en;
+      return {
+        name: 'rdfa-docs-chrome-labels',
+        injectHtmlTags() {
+          return {
+            headTags: [
+              {
+                tagName: 'style',
+                // JSON.stringify emits the CSS string literal, quoting included.
+                innerHTML: `:root{--rdfa-docs-sidebar-title:${JSON.stringify(
+                  t.docsChrome.sidebarTitle
+                )};--rdfa-docs-toc-title:${JSON.stringify(
+                  t.docsChrome.tocTitle
+                )}}`,
+              },
+            ],
+          };
+        },
+      };
+    },
     function myTailwindPlugin() {
       return {
         name: 'docusaurus-tailwindcss',
