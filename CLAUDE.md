@@ -111,11 +111,25 @@ To cut a release:
    and run the per-commit sequence.
 3. Merge, then `git tag vX.Y.Z && git push origin vX.Y.Z`.
 
-The workflow needs an `NPM_TOKEN` secret (an npm **automation** token, so 2FA
-does not block it) and an `npm` GitHub environment — add a required reviewer on
-that environment if you want a human approval between the green gates and the
-irreversible publish. `publishConfig.access` is `public` in all four manifests;
-without it npm refuses a scoped package on a free account.
+The workflow needs an `NPM_TOKEN` secret and an `npm` GitHub environment — add a
+required reviewer on that environment if you want a human approval between the
+green gates and the irreversible publish. `publishConfig.access` is `public` in
+all four manifests; without it npm refuses a scoped package on a free account.
+
+**The token must be a granular access token with `Bypass 2FA` enabled.** Classic
+"automation" tokens no longer exist (npm removed them in November 2025), and a
+granular token without that setting makes the publish step fail with `EOTP`,
+after the gates have run — the account's 2FA applies to a token that does not
+opt out of it.
+
+That is a stopgap with a deadline: npm removes direct publishing from
+bypass-2FA tokens in **January 2027**. The replacement is **trusted publishing**
+(OIDC), which needs no token at all and generates provenance on its own. It
+cannot bootstrap this repository, though: npm requires a package to EXIST before
+its trusted publisher can be configured, so the first version of a new package
+has to go out on a token. Once all four are on the registry, configure a trusted
+publisher per package on npmjs.com, then drop `NODE_AUTH_TOKEN` and
+`--provenance` from the workflow.
 
 `packages/angular` publishes its **`dist/`**, not its source directory — that is
 where ng-packagr writes the Angular Package Format output. The other three
