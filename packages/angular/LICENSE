@@ -24,8 +24,8 @@ SOFTWARE.
 
 THIRD-PARTY ICON ATTRIBUTION
 
-The bundle embeds the SVG geometry of the technology badges (`subicon`),
-extracted from the icon packs redistributed by react-icons
+`@dataflow-animator/core` embeds the SVG geometry of the technology badges
+(`subicon`), extracted from the icon packs redistributed by react-icons
 (https://github.com/react-icons/react-icons, MIT wrapper). Each glyph remains
 under its upstream pack's license:
 

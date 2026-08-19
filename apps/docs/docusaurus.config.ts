@@ -56,14 +56,19 @@ const config = {
     // It is injected from here rather than from a React component because
     // Docusaurus only serializes Helmet's title/meta/link/script into the static
     // HTML: a `<style>` inside `<Head>` would appear only after hydration.
+    // The locale is read inside the hook rather than in this factory body: a
+    // plugin declared as a function is CALLED by anything that introspects this
+    // config (knip does, with no context), and an eager read there crashes the
+    // whole analysis. Docusaurus calls both, with a real context.
     function docsChromeLabelsPlugin(context: {
       i18n: { currentLocale: string };
     }) {
-      const t =
-        translations[context.i18n.currentLocale as Locale] ?? translations.en;
       return {
         name: 'rdfa-docs-chrome-labels',
         injectHtmlTags() {
+          const t =
+            translations[context.i18n.currentLocale as Locale] ??
+            translations.en;
           return {
             headTags: [
               {

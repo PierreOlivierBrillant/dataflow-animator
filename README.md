@@ -233,8 +233,9 @@ docs/
   SPEC.md, ARCHITECTURE.md   internal references
 ```
 
-To contribute or run locally: see [`CLAUDE.md`](./CLAUDE.md)
-(quality commands to run before each commit).
+To contribute or run locally: see [`CONTRIBUTING.md`](./CONTRIBUTING.md) — setup,
+the check sequence, the visual gates, and the rules that are not obvious from the
+code.
 
 ## License
 

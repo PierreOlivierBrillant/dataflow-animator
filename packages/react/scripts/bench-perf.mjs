@@ -3,10 +3,10 @@
  * (autoPlay + loop), over ~300 frames, on `circuit` (heavy: dense orthogonal
  * routing) and `clientServer` (average).
  *
- * Since step 2.6b removed the React renderer, this measures the vanilla renderer
+ * There is no React renderer left to measure, so this measures the vanilla one
  * (`--renderer vanilla`, the default) or the published `DataFlowPlayer`
- * (`--renderer wrapper`). The frozen `bench-baseline.json` keeps the step-2.1
- * React figure purely as a HISTORICAL reference; it is never regenerated.
+ * (`--renderer wrapper`). The frozen `bench-baseline.json` keeps the old React
+ * figure purely as a HISTORICAL reference; it is never regenerated.
  *
  * Frame timing comes from wall-clock gaps between successive
  * `requestAnimationFrame` callbacks (the real cadence a user experiences);

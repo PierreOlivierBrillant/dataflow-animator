@@ -185,4 +185,4 @@ The core mounts on its own, with no framework at all:
 
 ## Licence
 
-[MIT](../../LICENSE)
+[MIT](./LICENSE)

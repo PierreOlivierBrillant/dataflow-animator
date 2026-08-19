@@ -30,16 +30,16 @@ See also [SPEC.md](./SPEC.md) (functional specification).
    stylesheet live in `packages/core` — with **zero React dependency**, not even
    in `import type`.
 
-   Since phase 3 this is a **published package with its own build**, not a
+   This is a **published package with its own build**, not a
    private source-only workspace: it is the entry point for a consumer with no
    framework at all, and the common dependency every wrapper is built on. The
    React rule is what makes that possible — a `react` import here would leak into
    every downstream consumer regardless of framework.
 
-   Every binding **depends** on it: since step 3.2 the core is a runtime
-   dependency (`^1.0.0`) of `@dataflow-animator/react`, and since step 3.3 of
-   `@dataflow-animator/element` too, externalised from their bundles rather than
-   inlined into them. One engine and one stylesheet on disk, however many
+   Every binding **depends** on it: the core is a runtime dependency
+   (`^1.0.0`) of `@dataflow-animator/react`, `@dataflow-animator/element` and
+   `@dataflow-animator/angular` alike, externalised from their bundles rather
+   than inlined into them. One engine and one stylesheet on disk, however many
    bindings — see
    [Two ways to consume the core](#two-ways-to-consume-the-core).
 
@@ -130,8 +130,8 @@ ordinary first-order notification. React's version had this for free (a
 why the hazard only appeared once the renderer became imperative.
 
 The React renderer that preceded this design (`Stage.tsx`, `Controls.tsx`,
-`nodes/`, `dynamic/`, `hooks/`, `tex/`) was removed at step 2.6b, once the
-migration no longer needed it as the A/B gate's reference. The proof that the two
+`nodes/`, `dynamic/`, `hooks/`, `tex/`) was removed once the migration no
+longer needed it as the A/B gate's reference. The proof that the two
 renderers agreed to the pixel lives in the git history; the surviving gates check
 the vanilla renderer against itself and against a frozen reference grid (see
 [AI-VALIDATION.md](./AI-VALIDATION.md)).

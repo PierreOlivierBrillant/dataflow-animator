@@ -136,7 +136,8 @@ const BENCH_PANEL = { width: 640, height: 420 };
 // Which renderer the bench drives. `vanilla` is the core's `mountPlayer`;
 // `wrapper` is the published `DataFlowPlayer` — the same renderer plus whatever
 // the React wrapper costs per frame (expected: nothing, since the wrapper
-// renders nothing once mounted). The React renderer was removed at step 2.6b.
+// renders nothing once mounted). There is no third option: the React renderer
+// this repository once had is gone.
 const benchRenderer =
   params.get('renderer') === 'wrapper' ? 'wrapper' : 'vanilla';
 
@@ -360,10 +361,10 @@ function ABApp() {
     ready: true,
   };
 
-  // Both panels are INDEPENDENT mounts of the vanilla renderer. Since the React
-  // renderer was removed (step 2.6b), the self-test no longer proves "React ==
-  // vanilla" — that proof is in the git history. What survives is a calibration
-  // of the MEASUREMENT: two independent mounts of the same spec at the same `t`
+  // Both panels are INDEPENDENT mounts of the vanilla renderer. With the React
+  // renderer gone, the self-test no longer proves "React == vanilla" — that
+  // proof is in the git history. What survives is a calibration of the
+  // MEASUREMENT: two independent mounts of the same spec at the same `t`
   // must be pixel-identical, or DOM measurement itself is nondeterministic.
   // `chrome` mounts the whole player (stage + control bar) via
   // `mountPlayer`, which builds its own `.rdfa-player` → `bare`.

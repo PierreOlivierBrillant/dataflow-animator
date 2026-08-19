@@ -452,8 +452,8 @@ describe('mountStage — set_content and comments', () => {
     const { container } = mount(contentSpec, 500);
 
     const node = container.querySelector('[data-node-id="a"]');
-    // This is the whole point of step 2.4: a panel makes its node GROW, so it
-    // has to be inside the measured box rather than on an absolute layer.
+    // The whole reason panels are not overlays: a panel makes its node GROW, so
+    // it has to be inside the measured box rather than on an absolute layer.
     expect(node?.querySelector('.rdfa-content')).not.toBeNull();
     expect(container.querySelector('.rdfa-overlay .rdfa-content')).toBeNull();
     expect(node?.classList.contains('rdfa-node--content')).toBe(true);

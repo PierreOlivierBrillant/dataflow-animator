@@ -329,7 +329,7 @@ void bootstrapApplication(AppComponent);
 
     check((await page.locator('.rdfa-player').count()) === 1, 'exactly one .rdfa-player is rendered');
     check((await page.locator('.rdfa-controls').count()) === 1, 'the control bar is there (the unbound `controls` default survived)');
-    check((await page.locator('[aria-label="Spécification JSON"]').count()) === 1, '`exportable` reached the core as an option');
+    check((await page.locator('[aria-label="JSON specification"]').count()) === 1, '`exportable` reached the core as an option');
     check(await page.locator('.rdfa-player').evaluate((el) => el.dataset.theme === 'blueprint'), '`theme` reached the core as an option');
     // Without the core's stylesheet nothing has a size — which is exactly what the
     // README warns about, and what `angular.json`'s `styles` entry proves here.

@@ -5,11 +5,11 @@ import { h, pruneEmptyStyle, setStyle } from './el';
  * `set_content` panel markup — the port of `ContentPanel.tsx` and its inner
  * `CodeBlock`.
  *
- * FIDELITY NOTE — no rich text here. `ContentPanel` renders `content.value` as a
- * plain React child in every mode except `code` (which goes through the
- * highlighter), so `$…$` is NOT interpreted. `appendRichText` would silently
- * change that; a plain text node is the literal equivalent. The same trap was
- * documented for packets in step 2.3.
+ * NO RICH TEXT HERE, deliberately. `content.value` is rendered as a plain text
+ * node in every mode except `code` (which goes through the highlighter), so
+ * `$…$` is NOT interpreted. Calling `appendRichText` would silently change that
+ * for every existing spec whose content happens to contain a dollar sign — a
+ * price, a shell variable. `packetElement.ts` carries the same rule.
  *
  * WHY THIS IS NOT AN OVERLAY — unlike packets, arrows and comment bubbles, this
  * panel lives INSIDE `.rdfa-node` and makes the node GROW. It is therefore part

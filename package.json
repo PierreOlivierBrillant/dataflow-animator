@@ -1,5 +1,5 @@
 {
-  "name": "react-dataflow-animator-monorepo",
+  "name": "dataflow-animator-monorepo",
   "private": true,
   "version": "1.0.0",
   "description": "Monorepo of @dataflow-animator/core, its framework bindings (@dataflow-animator/react, @dataflow-animator/element, @dataflow-animator/angular) and their Docusaurus site.",

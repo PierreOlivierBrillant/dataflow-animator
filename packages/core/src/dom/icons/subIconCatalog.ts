@@ -8,10 +8,8 @@
  * react-icons ships its paths inlined inside React component bodies and exports
  * no data — and core may not import react.
  *
- * It mirrors `KNOWN` in
- * `packages/react/src/components/nodes/subIcons.tsx`;
- * `subIconParity.test.ts` fails if the two drift apart. Colours are chosen to
- * stay readable on both light and dark backgrounds.
+ * `npm run check:subicons` fails if the generated glyphs drift from this table.
+ * Colours are chosen to stay readable on both light and dark backgrounds.
  */
 export interface SubIconDef {
   /** react-icons export name, e.g. `SiReact`. */

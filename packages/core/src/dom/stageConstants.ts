@@ -1,17 +1,11 @@
 /**
- * Constants and small pure helpers the vanilla renderer shares with the React
- * `Stage`.
+ * Layout constants and small pure helpers shared across the renderer.
  *
- * Every value here is a DUPLICATE of one that currently lives inside
- * `packages/react/src/components/Stage.tsx` (or
- * `ArrowLine.tsx` / `useStageGeometry.ts`). They are copied rather than moved
- * because the React package's `src` is frozen for this phase; the duplication is
- * temporary and resorbed at step 2.6, when the React components are deleted and
- * these become the only copies. Each entry names its origin so the pair can be
- * checked by eye until then.
+ * They live in one module rather than next to their first user because several
+ * of them are read from both the geometry pass and the drawing pass, and a
+ * value the two disagree on is a class of bug nothing else catches.
  */
 
-/** Origin: `Stage.tsx` `lerp`. */
 export function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t;
 }
@@ -20,48 +14,37 @@ export function lerp(a: number, b: number, t: number): number {
  * Height (px) of the reference "design space". Visual scale is
  * `designScale × (actual_height / DESIGN_H)`: everything is thus strictly
  * proportional to the player size.
- *
- * Origin: `Stage.tsx` `DESIGN_H`.
  */
 export const DESIGN_H = 495;
 
 /**
  * Radius (design px) of the bridge a circuit wire arches over another net's
  * wire — see `wireHops`. Scaled like the stroke it decorates.
- *
- * Origin: `Stage.tsx` `HOP_RADIUS`.
  */
 export const HOP_RADIUS = 5;
 
-/** Minimum padding (px) between a contained element and its zone border.
- *  Origin: `Stage.tsx` `ZONE_PADDING`. */
+/** Minimum padding (px) between a contained element and its zone border. */
 export const ZONE_PADDING = 20;
 
 /** Extra pixels reserved at the top of a zone that has a label, so the label
- *  text never overlaps the highest node's background — regardless of z-index.
- *  Origin: `Stage.tsx` `ZONE_LABEL_EXTRA_TOP`. */
+ *  text never overlaps the highest node's background — regardless of z-index. */
 export const ZONE_LABEL_EXTRA_TOP = 20;
 
-/** Vertical space (px) between the bottom of a node's visual and its label.
- *  Origin: `Stage.tsx` `NODE_LABEL_GAP`. */
+/** Vertical space (px) between the bottom of a node's visual and its label. */
 export const NODE_LABEL_GAP = 6;
 
 /**
  * Overhang (px, before scale) of the tinted pictogram's pill beyond the glyph.
  *
- * This constant now exists in THREE places, which is one more than is
- * comfortable: the CSS rule that draws it
- * (`dataflow.css`, `.rdfa-node--tinted .rdfa-node-icon::before { inset: calc(-5px * var(--rdfa-scale)) }`),
- * `useStageGeometry.ts`'s `PASTILLE_INSET`, and here. The reason none of them can
- * read the others is that the pill is a PSEUDO-ELEMENT: it is out of flow, so
- * `getBoundingClientRect` cannot see it and the geometry has to be reconstructed
- * arithmetically. Step 2.6 deletes the hook and brings this back down to two
- * copies (CSS + here); until then, a change to any one of the three must be
- * mirrored in the other two.
+ * The value exists TWICE: here, and in the CSS rule that draws it
+ * (`dataflow.css`, `.rdfa-node--tinted .rdfa-node-icon::before { inset: calc(-5px * var(--rdfa-scale)) }`).
+ * Neither can read the other because the pill is a PSEUDO-ELEMENT: it is out of
+ * flow, so `getBoundingClientRect` cannot see it and the geometry has to be
+ * reconstructed arithmetically. A change to one must be mirrored in the other.
  */
 export const PASTILLE_INSET = 5;
 
-/** Half-width of the arrowhead triangle. Origin: `ArrowLine.tsx` `HEAD`. */
+/** Half-width of the arrowhead triangle. */
 export const ARROW_HEAD = 9;
 
 /**

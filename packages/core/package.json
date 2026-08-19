@@ -14,11 +14,15 @@
     "framework-agnostic"
   ],
   "author": "Pierre-Olivier Brillant",
-  "homepage": "https://github.com/PierreOlivierBrillant/react-dataflow-animator",
+  "homepage": "https://pierreolivierbrillant.github.io/dataflow-animator/",
+  "bugs": "https://github.com/PierreOlivierBrillant/dataflow-animator/issues",
   "repository": {
     "type": "git",
-    "url": "https://github.com/PierreOlivierBrillant/react-dataflow-animator.git",
+    "url": "git+https://github.com/PierreOlivierBrillant/dataflow-animator.git",
     "directory": "packages/core"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",

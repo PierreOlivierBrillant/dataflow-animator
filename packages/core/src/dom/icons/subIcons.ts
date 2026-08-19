@@ -4,14 +4,13 @@ import { SUB_ICON_GLYPHS } from './subIconData.generated';
 import { customSubIcon, registerSubIcon } from './registry';
 
 /**
- * Framework-free `subicon` tech badges — the port of
- * `packages/react/src/components/nodes/subIcons.tsx`.
+ * Framework-free `subicon` tech badges.
  *
- * The React version renders `<def.Icon color={…} title={name} />` from
- * react-icons. Core cannot: react-icons' `IconBase` imports React, and the
- * geometry is not exported as data. So the glyphs are lifted into
- * `subIconData.generated.ts` at build time, and this module reproduces what
- * `IconBase` would have emitted.
+ * The badges are react-icons glyphs, which core cannot render the usual way:
+ * react-icons' `IconBase` imports React, and the geometry is not exported as
+ * data. So the glyphs are lifted into `subIconData.generated.ts` at build time
+ * (`npm run generate:subicons`), and this module reproduces what `IconBase`
+ * would have emitted.
  */
 
 /**

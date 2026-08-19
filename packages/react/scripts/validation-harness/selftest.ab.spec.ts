@@ -7,8 +7,9 @@ import { appendAbResult } from './abResults';
 /**
  * Measurement-floor calibration for the vanilla renderer.
  *
- * Since step 2.6b there is no React panel to compare against — that proof is in
- * the git history. What this gate still does, and why it matters, is prove the
+ * There is no React panel to compare against any more — that renderer is gone
+ * and its proof is in the git history. What this gate does, and why it matters
+ * more than the comparison ever did, is prove the
  * MEASUREMENT itself has zero noise floor: if two independent mounts of the same
  * renderer disagreed by a pixel, no visual gate built on it could be trusted.
  * Two independent questions, both required to be exactly 0.00%:

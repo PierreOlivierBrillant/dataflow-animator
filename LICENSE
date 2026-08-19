@@ -19,3 +19,19 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+THIRD-PARTY ICON ATTRIBUTION
+
+`@dataflow-animator/core` embeds the SVG geometry of the technology badges
+(`subicon`), extracted from the icon packs redistributed by react-icons
+(https://github.com/react-icons/react-icons, MIT wrapper). Each glyph remains
+under its upstream pack's license:
+
+  Devicons                 MIT
+  Simple Icons             CC0-1.0
+  Font Awesome Free        CC-BY-4.0 (icons)
+  VS Code Codicons         CC-BY-4.0
+  Material Design icons    Apache-2.0
+  Tabler Icons             MIT

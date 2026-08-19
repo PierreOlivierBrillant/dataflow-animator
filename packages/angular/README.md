@@ -184,4 +184,4 @@ detection pass.
 
 ## License
 
-MIT
+[MIT](./LICENSE)

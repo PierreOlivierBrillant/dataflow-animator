@@ -1,13 +1,13 @@
 import { defineConfig } from '@playwright/test';
 
-// Dedicated config for the A/B pixel-diff tools (compare.ab.spec.ts,
-// selftest.ab.spec.ts — see docs/AI-VALIDATION.md). Deliberately separate
-// from playwright.config.ts (test:visual's goldens):
+// Dedicated config for the A/B pixel-diff gates (selftest.ab.spec.ts,
+// element.ab.spec.ts, mountUpdate.ab.spec.ts — see docs/AI-VALIDATION.md).
+// Deliberately separate from playwright.config.ts (test:visual's goldens):
 //
 //  - its own port, distinct from the interactive harness's default 5199, so
-//    running `npm run harness:compare` never collides with (or silently
-//    reuses) a developer's already-running `npm run harness` session — the
-//    documented port-5199-reuse trap;
+//    running a gate never collides with (or silently reuses) a developer's
+//    already-running `npm run harness` session — the documented
+//    port-5199-reuse trap;
 //  - `reuseExistingServer: false` unconditionally (not just in CI): this is a
 //    structural gate, not an interactive review workflow, so it must always
 //    boot against a known-fresh server instead of whatever happened to

@@ -15,13 +15,13 @@ import { ARROW_HEAD } from './stageConstants';
 import { appendRichTextSvg } from './richtext';
 
 /**
- * SVG arrow between two nodes — the port of `ArrowLine.tsx`.
+ * SVG arrow between two nodes.
  *
  * `progress` ∈ [0,1] animates the progressive drawing; a static connection
  * passes 1. Produces a `<g>` meant to live inside `<svg class="rdfa-arrow-svg">`.
  *
- * RETAINED MODE (step 2.5) — the module is split in two, and the split is the
- * pattern every element module follows:
+ * RETAINED MODE — the module is split in two, and the split is the pattern
+ * every element module follows:
  *
  *  - {@link createArrowElement} builds the parts that exist no matter what `t`
  *    is: the `<g>` and its `<path>`.

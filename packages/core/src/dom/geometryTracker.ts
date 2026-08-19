@@ -2,8 +2,7 @@ import type { GeometryMap, NodeGeom } from '../engine/geometry';
 import { PASTILLE_INSET } from './stageConstants';
 
 /**
- * Framework-free DOM measurement — the port of
- * `packages/react/src/hooks/useStageGeometry.ts`.
+ * Framework-free DOM measurement.
  *
  * Measures the actual position of the nodes (`getBoundingClientRect`) relative
  * to the stage, and can keep it up to date via a `ResizeObserver` (on the stage

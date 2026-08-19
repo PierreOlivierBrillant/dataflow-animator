@@ -5,10 +5,8 @@ import { NODE_ICON_SHAPES, type IconShape } from './nodeIconShapes';
 import { customNodeIcon, registerNodeIcon } from './registry';
 
 /**
- * Framework-free node pictograms — the port of
- * `packages/react/src/components/nodes/nodeIcons.tsx`.
- *
- * Inline SVG using `currentColor`, so the glyph follows the theme.
+ * Framework-free node pictograms: inline SVG using `currentColor`, so the glyph
+ * follows the theme.
  */
 
 /**

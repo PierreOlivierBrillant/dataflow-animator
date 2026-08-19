@@ -13,11 +13,15 @@
     "standalone-component"
   ],
   "author": "Pierre-Olivier Brillant",
-  "homepage": "https://github.com/PierreOlivierBrillant/react-dataflow-animator",
+  "homepage": "https://pierreolivierbrillant.github.io/dataflow-animator/",
+  "bugs": "https://github.com/PierreOlivierBrillant/dataflow-animator/issues",
   "repository": {
     "type": "git",
-    "url": "https://github.com/PierreOlivierBrillant/react-dataflow-animator.git",
+    "url": "git+https://github.com/PierreOlivierBrillant/dataflow-animator.git",
     "directory": "packages/angular"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "rm -rf dist && ng-packagr -p ng-package.json -c tsconfig.lib.json",

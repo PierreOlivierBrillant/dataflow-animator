@@ -11,9 +11,10 @@ import { RISK_DEMOS } from './riskDemos';
  *
  * What it does NOT prove — and this matters, because it replaces the old A/B
  * gate: it is no longer a comparison against the React renderer. That renderer
- * is gone (step 2.6b), and the proof that the two agreed to the pixel lives in
- * the git history (200/200 A/B cells at 0.0000%), not in these images. This gate
- * pins the vanilla renderer against its own past, nothing more.
+ * was deleted once the vanilla one had matched it, and the proof that the two
+ * agreed to the pixel lives in the git history (200/200 A/B cells at 0.0000%),
+ * not in these images. This gate pins the vanilla renderer against its own past,
+ * nothing more.
  *
  * FRAGILE by nature: the goldens depend on the machine's font rendering and the
  * Chrome version (`channel: 'chrome'`). Regenerate in the target environment:

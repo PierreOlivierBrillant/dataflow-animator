@@ -34,12 +34,12 @@ coverage/
 # Angular CLI build cache (packages/angular, written by `ng test`)
 .angular/
 
-# Playwright (régression visuelle du harnais) — on COMMITE les goldens
-# (*-snapshots/), pas les rapports ni les diffs de run.
+# Playwright (harness visual regression) — the goldens (*-snapshots/) ARE
+# committed; the run reports and diffs are not.
 test-results/
 playwright-report/
 blob-report/
 
-# A/B compare/self-test scratch results (compare.ab.spec.ts, selftest.ab.spec.ts):
-# written by tests, read + printed by globalTeardown, one run at a time.
+# A/B gate scratch results (*.ab.spec.ts): written by the tests, read and
+# printed by globalTeardown, one run at a time.
 **/scripts/validation-harness/.ab-results/

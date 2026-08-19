@@ -17,9 +17,12 @@ This package is a **binding** over
 renderer and the stylesheet. It adds no rendering of its own — its
 `connectedCallback` calls `mountPlayer(this, spec, options)`, and a pixel gate in
 this repository asserts the result is identical to that call, to 0.0000%, across
-60 configurations.
+70 configurations.
 
-Using React? Reach for [`@dataflow-animator/react`](../react/README.md) instead.
+Using React or Angular? Reach for
+[`@dataflow-animator/react`](../react/README.md) or
+[`@dataflow-animator/angular`](../angular/README.md) instead — a native binding
+gives you typed props and no `CUSTOM_ELEMENTS_SCHEMA`.
 
 ## Installation
 
@@ -311,4 +314,4 @@ content).
 
 ## Licence
 
-[MIT](../../LICENSE)
+[MIT](./LICENSE)

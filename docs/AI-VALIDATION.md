@@ -86,7 +86,7 @@ The contrast is most telling on a **short window** (little hold): the
 ## Tool 3 — the renderer's own gates
 
 The framework-agnostic DOM renderer (`@dataflow-animator/core/dom`) is now
-the only renderer; the React one it replaced was removed at step 2.6b. Three
+the only renderer; the React one it replaced has been removed. Three
 gates guard it, and it is worth being exact about **what each one proves**, because
 they replaced an A/B comparison against React whose job is finished — the proof
 that the two renderers agreed to the pixel is in the git history (200/200 A/B

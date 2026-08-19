@@ -1,0 +1,99 @@
+name: Release
+
+# Publishing is tag-driven, never branch-driven: a green `main` is not a
+# decision to ship. Pushing `v1.2.3` is.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  # Required by `npm publish --provenance`: the OIDC token is what lets npm
+  # attest the tarball was built by this workflow, from this commit.
+  id-token: write
+
+jobs:
+  # Everything the per-commit CI runs. Duplicated here on purpose rather than
+  # depended on: a tag can point at any commit, including one that never went
+  # through a pull request.
+  verify:
+    name: Full check suite
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: "npm"
+      - run: npm ci
+      - run: npm run check:schema
+      - run: npm run check:subicons
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run deadcode
+      - run: npm run test:coverage
+      - run: npm run test:integration -w @dataflow-animator/react
+      - run: npm run test -w @dataflow-animator/docs
+      - run: npm run build:lib
+
+  # THE pre-publish gates. They pack the tarballs and install them OUTSIDE the
+  # monorepo, so the source alias is gone and only the published `exports` map
+  # is left — the one thing no in-repo test can exercise. A broken `exports`, a
+  # re-inlined core or a `files` list missing the LICENSE is green everywhere
+  # else and red only here.
+  consumer-gates:
+    name: External consumer smoke tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: "npm"
+      - run: npm ci
+      # The Angular gate renders the built app headlessly. `playwright` is a
+      # devDependency of that workspace, so the browser install runs from there.
+      - run: npx playwright install --with-deps chromium
+        working-directory: packages/angular
+      - run: npm run smoke:consumer -w @dataflow-animator/element
+      - run: npm run smoke:consumer -w @dataflow-animator/angular
+
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    needs: [verify, consumer-gates]
+    environment: npm
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: "npm"
+          registry-url: "https://registry.npmjs.org"
+      - run: npm ci
+      - run: npm run build:lib
+
+      # The tag is the source of truth for the version; a tag that disagrees
+      # with the manifests would publish something nobody asked for.
+      - name: Check the tag matches the manifests
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          for pkg in core react element angular; do
+            VERSION=$(node -p "require('./packages/$pkg/package.json').version")
+            if [ "$VERSION" != "$TAG" ]; then
+              echo "::error::packages/$pkg is $VERSION, tag says $TAG"
+              exit 1
+            fi
+          done
+          echo "all four manifests are at $TAG"
+
+      # Core first, always: the three bindings declare a dependency on a
+      # version of it that has to exist by the time they are resolved.
+      - name: Publish
+        run: |
+          npm publish -w @dataflow-animator/core --provenance
+          npm publish -w @dataflow-animator/react --provenance
+          npm publish -w @dataflow-animator/element --provenance
+          npm publish ./packages/angular/dist --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -1,4 +1,4 @@
-# Functional Specification — React DataFlow Animator
+# Functional Specification — DataFlow Animator
 
 > Functional source of truth of the library. The complete **JSON Schema** (types,
 > enumerations, default values) lives in the code: [`packages/core/src/schema.ts`](../packages/core/src/schema.ts)
@@ -7,9 +7,14 @@
 
 ## 1. Overview
 
-The library exposes a React `<DataFlowPlayer spec={…} />` component that **compiles**
-a JSON specification into a **deterministic animation** of data flows
-(client/server/SQL...), encapsulated in a media player.
+The library **compiles** a JSON specification into a **deterministic animation** of
+data flows (client/server/SQL...), encapsulated in a media player. The compiler,
+the renderer and that player live in `@dataflow-animator/core` and mount with no
+framework at all (`mountPlayer(container, spec, options)`); the three published
+bindings — `<DataFlowPlayer>` (React), `<dataflow-player>` (custom element) and
+`<dfa-player>` (Angular) — are glue over that same call and render the same
+pixels. **This document specifies the engine and the player, not any one
+binding**; where it says "prop", read "option" outside React.
 
 Core principle: time `t` (ms) is the single source of truth. The engine is a
 **pure** function `evaluate(timeline, t) → visual state`; playback merely
@@ -21,9 +26,9 @@ scrubbing, step navigation, and SSR trivial and deterministic.
 > testability without DOM, light bundle, SSR-safe). The debugging overlay therefore
 > inspects this internal timeline.
 
-## 2. The player (DataFlowPlayer)
+## 2. The player
 
-Displayed according to the `controls` prop (default: `true`):
+Displayed according to the `controls` option (default: `true`):
 
 - **Playback bar**: clickable timeline to jump to any instant.
 - **Restart**: starts from the beginning and replays.
@@ -36,7 +41,7 @@ Displayed according to the `controls` prop (default: `true`):
 - **Time readout**: the current instant and total duration are shown rounded to
   whole seconds (no decimals).
 - **Fullscreen** (Fullscreen API).
-- **Debug** (`debug` prop): overlays inspecting the internal state of the timeline.
+- **Debug** (`debug` option): overlays inspecting the internal state of the timeline.
 
 ## 3. Spatial rendering engine (Layout Engine)
 
@@ -417,7 +422,7 @@ silently dropped.
 **Two renderers, one AST.** Prose reaches the screen through both HTML (node
 labels) and SVG (connection labels), and SVG has no `<sub>`. The SVG renderer
 therefore flattens the tree into sibling `<tspan>`s with an explicit cumulative
-`dy` — see the header comment of `tex/RichText.tsx` for why a naive recursion
+`dy` — see `dom/richtext.ts` (`appendRichTextSvg`) for why a naive recursion
 fails there.
 
 **Authoring trap (JS/TS specs)**: in a JavaScript string, `'\overline'` silently
@@ -430,7 +435,7 @@ files, likewise `"\\overline{A}"`.
 - **Textual** nodes `simple_node` / `complex_node`: text box (`body`, plus
   `header` for `complex_node`) instead of a pictogram, optional highlighting via
   `language` (applied to all areas). `complex_node` takes on the appearance of an
-  HTTP packet. Rendered by `NodePanel` (see `components/nodes/StaticNode.tsx`).
+  HTTP packet. Rendered by the panel branch of `dom/nodeElement.ts`.
 - **Geometric shapes** (`square` ... `star`): SVG shape (`preserveAspectRatio="none"`,
   `non-scaling-stroke`) with a short centered `body`. Security margin by shape +
   `max-width` + `overflow:hidden` guarantee the text does not overflow the path.
@@ -445,7 +450,7 @@ files, likewise `"\\overline{A}"`.
 clamp(0, (0.62 − l) × 1000, 1) 0 0)` (black/white according to luminance). `--rdfa-ink`
   is read **only outside code areas** (`:not(.rdfa-code)`): syntax highlighting
   takes precedence. A `background_color` on a pictogram adds a badge (`rdfa-node--tinted`).
-- `is_navigable` has been **removed from the spec**: navigability is a `controls` prop.
+- `is_navigable` has been **removed from the spec**: navigability is a `controls` option.
 - Decor arrows have migrated from `static_objects` to the `connections` root array.
 - `comment` uses `object` (and no longer `next_to`) to target its node.
 - `style`: SVG/CSS terminology `solid`/`dotted`/`dashed` (`full` tolerated as alias).
@@ -466,10 +471,10 @@ clamp(0, (0.62 − l) × 1000, 1) 0 0)` (black/white according to luminance). `-
   than the types to preserve auto-completion and validation.
 - A missing reference (missing required field, unknown `wait_for` id...) produces a
   **non-blocking warning** (visible with `debug`) rather than a crash.
-- Syntax highlighting: **Prism** (dependency), replaceable via the `highlight` prop.
+- Syntax highlighting: **Prism** (dependency), replaceable via the `highlight` option.
 - **Scoped** styles under `.rdfa-` + CSS variables. Two independent axes: the
-  `theme` prop picks a **palette** (`default`, `dots`, `blueprint`, `pcb`,
-  `chalk`, `terminal`, `paper`, `neon`), the `mode` prop picks its **light or
+  `theme` option picks a **palette** (`default`, `dots`, `blueprint`, `pcb`,
+  `chalk`, `terminal`, `paper`, `neon`), the `mode` option picks its **light or
   dark variant**. Each palette declares both variants once, via `light-dark()`.
 - **`auto` mode (default)**: the mode is resolved into `color-scheme` in CSS
   only (SSR-safe, no JS) — it follows a `[data-theme]` ancestor (Docusaurus

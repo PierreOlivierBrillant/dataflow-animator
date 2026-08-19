@@ -14,11 +14,15 @@
     "visualization"
   ],
   "author": "Pierre-Olivier Brillant",
-  "homepage": "https://github.com/PierreOlivierBrillant/react-dataflow-animator",
+  "homepage": "https://pierreolivierbrillant.github.io/dataflow-animator/",
+  "bugs": "https://github.com/PierreOlivierBrillant/dataflow-animator/issues",
   "repository": {
     "type": "git",
-    "url": "https://github.com/PierreOlivierBrillant/react-dataflow-animator.git",
+    "url": "git+https://github.com/PierreOlivierBrillant/dataflow-animator.git",
     "directory": "packages/react"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -50,7 +54,6 @@
     "harness:selftest": "playwright test --config playwright.compare.config.ts selftest.ab.spec.ts",
     "harness:mountupdate": "playwright test --config playwright.compare.config.ts mountUpdate.ab.spec.ts",
     "harness:element": "playwright test --config playwright.compare.config.ts element.ab.spec.ts",
-    "harness:compare": "playwright test --config playwright.compare.config.ts compare.ab.spec.ts",
     "harness:bench": "node scripts/bench-perf.mjs"
   },
   "peerDependencies": {

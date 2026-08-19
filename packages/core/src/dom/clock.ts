@@ -1,15 +1,12 @@
 import { clamp } from '../engine/timeline';
 
 /**
- * Framework-free playback clock — the port of
- * `packages/react/src/hooks/useClock.ts`.
+ * Framework-free playback clock.
  *
  * Time `t` (ms) is the ONLY source of truth of the animation: everything else
- * (`evaluate`) flows from it. `seek` sets `t`, playback only advances it.
- *
- * The React hook keeps `t` twice — as state (for rendering) and in a ref (for
- * the rAF loop, to avoid a stale closure). Here a single mutable value plus an
- * explicit subscription serves both roles.
+ * (`evaluate`) flows from it. `seek` sets `t`, playback only advances it. A
+ * single mutable value plus an explicit subscription is the whole state — no
+ * framework, so no second copy of `t` to keep in sync.
  *
  * SSR-safe: `requestAnimationFrame` is only reached when the loop actually
  * starts, never at module evaluation.

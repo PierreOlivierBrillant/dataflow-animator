@@ -7,12 +7,12 @@ import {
 import { h, s, type Child } from './el';
 
 /**
- * DOM materialisation of the `$…$` subset — the port of
- * `packages/react/src/tex/RichText.tsx`.
+ * DOM materialisation of the `$…$` subset parsed by `tex/parse`.
  *
- * The two renderers exist as a pair because a spec's prose reaches the screen
- * through both: node labels are HTML, connection labels are an SVG `<text>`,
- * where `<sub>` does not exist.
+ * Two entry points, because a spec's prose reaches the screen two ways: node
+ * labels are HTML (`appendRichText`, which has `<sub>`/`<sup>`), connection
+ * labels are an SVG `<text>` (`appendRichTextSvg`, which does not — hence the
+ * `<tspan>` flattening below).
  *
  * Both fast-path a string with no `$`, so the overwhelming majority of labels
  * cost one `indexOf` and produce a single text node.

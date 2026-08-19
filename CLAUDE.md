@@ -4,7 +4,7 @@ Instructions for Claude (and any other agent) working on this repository.
 
 ## Project overview
 
-`@dataflow-animator/react` is a React component that compiles a JSON specification into a deterministic, scrubbable animation of data flows.
+`@dataflow-animator/core` compiles a JSON specification into a deterministic, scrubbable animation of data flows, and mounts it with no framework at all. Three published bindings wrap that same call: `@dataflow-animator/react` (`<DataFlowPlayer>`), `@dataflow-animator/element` (`<dataflow-player>`) and `@dataflow-animator/angular` (`<dfa-player>`).
 The engine is a pure function `evaluate(timeline, t)`: no DOM, no real clock, backwards scrubbing comes for free.
 
 The repository is an **npm workspaces monorepo**:
@@ -75,6 +75,51 @@ that `npm ci` would reject.
 - **`deadcode`** fails → either remove the dead code, or add it to `ignoreExports` in `knip.json` if it's an intentional public export, with a comment.
 - **`test:coverage`** fails on thresholds → add tests, do not lower thresholds without explicit user agreement.
 - **`build`** fails → fix before proposing the commit. A broken build is never mergeable.
+
+## Hard rules before every PUBLISH
+
+Everything above, plus the two gates that exercise the packages the way a
+STRANGER gets them — from a tarball, outside this monorepo, with the alias gone
+and only the published `exports` left:
+
+```bash
+npm run smoke:consumer -w @dataflow-animator/element   # packs core + element, mounts them in a throwaway project
+npm run smoke:consumer -w @dataflow-animator/angular   # packs core + angular, AOT-builds a real Angular CLI app
+npm run harness:selftest -w @dataflow-animator/react   # 144 checks, must be 0.00%
+npm run harness:element  -w @dataflow-animator/react   # 70 cells, must be 0.0000%
+npm run test:visual -w @dataflow-animator/react        # goldens
+```
+
+These are the ONLY checks that can catch a broken `exports` map, a re-inlined
+core, or a `files` list missing the LICENSE — every in-repo test resolves the
+core through the source alias and would stay green through all three. They are
+slow (the Angular one installs a whole CLI app), which is why they are not in
+the per-commit list; skipping them before a publish is not an option.
+
+**The publish itself is `.github/workflows/release.yml`, driven by a tag.** It
+reruns everything above (including both `smoke:consumer` gates), asserts the tag
+matches all four manifests, then publishes with `npm publish --provenance` —
+core first, because the three bindings declare a dependency on a version that
+has to exist. Never `npm publish` by hand from a working tree: the workflow is
+what makes the tarball attributable to a commit.
+
+To cut a release:
+
+1. `npm view @dataflow-animator/<pkg> version` — confirm what is already out.
+2. Bump the four `version` fields **together** (the bindings' `dependencies` on
+   `@dataflow-animator/core` too), date the `## x.y.z` heading in `CHANGELOG.md`,
+   and run the per-commit sequence.
+3. Merge, then `git tag vX.Y.Z && git push origin vX.Y.Z`.
+
+The workflow needs an `NPM_TOKEN` secret (an npm **automation** token, so 2FA
+does not block it) and an `npm` GitHub environment — add a required reviewer on
+that environment if you want a human approval between the green gates and the
+irreversible publish. `publishConfig.access` is `public` in all four manifests;
+without it npm refuses a scoped package on a free account.
+
+`packages/angular` publishes its **`dist/`**, not its source directory — that is
+where ng-packagr writes the Angular Package Format output. The other three
+publish the workspace itself.
 
 ## Code conventions
 
@@ -246,21 +291,21 @@ Package (`packages/core/` — published as `@dataflow-animator/core`):
 
 Package (`packages/react/` — published as `@dataflow-animator/react`):
 
-| Script                     | Effect                                                 |
-| -------------------------- | ------------------------------------------------------ |
-| `npm run build`            | Typecheck + vite build + .d.ts declarations            |
-| `npm run dev`              | vite build in watch mode                               |
-| `npm run lint`             | ESLint on src/                                         |
-| `npm test`                 | Unit vitest tests                                      |
-| `npm run test:coverage`    | Tests + coverage                                       |
-| `npm run test:integration` | Integration tests on demos                             |
-| `npm run harness`          | Visual validation harness (Vite, :5199)                |
-| `npm run curves`           | Headless structural pass (`--demo <id>`)               |
-| `npm run test:visual`      | Playwright visual regression (goldens)                 |
-| `npm run harness:selftest` | A/B gate calibration — must be 0.00%                   |
-| `npm run harness:element`  | `<dataflow-player>` vs `mountPlayer` — must be 0.0000% |
-| `npm run harness:compare`  | A/B pixel diff, React vs vanilla renderer              |
-| `npm run harness:bench`    | Perf baseline of the player (per-frame)                |
+| Script                        | Effect                                                     |
+| ----------------------------- | ---------------------------------------------------------- |
+| `npm run build`               | Typecheck + vite build + .d.ts declarations                |
+| `npm run dev`                 | vite build in watch mode                                   |
+| `npm run lint`                | ESLint on src/                                             |
+| `npm test`                    | Unit vitest tests                                          |
+| `npm run test:coverage`       | Tests + coverage                                           |
+| `npm run test:integration`    | Integration tests on demos                                 |
+| `npm run harness`             | Visual validation harness (Vite, :5199)                    |
+| `npm run curves`              | Headless structural pass (`--demo <id>`)                   |
+| `npm run test:visual`         | Playwright visual regression (goldens)                     |
+| `npm run harness:selftest`    | A/B gate calibration — 144 checks, must be 0.00%           |
+| `npm run harness:element`     | `<dataflow-player>` vs `mountPlayer` — 70 cells at 0.0000% |
+| `npm run harness:mountupdate` | `mountStage` + `update(t)` vs a fresh mount at `t`         |
+| `npm run harness:bench`       | Perf baseline of the player (per-frame)                    |
 
 Package (`packages/element/` — published as `@dataflow-animator/element`):
 
@@ -288,7 +333,7 @@ Package (`packages/angular/` — published as `@dataflow-animator/angular`):
 NB: the element's pixel gate lives in the REACT workspace
 (`npm run harness:element -w @dataflow-animator/react`), because that is where the whole A/B
 harness and its plumbing live. The harness is really a bench for the CORE, not for react — moving
-it out is a worthwhile cleanup, and a large diff in a package step 3.3 had to leave intact.
+it out is a worthwhile cleanup that the Angular package's own large diff had to leave intact.
 
 ## Workflows to avoid
 
