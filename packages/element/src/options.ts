@@ -68,6 +68,7 @@ export const OPTION_ATTRIBUTES = [
   'auto-play',
   'loop',
   'debug',
+  'transcript',
 ] as const;
 
 /**
@@ -148,6 +149,27 @@ function parseDensity(raw: string | null): Density | undefined {
  * default duplicated in a wrapper is a default that drifts from the core's, and
  * the core already documents its own.
  */
+const TRANSCRIPTS = ['sr-only', 'visible', 'none'] as const;
+
+/**
+ * Unlike `theme`/`mode`, this one IS validated: it is not an opaque CSS hook
+ * but a behaviour switch, and a typo must not silently land on the branch that
+ * removes the animation's only text equivalent. An unknown value warns and
+ * falls through to the core's default.
+ */
+function parseTranscript(
+  raw: string | null
+): PlayerOptions['transcript'] | undefined {
+  if (raw === null) return undefined;
+  const value = raw.trim();
+  if ((TRANSCRIPTS as readonly string[]).includes(value))
+    return value as PlayerOptions['transcript'];
+  console.warn(
+    `<dataflow-player>: transcript="${raw}" is not one of ${TRANSCRIPTS.join(', ')}; ignoring it.`
+  );
+  return undefined;
+}
+
 export function readOptions(source: AttributeSource): PlayerOptions {
   const options: PlayerOptions = {};
   const attr = (name: string): string | null => source.getAttribute(name);
@@ -186,6 +208,9 @@ export function readOptions(source: AttributeSource): PlayerOptions {
   if (loop !== undefined) options.loop = loop;
   const debug = parseBoolean('debug', attr('debug'));
   if (debug !== undefined) options.debug = debug;
+
+  const transcript = parseTranscript(attr('transcript'));
+  if (transcript !== undefined) options.transcript = transcript;
 
   return options;
 }

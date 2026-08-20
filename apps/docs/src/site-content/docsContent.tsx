@@ -6,6 +6,7 @@ import type { DataFlowSpec, Node, NodeType } from '@dataflow-animator/react';
 import { DataFlowPlayer } from '../components/DataFlowPlayer';
 import { getApiExamples } from './apiExamples';
 import { useLocale, useTranslation } from '../i18n';
+import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
 
 // ---------------------------------------------------------------------------
 // Référence API générée à partir du JSON Schema
@@ -107,7 +108,11 @@ function InView({
  * une classe (cf. CSS `.api-prop-demo--*`).
  */
 function PropDemo({ spec, note }: { spec: DataFlowSpec; note?: string }) {
-  const animated = spec.timeline.length > 0;
+  // ~40 illustrations qui bougent seules et sans barre de contrôle : sous
+  // `prefers-reduced-motion`, chacune retombe sur sa première image, qui est
+  // exactement ce que la colonne voisine décrit en texte.
+  const reducedMotion = usePrefersReducedMotion();
+  const animated = spec.timeline.length > 0 && !reducedMotion;
   const n = spec.nodes.length;
   const sizeClass =
     n <= 1

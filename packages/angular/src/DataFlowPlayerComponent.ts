@@ -20,6 +20,7 @@ import {
   type PlayerHandle,
   type PlayerLabels,
   type PlayerMode,
+  type PlayerOptions,
   type PlayerTheme,
 } from '@dataflow-animator/core';
 import { toPlayerOptions } from './options';
@@ -98,6 +99,11 @@ export class DataFlowPlayerComponent {
   readonly autoPlay = input<boolean>();
   readonly loop = input<boolean>();
   readonly debug = input<boolean>();
+  /**
+   * The animation's text description: `'sr-only'` (default), `'visible'` or
+   * `'none'`. See the core's `PlayerOptions.transcript`.
+   */
+  readonly transcript = input<PlayerOptions['transcript']>();
   /** Custom syntax highlighting, replacing Prism. */
   readonly highlight = input<Highlighter>();
   /**
@@ -173,6 +179,7 @@ export class DataFlowPlayerComponent {
         autoPlay: this.autoPlay(),
         loop: this.loop(),
         debug: this.debug(),
+        transcript: this.transcript(),
         // Untracked for the same reason React reads it through a ref: an inline
         // `[highlight]="(c, l) => …"` is a new function on every pass, and since
         // any change remounts, the player would remount forever.

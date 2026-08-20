@@ -14,6 +14,7 @@ const sidebars = {
         'concepts/layout',
         'concepts/timeline',
         'concepts/math',
+        'concepts/accessibility',
       ],
     },
     {

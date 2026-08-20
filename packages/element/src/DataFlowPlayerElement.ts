@@ -142,6 +142,20 @@ export class DataFlowPlayerElement extends ElementBase {
     this.#writeString('mode', value);
   }
 
+  /**
+   * The animation's text description: `'sr-only'` (default), `'visible'` or
+   * `'none'`. See the core's `PlayerOptions.transcript`.
+   */
+  get transcript(): PlayerOptions['transcript'] | undefined {
+    return (
+      (this.getAttribute('transcript') as PlayerOptions['transcript'] | null) ??
+      undefined
+    );
+  }
+  set transcript(value: PlayerOptions['transcript'] | undefined) {
+    this.#writeString('transcript', value);
+  }
+
   get density(): Density | undefined {
     return (this.getAttribute('density') as Density | null) ?? undefined;
   }

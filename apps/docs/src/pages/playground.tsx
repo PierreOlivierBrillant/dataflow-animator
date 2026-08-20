@@ -405,6 +405,11 @@ function PlaygroundContent() {
                 fontSize: monoSize,
                 fontFamily: "'JetBrains Mono', monospace",
                 wordWrap: 'on',
+                // Monaco announces itself as "editor" and nothing else without
+                // this. The string also carries the Escape-then-Tab shortcut,
+                // because Tab indents inside the editor — a keyboard user who
+                // does not know that is trapped in it.
+                ariaLabel: t.playground.editorAria,
                 scrollBeyondLastLine: false,
                 lineNumbers: 'on',
                 renderLineHighlight: 'none',
@@ -433,6 +438,10 @@ function PlaygroundContent() {
           {/* Error bar */}
           {parseError && (
             <motion.div
+              // The bar appears under an editor the visitor is still typing
+              // into: nothing moves the focus to it, so without a live region a
+              // screen-reader user gets a blank stage and no reason for it.
+              role="alert"
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               className="flex-none flex items-start gap-2 px-3 py-2.5 text-xs bg-red-500/[.08] border-t border-red-500/20 text-red-600 dark:text-red-300 font-mono text-[10px]"

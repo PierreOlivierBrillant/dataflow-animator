@@ -246,6 +246,11 @@ export const fr = {
         desc: ' — du LaTeX inline entre $…$ dans les libellés.',
       },
       {
+        to: '/docs/concepts/accessibility',
+        label: 'Accessibilité',
+        desc: " — l'animation rendue aussi en texte, navigable au clavier et lisible par un lecteur d'écran.",
+      },
+      {
         to: '/docs/reference/actions',
         label: "Types d'actions",
         desc: ' — move, arrow, parallel, loading, set_content, comment, highlight, set_visible, wait.',
@@ -277,11 +282,17 @@ export const fr = {
     searchAria: 'Rechercher un exemple',
     clearSearch: 'Effacer la recherche',
     allCategory: 'Toutes',
+    filterAria: 'Filtrer par catégorie',
     openLarge: 'Cliquez pour ouvrir en grand',
     close: 'Fermer',
     openInPlayground: 'Ouvrir dans le Playground',
     resetFilters: 'Réinitialiser les filtres',
     noResults: (query: string) => `Aucun exemple ne correspond à « ${query} ».`,
+    // Annoncé par une région live après chaque recherche ou changement de
+    // filtre : le résultat d'un filtrage est un changement de page qui ne
+    // s'accompagne d'aucun mouvement du focus, donc rien ne le signale.
+    resultsCount: (n: number) =>
+      n === 1 ? '1 exemple affiché' : `${n} exemples affichés`,
     categories: {
       'web-api': 'Web & API',
       realtime: 'Temps réel',
@@ -315,6 +326,11 @@ export const fr = {
     themeNeon: 'Néon',
     copy: 'Copier',
     loadingEditor: "Chargement de l'éditeur…",
+    // Nom accessible de l'éditeur Monaco, suivi du raccourci qui rend la
+    // tabulation à la navigation : sans lui, Tab insère une indentation et
+    // l'éditeur devient un piège au clavier.
+    editorAria:
+      'Éditeur de la spécification JSON. Appuyez sur Échap puis Tab pour sortir de l’éditeur.',
     invalidJson: 'JSON invalide :',
     emptyState: "Entrez une spec JSON valide pour voir l'animation.",
     // The playground's schema errors. `validateSpec` holds the English
@@ -361,6 +377,43 @@ export const fr = {
     close: 'Fermer',
     closeDialog: 'Fermer la fenêtre',
     loading: 'Chargement…',
+
+    // Description textuelle de l'animation. Ce sont des GABARITS : les
+    // `{placeholders}` sont remplis par le cœur, et l'ordre des mots est libre
+    // — c'est pour cela que ce sont des chaînes et non des phrases figées.
+    playerRegion: 'Animation de flux de données',
+    transcriptTitle: 'Description textuelle',
+    showTranscript: 'Afficher la description textuelle',
+    hideTranscript: 'Masquer la description textuelle',
+    transcriptStep: 'Étape {n} sur {total} : {text}',
+    stepAnnouncement: 'Étape {n} sur {total}. {text}',
+    describeActors: 'Éléments : {list}',
+    describeStepCount: '{count} étapes',
+    describeConnection: 'le lien {id}',
+    describeMove: '{object} va de {from} vers {to}',
+    describeArrow: 'Une flèche est tracée de {from} vers {to}',
+    describeArrowLabelled:
+      'Une flèche intitulée « {text} » est tracée de {from} vers {to}',
+    describeParallel: 'En même temps : {actions}',
+    describeLoading: '{object} travaille',
+    describeSetContent: '{object} affiche maintenant : {content}',
+    describeCommentOn: 'À propos de {object} : {text}',
+    describeHighlight: '{object} est mis en évidence',
+    describeAppear: '{object} apparaît',
+    describeDisappear: '{object} disparaît',
+    describeSetColor: '{object} change de couleur',
+    describeSetIcon: 'La pastille de {object} devient « {icon} »',
+    describeClearIcon: 'La pastille de {object} est retirée',
+    describeRotate: '{object} pivote',
+    describeSpin: '{object} tourne sur lui-même',
+    describeRotateSubtree: 'Le sous-arbre de {object} pivote',
+    describeFlow: 'Le courant circule le long de {route}',
+    describeToggleClosed: '{object} se ferme',
+    describeToggleOpen: "{object} s'ouvre",
+    describePause: 'Pause',
+    describeContentImage: 'une image',
+    describeContentTable: 'un tableau de {rows} lignes, colonnes {columns}',
+    describeContentEmpty: 'rien',
   } satisfies PlayerLabels,
   apiRef: {
     property: 'Propriété',

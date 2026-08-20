@@ -1,0 +1,153 @@
+---
+title: Accessibility
+slug: /concepts/accessibility
+---
+
+import { DataFlowPlayer } from '@site/src/components/DataFlowPlayer';
+import { generatedExample, authoredExample } from './_accessibility/examples';
+
+An animation is a picture that changes over time, and a picture is the one
+thing a screen reader cannot relay. The player solves this the way the engine
+solves everything else: the compiled timeline is already an ordered list of
+events, so it is rendered **twice** — once as pixels, once as sentences.
+
+Both renderings come from the same `evaluate`-style pure function, so they
+cannot drift apart the way a hand-written caption drifts from the animation it
+describes.
+
+## What a screen reader gets
+
+Three things, none of which you have to write:
+
+- **A named region.** The player announces itself instead of being an anonymous
+  box the reader falls into.
+- **A text description** — a summary, then one sentence per step. Each sentence
+  is a **button that seeks the player to that step**, so the animation is
+  something to explore at your own pace rather than a recording to sit through.
+  A sighted colleague watching the same screen sees the stage follow along.
+- **A live region** announcing each step as the playhead enters it.
+
+The stage itself is marked `aria-hidden`. That is deliberate: its labels are
+absolutely positioned, so read in DOM order they are a bag of loose strings
+(`"BrowserWeb serverGET /users"`) in which the animation — what moves, where,
+and why — appears nowhere. The description is where that information lives.
+
+<DataFlowPlayer
+  spec={generatedExample}
+  mode="auto"
+  height={300}
+  transcript="visible"
+/>
+
+The transcript above is rendered open (`transcript="visible"`) so you can read
+what a screen reader hears. **By default it is there but visually hidden** — the
+player looks exactly as it always has, with a button to reveal the description.
+
+```tsx
+// The default: available to assistive technology, invisible on screen.
+<DataFlowPlayer spec={spec} />
+
+// Rendered open, as a transcript panel under the stage.
+<DataFlowPlayer spec={spec} transcript="visible" />
+```
+
+## Writing the description yourself
+
+The generated sentences say what happens. They cannot say why, because the spec
+does not know: it knows a packet moved from one node to another, not that it
+moved _because the cache missed_.
+
+Two optional fields close that gap. Neither is required, and an animation
+without them is still fully described.
+
+| Field         | Where              | What it replaces                     |
+| ------------- | ------------------ | ------------------------------------ |
+| `description` | on the spec        | The opening line of the summary      |
+| `description` | on any root action | The generated sentence for that step |
+
+```ts
+{
+  description: 'How a page load reaches the database and comes back',
+  timeline: [
+    {
+      type: 'move', object: 'req', from: 'browser', to: 'api',
+      description: 'The user opens the page, so the browser asks for the list',
+    },
+    // No `description`: "SELECT * FROM users travels from Web server to Database."
+    { type: 'move', object: 'sql', from: 'api', to: 'db' },
+  ],
+}
+```
+
+<DataFlowPlayer
+  spec={authoredExample}
+  mode="auto"
+  height={300}
+  transcript="visible"
+/>
+
+A `comment` action never needs one: its `text` is already your own narration of
+the step, and it is used verbatim.
+
+## Localising the description
+
+The sentences are built from **templates** in
+[`labels`](/docs/reference/components), alongside the control bar's strings —
+`describeMove` is `'{object} travels from {from} to {to}'`. Word order is yours
+to change: a language that puts the verb last can put it last.
+
+```ts
+<DataFlowPlayer
+  spec={spec}
+  labels={{
+    describeMove: '{object} va de {from} vers {to}',
+    describeLoading: '{object} travaille',
+  }}
+/>
+```
+
+Any template you leave out keeps its English default, so you can translate the
+ones that matter to you and stop there.
+
+## Motion
+
+The player never plays on its own: `autoPlay` is off by default, and the control
+bar can pause it. If you turn `autoPlay` on, respect
+`prefers-reduced-motion` — a looping animation with `controls={false}` is motion
+a visitor cannot stop, which
+[WCAG 2.2.2](https://www.w3.org/WAI/WCAG22/Understanding/pause-stop-hide.html)
+does not allow.
+
+```tsx
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+<DataFlowPlayer spec={spec} autoPlay={!reduced} loop={!reduced} controls />;
+```
+
+## Turning it off
+
+`transcript="none"` removes the description. Since the stage is `aria-hidden`
+decor, that leaves a screen-reader user with **no way to read the animation at
+all** — use it only when the same information is already in the page some other
+way.
+
+## Getting the description without a player
+
+`describeAnimation` is exported from the core. It takes a spec and its compiled
+timeline and returns the summary and steps — for a static page listing what each
+animation does, an export, or a braille display.
+
+```ts
+import {
+  compile,
+  describeAnimation,
+  DEFAULT_PLAYER_LABELS,
+} from '@dataflow-animator/core';
+
+const { timeline } = compile(spec);
+const { summary, steps } = describeAnimation(
+  spec,
+  timeline,
+  DEFAULT_PLAYER_LABELS
+);
+```

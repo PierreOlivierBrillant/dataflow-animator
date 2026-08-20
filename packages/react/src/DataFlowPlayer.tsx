@@ -62,6 +62,7 @@ export function DataFlowPlayer({
   mode = 'auto',
   density = 'comfortable',
   debug = false,
+  transcript = 'sr-only',
   speed = 1,
   highlight,
   labels,
@@ -125,6 +126,7 @@ export function DataFlowPlayer({
         loop,
         speed,
         debug,
+        transcript,
         style: toStyleMap(style),
         labels,
         highlight: highlightRef.current,
@@ -217,6 +219,7 @@ export function DataFlowPlayer({
     speed,
     className,
     debug,
+    transcript,
   ]);
 
   const heightValue = typeof height === 'number' ? `${height}px` : height;

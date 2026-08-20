@@ -1,7 +1,8 @@
 import type { DataFlowSpec, Highlighter, PlayerTheme } from '../types';
 import type { Density } from '../engine/scale';
 import { compile } from '../engine/compiler';
-import { nextStop, prevStop } from '../engine/timeline';
+import { nextStop, prevStop, stepIndexAt } from '../engine/timeline';
+import { describeAnimation } from '../a11y/describe';
 import { copyText, downloadJson, serializeSpec } from '../export/json';
 import { highlightCode } from '../highlight/highlight';
 import { createPlayerClock, type PlayerClock } from './clock';
@@ -13,6 +14,10 @@ import {
 import { h, s, setStyle } from './el';
 import { resolveLabels, type PlayerLabels } from './labels';
 import { createJsonDialog, type JsonDialogElement } from './jsonDialog';
+import {
+  createTranscriptElement,
+  type TranscriptElement,
+} from './transcriptElement';
 import { mountStage, type StageHandle } from './mount';
 
 /**
@@ -71,6 +76,20 @@ export interface PlayerOptions {
   className?: string;
   /** Renders the timeline debug overlay. Default: false. */
   debug?: boolean;
+  /**
+   * The animation's text description — a summary, then one button per step that
+   * seeks the player to it, plus a live region announcing the step the playhead
+   * enters.
+   *
+   * - `'sr-only'` (default) renders it for assistive technology only, with a
+   *   button to reveal it. Nothing about the visible player changes.
+   * - `'visible'` renders it open, as a transcript panel under the stage.
+   * - `'none'` leaves it out entirely. Use it only when the SAME information is
+   *   already available in the page some other way — an animation with no text
+   *   equivalent is one a screen-reader user cannot read at all, since the
+   *   stage itself is `aria-hidden` decoration.
+   */
+  transcript?: 'sr-only' | 'visible' | 'none';
   /**
    * Extra inline styles for the `.rdfa-player` root.
    *
@@ -150,6 +169,7 @@ export function mountPlayer(
     highlight = highlightCode,
     className,
     debug = false,
+    transcript = 'sr-only',
     style,
     labels,
   } = options;
@@ -175,6 +195,15 @@ export function mountPlayer(
   // `tabIndex` is what makes the root focusable for the keyboard shortcuts, so
   // it is present exactly when the controls are — as in React.
   if (controls) root.setAttribute('tabindex', '0');
+  // A named region, so the player is something a screen-reader user can find
+  // and jump to rather than a `div` they fall into. The name is the spec's own
+  // `description` when it has one — "How a page load reaches the database"
+  // beats a generic label on a page carrying several players.
+  root.setAttribute('role', 'region');
+  root.setAttribute(
+    'aria-label',
+    spec.description?.trim() || chrome.playerRegion
+  );
   container.appendChild(root);
 
   const clock = createPlayerClock({
@@ -250,6 +279,36 @@ export function mountPlayer(
   });
   if (bar) root.insertBefore(stage.el, bar.el);
 
+  // The stage is DECOR for assistive technology, and hiding it is the whole
+  // point rather than a shortcut. Its labels are absolutely positioned, so a
+  // screen reader reads them in reconciliation order — "BrowserWeb serverGET
+  // /users", four strings with no relationship between them — while the
+  // animation itself, the thing being communicated, is nowhere in the text.
+  // The transcript below carries that information in order and on purpose.
+  stage.el.setAttribute('aria-hidden', 'true');
+
+  let script: TranscriptElement | undefined;
+  /** Position of each root-step index in the described list, for the announcer. */
+  const positionByStep = new Map<number, number>();
+  if (transcript !== 'none') {
+    const description = describeAnimation(spec, timeline, chrome);
+    description.steps.forEach((step, position) =>
+      positionByStep.set(step.index, position)
+    );
+    script = createTranscriptElement({
+      description,
+      labels: chrome,
+      visible: transcript === 'visible',
+      onSeek: (startMs) => {
+        // Pause first: a reader who picked a step wants to BE there, not to
+        // watch the playhead run away from it.
+        clock.pause();
+        clock.seek(startMs);
+      },
+    });
+    root.appendChild(script.el);
+  }
+
   const onFullscreenChange = (): void => {
     isFullscreen = document.fullscreenElement === root;
     if (bar) applyControlsElement(bar, clock, isFullscreen);
@@ -299,9 +358,19 @@ export function mountPlayer(
 
   // The one line the whole migration was for: a clock tick mutates the stage
   // instead of re-rendering it.
+  const announce = (): void => {
+    if (!script) return;
+    const step = timeline.steps[stepIndexAt(timeline, clock.t)];
+    script.setCurrentStep(
+      step === undefined ? -1 : (positionByStep.get(step.index) ?? -1)
+    );
+  };
+  announce();
+
   const unsubscribe = clock.subscribe(() => {
     stage.update(clock.t);
     if (bar) applyControlsElement(bar, clock, isFullscreen);
+    announce();
   });
 
   return {
@@ -316,6 +385,7 @@ export function mountPlayer(
       document.removeEventListener('fullscreenchange', onFullscreenChange);
       root.removeEventListener('keydown', onKeyDown);
       closeDialog();
+      script?.destroy();
       stage.destroy();
       root.remove();
     },

@@ -53,6 +53,83 @@ export interface PlayerLabels {
    * here.
    */
   loading: string;
+
+  // ─── Text description of the animation ────────────────────────────────────
+  //
+  // These are TEMPLATES, not sentences: `{name}` placeholders are filled in by
+  // `describeAnimation`. They are strings rather than functions on purpose —
+  // a string survives a JSON round-trip, so `<dataflow-player>` can carry a
+  // translated set in a property and an author can keep their wording in the
+  // same file as the rest of their copy.
+  //
+  // Word order is the translator's to change: `{object} travels from {from} to
+  // {to}` and `{from} sends {object} to {to}` are both valid fillings of
+  // `describeMove`, and a language that needs the verb last can put it last.
+
+  /** Accessible name of the whole player region. */
+  playerRegion: string;
+  /** Heading of the text description, and label of its disclosure button. */
+  transcriptTitle: string;
+  /** Button that reveals the text description. */
+  showTranscript: string;
+  /** Button that hides it again. */
+  hideTranscript: string;
+  /** Accessible name of one step button. `{n}`, `{total}`, `{text}`. */
+  transcriptStep: string;
+  /** Announces the step the playhead just entered. `{n}`, `{total}`, `{text}`. */
+  stepAnnouncement: string;
+  /** Opens the summary with the cast of the animation. `{list}`. */
+  describeActors: string;
+  /** States how many steps the animation has. `{count}`. */
+  describeStepCount: string;
+  /** Names a connection that carries no label of its own. `{id}`. */
+  describeConnection: string;
+  /** `move`. `{object}`, `{from}`, `{to}`. */
+  describeMove: string;
+  /** `arrow` without a label. `{from}`, `{to}`. */
+  describeArrow: string;
+  /** `arrow` with a label. `{from}`, `{to}`, `{text}`. */
+  describeArrowLabelled: string;
+  /** `parallel`: wraps the children's sentences. `{actions}`. */
+  describeParallel: string;
+  /** `loading`. `{object}`. */
+  describeLoading: string;
+  /** `set_content`. `{object}`, `{content}`. */
+  describeSetContent: string;
+  /** `comment` attached to a node. `{object}`, `{text}`. */
+  describeCommentOn: string;
+  /** `highlight`. `{object}`. */
+  describeHighlight: string;
+  /** `set_visible: true`. `{object}`. */
+  describeAppear: string;
+  /** `set_visible: false`. `{object}`. */
+  describeDisappear: string;
+  /** `set_color`. `{object}`. */
+  describeSetColor: string;
+  /** `set_icon` with a value. `{object}`, `{icon}`. */
+  describeSetIcon: string;
+  /** `set_icon` with an empty value. `{object}`. */
+  describeClearIcon: string;
+  /** `rotate` toward an angle. `{object}`. */
+  describeRotate: string;
+  /** `rotate` in continuous spin. `{object}`. */
+  describeSpin: string;
+  /** `rotate_subtree`. `{object}`. */
+  describeRotateSubtree: string;
+  /** `flow`. `{route}`. */
+  describeFlow: string;
+  /** `toggle: closed`. `{object}`. */
+  describeToggleClosed: string;
+  /** `toggle: open`. `{object}`. */
+  describeToggleOpen: string;
+  /** `wait`. */
+  describePause: string;
+  /** A `set_content` carrying an image. */
+  describeContentImage: string;
+  /** A `set_content` carrying a table. `{columns}`, `{rows}`. */
+  describeContentTable: string;
+  /** A `set_content` with nothing to read out. */
+  describeContentEmpty: string;
 }
 
 /** The published defaults. English, because the package is. */
@@ -73,6 +150,40 @@ export const DEFAULT_PLAYER_LABELS: PlayerLabels = {
   close: 'Close',
   closeDialog: 'Close the dialog',
   loading: 'Loading…',
+
+  playerRegion: 'Data flow animation',
+  transcriptTitle: 'Text description',
+  showTranscript: 'Show the text description',
+  hideTranscript: 'Hide the text description',
+  transcriptStep: 'Step {n} of {total}: {text}',
+  stepAnnouncement: 'Step {n} of {total}. {text}',
+  describeActors: 'Elements: {list}',
+  describeStepCount: '{count} steps',
+  describeConnection: 'the {id} link',
+  describeMove: '{object} travels from {from} to {to}',
+  describeArrow: 'An arrow is drawn from {from} to {to}',
+  describeArrowLabelled:
+    'An arrow labelled “{text}” is drawn from {from} to {to}',
+  describeParallel: 'At the same time: {actions}',
+  describeLoading: '{object} is working',
+  describeSetContent: '{object} now shows: {content}',
+  describeCommentOn: 'About {object}: {text}',
+  describeHighlight: '{object} is highlighted',
+  describeAppear: '{object} appears',
+  describeDisappear: '{object} disappears',
+  describeSetColor: '{object} changes colour',
+  describeSetIcon: 'The badge on {object} becomes “{icon}”',
+  describeClearIcon: 'The badge on {object} is removed',
+  describeRotate: '{object} rotates',
+  describeSpin: '{object} spins',
+  describeRotateSubtree: 'The subtree at {object} rotates',
+  describeFlow: 'Current flows along {route}',
+  describeToggleClosed: '{object} closes',
+  describeToggleOpen: '{object} opens',
+  describePause: 'Pause',
+  describeContentImage: 'an image',
+  describeContentTable: 'a table of {rows} rows, columns {columns}',
+  describeContentEmpty: 'nothing',
 };
 
 /** Fills a caller's partial overrides with the English defaults. */

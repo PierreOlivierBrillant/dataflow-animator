@@ -4,6 +4,7 @@ import Link from '@docusaurus/Link';
 import { DataFlowPlayer } from './DataFlowPlayer';
 import { demos, getSpec, pickLocale } from '../site-content';
 import { useLocale, useTranslation } from '../i18n';
+import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
 
 // A few examples highlighted on the home page; the full gallery
 // (search + filters) lives on the /examples page.
@@ -12,6 +13,7 @@ const featured = demos.slice(0, 6);
 export function DemoShowcase() {
   const t = useTranslation();
   const locale = useLocale();
+  const reducedMotion = usePrefersReducedMotion();
   const [activeId, setActiveId] = useState(featured[0].id);
   const active = demos.find((d) => d.id === activeId)!;
   const [codeVisible, setCodeVisible] = useState(false);
@@ -60,6 +62,10 @@ export function DemoShowcase() {
           {featured.map((demo) => (
             <button
               key={demo.id}
+              type="button"
+              // Same reason as the gallery's category chips: which demo is
+              // showing is carried by a violet tint and nothing else.
+              aria-pressed={activeId === demo.id}
               onClick={() => setActiveId(demo.id)}
               className={`w-full sm:w-auto px-4 py-2 rounded-lg text-sm transition-all cursor-pointer font-sans ${activeId === demo.id ? 'bg-violet-600/20 border border-violet-600/50 text-violet-700 dark:text-violet-300' : 'bg-slate-900/[0.03] dark:bg-white/[0.03] border border-slate-900/[0.08] dark:border-white/[0.07] text-slate-600 dark:text-white/45'}`}
             >
@@ -85,8 +91,8 @@ export function DemoShowcase() {
               <DataFlowPlayer
                 mode="auto"
                 spec={getSpec(active, locale)}
-                autoPlay
-                loop
+                autoPlay={!reducedMotion}
+                loop={!reducedMotion}
                 controls
                 height={400}
               />

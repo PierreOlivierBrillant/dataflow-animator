@@ -49,12 +49,102 @@ describe('mountPlayer — the root', () => {
     expect(mount({ height: '50vh' }).player.el.style.height).toBe('50vh');
   });
 
-  it('holds the stage and the control bar, in that order', () => {
+  it('holds the stage, the control bar and the transcript, in that order', () => {
     const { player } = mount();
 
     expect([...player.el.children].map((c) => c.getAttribute('class'))).toEqual(
-      ['rdfa-stage', 'rdfa-controls']
+      [
+        'rdfa-stage',
+        'rdfa-controls',
+        'rdfa-transcript rdfa-transcript--collapsed',
+      ]
     );
+  });
+
+  it('is a named region, so it can be found and jumped to', () => {
+    expect(mount().player.el.getAttribute('role')).toBe('region');
+    expect(mount().player.el.getAttribute('aria-label')).toBe(
+      'Data flow animation'
+    );
+  });
+
+  it("names the region after the spec's own description when it has one", () => {
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const player = mountPlayer(
+      container,
+      { ...spec, description: 'A request reaching the database' },
+      {}
+    );
+
+    expect(player.el.getAttribute('aria-label')).toBe(
+      'A request reaching the database'
+    );
+  });
+
+  it('hides the stage from assistive technology and describes it instead', () => {
+    // The stage's labels are absolutely positioned: read in DOM order they are
+    // a bag of strings, and the animation itself is nowhere in them. The
+    // transcript is what carries that information, so the stage is decor.
+    const { player } = mount();
+
+    expect(
+      player.el.querySelector('.rdfa-stage')?.getAttribute('aria-hidden')
+    ).toBe('true');
+    const steps = player.el.querySelectorAll('.rdfa-transcript-step');
+    expect(steps).toHaveLength(1);
+    expect(steps[0].textContent).toBe('p travels from A to B.');
+  });
+
+  it('seeks the clock to the step a reader activates, paused', () => {
+    const { player } = mount({ autoPlay: true });
+    const step = player.el.querySelector(
+      '.rdfa-transcript-step'
+    ) as HTMLButtonElement;
+
+    player.clock.seek(900);
+    step.click();
+
+    expect(player.clock.t).toBe(0);
+    expect(player.clock.playing).toBe(false);
+  });
+
+  it('announces the step the playhead is on', () => {
+    const { player } = mount();
+    const live = player.el.querySelector('[aria-live]');
+
+    expect(live?.textContent).toContain('Step 1 of 1');
+  });
+
+  it('leaves the transcript out entirely when asked to', () => {
+    const { player } = mount({ transcript: 'none' });
+
+    expect(player.el.querySelector('.rdfa-transcript')).toBeNull();
+    // The stage stays hidden regardless: making it readable is not something
+    // this option can do, which is exactly why the docs warn against 'none'.
+    expect(
+      player.el.querySelector('.rdfa-stage')?.getAttribute('aria-hidden')
+    ).toBe('true');
+  });
+
+  it('renders the transcript open when asked to be visible', () => {
+    const { player } = mount({ transcript: 'visible' });
+
+    expect(
+      player.el
+        .querySelector('.rdfa-transcript')
+        ?.classList.contains('rdfa-transcript--collapsed')
+    ).toBe(false);
+  });
+
+  it('takes up no visible room by default, so no existing player re-flows', () => {
+    const { player } = mount();
+
+    expect(
+      player.el
+        .querySelector('.rdfa-transcript')
+        ?.classList.contains('rdfa-transcript--collapsed')
+    ).toBe(true);
   });
 
   // The focus ring exists only when there is something to drive with the

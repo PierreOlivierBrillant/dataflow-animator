@@ -14,6 +14,7 @@ import {
   type DemoCategory,
 } from '../site-content/demos';
 import { useLocale, useTranslation } from '../i18n';
+import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
 
 /** Makes a string case and accent insensitive for search. */
 const fold = (s: string): string =>
@@ -38,6 +39,7 @@ function DemoThumbnail({ spec }: { spec: DataFlowSpec }) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const reducedMotion = usePrefersReducedMotion();
 
   useEffect(() => {
     const el = ref.current;
@@ -60,14 +62,23 @@ function DemoThumbnail({ spec }: { spec: DataFlowSpec }) {
   }, []);
 
   return (
-    <div ref={ref} className="absolute inset-0 pointer-events-none">
+    // Decorative, and deliberately so: the card is a button, and every string
+    // this player renders would otherwise be concatenated into its accessible
+    // name — a name that would then CHANGE on every frame of the animation. The
+    // card states what the demo is in its own text; the moving picture is the
+    // sighted half of the same information.
+    <div
+      ref={ref}
+      className="absolute inset-0 pointer-events-none"
+      aria-hidden="true"
+    >
       {mounted && (
         <DataFlowPlayer
-          key={visible ? 'play' : 'idle'}
+          key={visible && !reducedMotion ? 'play' : 'idle'}
           spec={spec}
           mode="auto"
           controls={false}
-          autoPlay={visible}
+          autoPlay={visible && !reducedMotion}
           loop
           height="100%"
           density="spacious"
@@ -100,7 +111,13 @@ function DemoCard({ demo, onOpen }: { demo: Demo; onOpen: () => void }) {
         <span className="absolute top-2.5 left-2.5 z-10 px-2 py-0.5 rounded-md text-[10px] font-mono uppercase tracking-wider bg-black/55 backdrop-blur-sm text-violet-300 border border-violet-500/30">
           {t.gallery.categories[demo.category]}
         </span>
-        <div className="absolute inset-x-0 bottom-0 z-10 flex items-center justify-center gap-1.5 py-2 text-[11px] font-sans text-white/90 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+        {/* Hover affordance: it says what activating the button does, which
+            the button's own role already conveys. Announced, it would just
+            pad every card's name with the same sentence. */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-0 bottom-0 z-10 flex items-center justify-center gap-1.5 py-2 text-[11px] font-sans text-white/90 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+        >
           <Sparkles size={12} className="text-violet-300" />
           {t.gallery.openLarge}
         </div>
@@ -108,9 +125,13 @@ function DemoCard({ demo, onOpen }: { demo: Demo; onOpen: () => void }) {
 
       {/* Body */}
       <div className="flex flex-col flex-1 p-4">
-        <h3 className="text-slate-900 dark:text-white text-[15px] font-semibold mb-1.5 font-heading leading-snug">
+        {/* A `span`, not a heading: this text lives inside a button, where a
+            heading is flattened into the accessible name and disappears from
+            the document's heading list. Demoting it costs nothing and stops
+            the outline from advertising 45 headings no reader can reach. */}
+        <span className="block text-slate-900 dark:text-white text-[15px] font-semibold mb-1.5 font-heading leading-snug">
           {pickLocale(demo.title, locale)}
-        </h3>
+        </span>
         <p className="text-[13px] leading-relaxed text-slate-600 dark:text-white/45 font-sans line-clamp-2 mb-3">
           {pickLocale(demo.description, locale)}
         </p>
@@ -133,23 +154,90 @@ function DemoCard({ demo, onOpen }: { demo: Demo; onOpen: () => void }) {
 
 // ─── Preview Modal ──────────────────────────────────────────────────────────
 
+const FOCUSABLE =
+  'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
 function DemoModal({ demo, onClose }: { demo: Demo; onClose: () => void }) {
   const t = useTranslation();
   const locale = useLocale();
+  const reducedMotion = usePrefersReducedMotion();
   const title = pickLocale(demo.title, locale);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const titleId = `demo-modal-title-${demo.id}`;
+
+  /**
+   * The three obligations `aria-modal="true"` takes on, and that the markup
+   * alone does not honour.
+   *
+   * Declaring the dialog modal tells assistive technology that everything
+   * outside it is inert — so leaving the focus on the card that opened it
+   * strands the reader in a region their own screen reader has just been told
+   * to ignore. The focus has to MOVE in, STAY in while the dialog is open, and
+   * COME BACK to the trigger on close; the last one is what makes closing feel
+   * like a return rather than a reset to the top of a 45-card grid.
+   */
+  // `onClose` is a fresh arrow on every render of the gallery, so the effect
+  // below MUST NOT depend on it: it has to run once, on open, and undo itself
+  // once, on close. Through a ref it always calls the current one anyway.
+  //
+  // This is not a tidiness point. With `[onClose]` as the dependency, every
+  // re-render tore the effect down and set it up again — and the teardown ends
+  // by handing the focus back to the opener. A single re-render (the
+  // reduced-motion probe resolving is enough) therefore yanked the focus out of
+  // the open dialog, and the "opener" captured by the next setup was whatever
+  // element the previous teardown had just focused. The trap then compared the
+  // focus against a panel it no longer contained, and let Tab walk out.
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   useEffect(() => {
+    const opener = document.activeElement as HTMLElement | null;
+    panelRef.current?.focus();
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        onCloseRef.current();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const panel = panelRef.current;
+      if (!panel) return;
+      // `Array.from`, NOT `[...nodeList]`. The docs site re-transpiles through
+      // Babel in loose mode, where a spread over a non-array iterable becomes
+      // `[].concat(nodeList)` — an array holding the NodeList itself. The trap
+      // then saw exactly one "element", compared the focus against it, matched
+      // nothing, and let Tab walk out of the dialog with every test green.
+      const items = Array.from(
+        panel.querySelectorAll<HTMLElement>(FOCUSABLE)
+      ).filter((el) => el.getClientRects().length > 0);
+      // Nothing to cycle through: hold the focus on the panel rather than let
+      // Tab walk it out into the inert page behind.
+      if (items.length === 0) {
+        e.preventDefault();
+        panel.focus();
+        return;
+      }
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey && (active === first || active === panel)) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
+
     document.addEventListener('keydown', onKey);
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = prevOverflow;
+      opener?.focus?.();
     };
-  }, [onClose]);
+  }, []);
 
   return (
     <motion.div
@@ -158,12 +246,17 @@ function DemoModal({ demo, onClose }: { demo: Demo; onClose: () => void }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-label={title}
     >
       <motion.div
-        className="relative w-full max-w-4xl rounded-2xl overflow-hidden border border-slate-900/10 dark:border-white/10 bg-surface shadow-2xl"
+        ref={panelRef}
+        // The dialog is the PANEL, not the backdrop it floats on. Naming the
+        // backdrop the dialog puts a click-to-close surface the size of the
+        // viewport inside the dialog's own boundaries.
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        className="relative w-full max-w-4xl rounded-2xl overflow-hidden border border-slate-900/10 dark:border-white/10 bg-surface shadow-2xl outline-none"
         initial={{ opacity: 0, scale: 0.96, y: 12 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96, y: 12 }}
@@ -176,7 +269,10 @@ function DemoModal({ demo, onClose }: { demo: Demo; onClose: () => void }) {
             <span className="inline-block mb-1 px-2 py-0.5 rounded-md text-[10px] font-mono uppercase tracking-wider text-violet-700 dark:text-violet-300 bg-violet-500/10 border border-violet-500/25">
               {t.gallery.categories[demo.category]}
             </span>
-            <h2 className="text-slate-900 dark:text-white text-lg font-bold font-heading leading-tight mb-0">
+            <h2
+              id={titleId}
+              className="text-slate-900 dark:text-white text-lg font-bold font-heading leading-tight mb-0"
+            >
               {title}
             </h2>
           </div>
@@ -197,8 +293,8 @@ function DemoModal({ demo, onClose }: { demo: Demo; onClose: () => void }) {
             spec={getSpec(demo, locale)}
             mode="auto"
             controls
-            autoPlay
-            loop
+            autoPlay={!reducedMotion}
+            loop={!reducedMotion}
             height={420}
             className="border-none bg-transparent rounded-none"
           />
@@ -287,7 +383,11 @@ export function DemoGallery() {
       </div>
 
       {/* Category filters */}
-      <div className="flex flex-wrap items-center gap-2 mb-8">
+      <div
+        role="group"
+        aria-label={t.gallery.filterAria}
+        className="flex flex-wrap items-center gap-2 mb-8"
+      >
         <CategoryChip
           label={t.gallery.allCategory}
           count={counts.all}
@@ -304,6 +404,14 @@ export function DemoGallery() {
           />
         ))}
       </div>
+
+      {/* Filtering rewrites the grid without moving the focus, which leaves a
+          screen-reader user typing into a search box with no feedback at all.
+          One polite announcement per settled result set says how many cards
+          are now below — the count a sighted visitor reads at a glance. */}
+      <p className="sr-only" role="status">
+        {t.gallery.resultsCount(filtered.length)}
+      </p>
 
       {/* Grid */}
       {filtered.length > 0 ? (
@@ -358,13 +466,16 @@ function CategoryChip({
     <button
       type="button"
       onClick={onClick}
+      // The selected filter is styled, not stated. `aria-pressed` is what makes
+      // "which category am I looking at?" answerable without seeing the violet.
+      aria-pressed={active}
       className={`px-3 py-1.5 rounded-lg text-xs font-sans transition-colors cursor-pointer ${
         active
           ? 'bg-violet-600/20 border border-violet-600/50 text-violet-700 dark:text-violet-200'
           : 'bg-slate-900/[0.03] dark:bg-white/[0.03] border border-slate-900/[0.08] dark:border-white/[0.07] text-slate-600 hover:text-slate-900 dark:text-white/50 dark:hover:text-white/80'
       }`}
     >
-      {label}
+      {label}{' '}
       <span
         className={`ml-1.5 ${active ? 'text-violet-500/80 dark:text-violet-300/70' : 'text-slate-400 dark:text-white/30'}`}
       >

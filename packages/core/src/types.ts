@@ -624,6 +624,22 @@ interface ActionBase {
   /** Action ID to refer to it (wait_for / keep_until). */
   id?: string;
   /**
+   * What this step means, in one sentence, for the player's text description
+   * (see {@link DataFlowSpec.description}).
+   *
+   * The description is generated from the action itself when this is omitted —
+   * "GET /users travels from Browser to Web server" — so an animation is
+   * described whether or not anyone writes anything. Provide it when the
+   * generated sentence would be accurate and still miss the point: the
+   * structure knows a packet moved, only you know it moved BECAUSE the cache
+   * missed.
+   *
+   * A `comment` action needs it least of all: its `text` is already your own
+   * narration, and it is used verbatim.
+   * @example "The cache misses, so the request continues to the database"
+   */
+  description?: string;
+  /**
    * Animation duration in ms (default: 500, 1200 for loading).
    * @minimum 1
    * @multipleOf 1
@@ -1013,6 +1029,18 @@ export interface DataFlowSpec {
    * played sequentially. Each root action becomes a navigable step.
    */
   timeline: Action[];
+  /**
+   * What this animation shows, in one or two sentences — the opening line of
+   * the player's text description, which is what a screen-reader user hears
+   * before any step.
+   *
+   * The rest of that description (the cast of elements and every step) is
+   * generated from the spec, so omitting this still produces a usable one; it
+   * loses only the part no structure can supply, which is what the animation is
+   * ABOUT. Per-step wording is {@link Action.description}.
+   * @example "How a page load reaches the database and comes back"
+   */
+  description?: string;
 }
 
 /** Syntax highlighting function: source code -> HTML. */

@@ -43,6 +43,34 @@ Displayed according to the `controls` option (default: `true`):
 - **Fullscreen** (Fullscreen API).
 - **Debug** (`debug` option): overlays inspecting the internal state of the timeline.
 
+### 2.1 Text description (`transcript` option)
+
+The player renders the animation TWICE: as pixels on the stage, and as an
+ordered text built from the same compiled timeline by
+[`describeAnimation`](../packages/core/src/a11y/describe.ts). The second
+rendering is what makes an animation readable without sight.
+
+- The root is a `region` named after `spec.description`, or a generic default.
+- The stage carries `aria-hidden`: its labels are absolutely positioned, so in
+  DOM order they are unordered strings in which the animation does not appear.
+  The description, not the stage, is the accessible equivalent.
+- The description holds a **summary** (`spec.description`, the cast of visible
+  nodes, the step count) and **one entry per root step**. Each entry is a
+  BUTTON that pauses and seeks the clock to that step — the same navigation the
+  control bar offers, exposed as text.
+- A `polite` live region announces the step the playhead enters. It is written
+  only on a crossing, never on every frame.
+
+Values: `'sr-only'` (default — present for assistive technology, revealed by a
+button), `'visible'` (rendered open), `'none'` (omitted; leaves no accessible
+equivalent at all, since the stage is hidden decor).
+
+Sentences come from `{placeholder}` templates in `PlayerLabels`
+(`describeMove`, `describeArrow`…), so they localise through the same object as
+the rest of the chrome, and word order is the translator's. `spec.description`
+and `Action.description` override the generated text where an author wants to
+state intent the structure cannot carry.
+
 ## 3. Spatial rendering engine (Layout Engine)
 
 Positions nodes **without (x, y) coordinates as input**, using relative ratios to

@@ -1,0 +1,158 @@
+---
+title: Accessibilité
+slug: /concepts/accessibility
+---
+
+import { DataFlowPlayer } from '@site/src/components/DataFlowPlayer';
+import { generatedExample, authoredExample } from './_accessibility/examples';
+
+Une animation est une image qui change dans le temps, et une image est
+précisément ce qu'un lecteur d'écran ne peut pas restituer. Le lecteur résout
+ce problème comme le moteur résout tout le reste : la timeline compilée est
+déjà une liste ordonnée d'événements, elle est donc rendue **deux fois** — une
+fois en pixels, une fois en phrases.
+
+Les deux rendus viennent de la même fonction pure, dans l'esprit d'`evaluate` :
+ils ne peuvent pas diverger comme divergerait une légende écrite à la main.
+
+## Ce qu'un lecteur d'écran reçoit
+
+Trois choses, dont aucune ne vous demande d'écrire quoi que ce soit :
+
+- **Une région nommée.** Le lecteur s'annonce au lieu d'être une boîte anonyme
+  dans laquelle on tombe.
+- **Une description textuelle** — un résumé, puis une phrase par étape. Chaque
+  phrase est un **bouton qui déplace le lecteur jusqu'à cette étape** :
+  l'animation devient quelque chose que l'on explore à son rythme, pas un
+  enregistrement que l'on subit. Un collègue voyant devant le même écran voit
+  la scène suivre.
+- **Une région live** qui annonce chaque étape au moment où la tête de lecture
+  y entre.
+
+La scène elle-même porte `aria-hidden`. C'est délibéré : ses étiquettes sont
+positionnées en absolu, donc lues dans l'ordre du DOM elles forment un sac de
+chaînes sans lien (`« NavigateurServeur WebGET /users »`) où l'animation — ce
+qui bouge, vers où, et pourquoi — n'apparaît nulle part. C'est la description
+qui porte cette information.
+
+<DataFlowPlayer
+  spec={generatedExample}
+  mode="auto"
+  height={300}
+  transcript="visible"
+/>
+
+La transcription ci-dessus est affichée (`transcript="visible"`) pour que vous
+puissiez lire ce qu'un lecteur d'écran entend. **Par défaut elle est présente
+mais masquée visuellement** — le lecteur a exactement l'apparence qu'il a
+toujours eue, avec un bouton pour révéler la description.
+
+```tsx
+// Le défaut : disponible pour les technologies d'assistance, invisible à l'écran.
+<DataFlowPlayer spec={spec} />
+
+// Affichée, en panneau de transcription sous la scène.
+<DataFlowPlayer spec={spec} transcript="visible" />
+```
+
+## Écrire la description vous-même
+
+Les phrases générées disent ce qui se passe. Elles ne peuvent pas dire
+pourquoi, parce que la spec ne le sait pas : elle sait qu'un paquet est allé
+d'un nœud à un autre, pas qu'il y est allé _parce que le cache était vide_.
+
+Deux champs optionnels comblent cet écart. Aucun n'est obligatoire, et une
+animation qui s'en passe reste entièrement décrite.
+
+| Champ         | Où                    | Ce qu'il remplace                  |
+| ------------- | --------------------- | ---------------------------------- |
+| `description` | sur la spec           | La première phrase du résumé       |
+| `description` | sur une action racine | La phrase générée pour cette étape |
+
+```ts
+{
+  description: "Comment un chargement de page atteint la base et en revient",
+  timeline: [
+    {
+      type: 'move', object: 'req', from: 'browser', to: 'api',
+      description: "L'utilisateur ouvre la page, le navigateur demande la liste",
+    },
+    // Sans `description` : « SELECT * FROM users va de Serveur Web vers Base de données. »
+    { type: 'move', object: 'sql', from: 'api', to: 'db' },
+  ],
+}
+```
+
+<DataFlowPlayer
+  spec={authoredExample}
+  mode="auto"
+  height={300}
+  transcript="visible"
+/>
+
+Une action `comment` n'en a jamais besoin : son `text` est déjà votre propre
+narration de l'étape, et il est repris tel quel.
+
+## Localiser la description
+
+Les phrases sont construites à partir de **gabarits** dans
+[`labels`](/docs/reference/components), aux côtés des chaînes de la barre de
+contrôle — `describeMove` vaut `'{object} travels from {from} to {to}'`.
+L'ordre des mots vous appartient : une langue qui place le verbe en fin de
+phrase peut l'y placer.
+
+```ts
+<DataFlowPlayer
+  spec={spec}
+  labels={{
+    describeMove: '{object} va de {from} vers {to}',
+    describeLoading: '{object} travaille',
+  }}
+/>
+```
+
+Tout gabarit que vous n'indiquez pas garde son défaut anglais : vous pouvez
+traduire ceux qui comptent pour vous et vous arrêter là.
+
+## Le mouvement
+
+Le lecteur ne démarre jamais seul : `autoPlay` est désactivé par défaut, et la
+barre de contrôle permet de mettre en pause. Si vous activez `autoPlay`,
+respectez `prefers-reduced-motion` — une animation en boucle avec
+`controls={false}` est un mouvement que le visiteur ne peut pas arrêter, ce que
+[WCAG 2.2.2](https://www.w3.org/WAI/WCAG22/Understanding/pause-stop-hide.html)
+interdit.
+
+```tsx
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+<DataFlowPlayer spec={spec} autoPlay={!reduced} loop={!reduced} controls />;
+```
+
+## La désactiver
+
+`transcript="none"` supprime la description. Comme la scène est un décor
+`aria-hidden`, il ne reste alors **aucun moyen de lire l'animation** pour un
+utilisateur de lecteur d'écran — ne l'utilisez que si la même information est
+déjà présente ailleurs dans la page.
+
+## Obtenir la description sans lecteur
+
+`describeAnimation` est exporté par le cœur. Il prend une spec et sa timeline
+compilée, et retourne le résumé et les étapes — pour une page statique listant
+ce que fait chaque animation, un export, ou une plage braille.
+
+```ts
+import {
+  compile,
+  describeAnimation,
+  DEFAULT_PLAYER_LABELS,
+} from '@dataflow-animator/core';
+
+const { timeline } = compile(spec);
+const { summary, steps } = describeAnimation(
+  spec,
+  timeline,
+  DEFAULT_PLAYER_LABELS
+);
+```

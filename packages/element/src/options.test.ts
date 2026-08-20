@@ -111,6 +111,7 @@ describe('readOptions', () => {
           'auto-play': 'true',
           loop: '1',
           debug: 'true',
+          transcript: 'visible',
         })
       )
     ).toEqual({
@@ -127,7 +128,18 @@ describe('readOptions', () => {
       autoPlay: true,
       loop: true,
       debug: true,
+      transcript: 'visible',
     });
+  });
+
+  it('validates transcript, because a typo would silence the animation', () => {
+    // Unlike theme/mode, this is a behaviour switch: falling through to the
+    // core's default is right, landing on 'none' would not be.
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(readOptions(source({ transcript: 'nope' }))).toEqual({});
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('transcript="nope"')
+    );
   });
 
   it('validates density, because the core uses it as a record key', () => {
@@ -168,6 +180,7 @@ describe('readOptions', () => {
       'auto-play',
       'loop',
       'debug',
+      'transcript',
     ]);
   });
 });

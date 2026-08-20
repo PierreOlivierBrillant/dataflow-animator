@@ -377,6 +377,7 @@ describe('properties', () => {
     expect(el.autoPlay).toBeUndefined();
     expect(el.loop).toBeUndefined();
     expect(el.debug).toBeUndefined();
+    expect(el.transcript).toBeUndefined();
     expect(el.highlight).toBeUndefined();
     expect(el.labels).toBeUndefined();
   });
@@ -396,6 +397,7 @@ describe('properties', () => {
     el.autoPlay = true;
     el.loop = true;
     el.debug = false;
+    el.transcript = 'visible';
 
     expect(el.getAttribute('theme')).toBe('neon');
     expect(el.getAttribute('mode')).toBe('dark');
@@ -408,6 +410,7 @@ describe('properties', () => {
     expect(el.getAttribute('auto-play')).toBe('true');
     expect(el.getAttribute('loop')).toBe('true');
     expect(el.getAttribute('debug')).toBe('false');
+    expect(el.getAttribute('transcript')).toBe('visible');
 
     expect(el.theme).toBe('neon');
     expect(el.mode).toBe('dark');
@@ -422,6 +425,7 @@ describe('properties', () => {
     expect(el.autoPlay).toBe(true);
     expect(el.loop).toBe(true);
     expect(el.debug).toBe(false);
+    expect(el.transcript).toBe('visible');
   });
 
   it('removes the attribute when a property is set back to undefined', async () => {

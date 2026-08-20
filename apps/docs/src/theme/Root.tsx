@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
+import { MotionConfig } from 'motion/react';
 import { useAlternatePageUtils } from '@docusaurus/theme-common/internal';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import { getStoredLocale, detectBrowserLocale } from '@site/src/i18n';
@@ -31,5 +32,11 @@ export default function Root({ children }: { children: ReactNode }) {
     );
   }, [i18n.currentLocale, i18n.defaultLocale, createUrl]);
 
-  return <>{children}</>;
+  // `reducedMotion="user"` makes every `motion` component on the site honour
+  // the system preference on its own: transform and layout animations collapse
+  // to their final value, while opacity ones are kept (a fade carries no
+  // movement, and dropping it would hide the reveal rather than calm it).
+  // Setting it HERE rather than per component is what keeps a new animated
+  // section from silently opting out.
+  return <MotionConfig reducedMotion="user">{children}</MotionConfig>;
 }

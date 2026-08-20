@@ -81,6 +81,18 @@ export interface DataFlowPlayerProps {
   density?: 'compact' | 'comfortable' | 'spacious';
   /** Displays the timeline debug overlay. Default: false. */
   debug?: boolean;
+  /**
+   * The animation's text description: a summary, one button per step that seeks
+   * the player to it, and a live region announcing the step being entered.
+   *
+   * - `'sr-only'` (default) — for assistive technology only, with a button to
+   *   reveal it. The visible player is unchanged.
+   * - `'visible'` — rendered open, as a transcript panel under the stage.
+   * - `'none'` — omitted. The stage is `aria-hidden` decoration, so this leaves
+   *   a screen-reader user with no way to read the animation; use it only when
+   *   the same information is already in the page.
+   */
+  transcript?: 'sr-only' | 'visible' | 'none';
   /** Playback speed (1 = normal). Default: 1. */
   speed?: number;
   /**

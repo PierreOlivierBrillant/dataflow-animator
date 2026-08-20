@@ -51,6 +51,13 @@
             "$ref": "#/definitions/Action"
           },
           "description": "Animated scenario: ordered list of actions (moves, arrows, comments…) played sequentially. Each root action becomes a navigable step."
+        },
+        "description": {
+          "type": "string",
+          "description": "What this animation shows, in one or two sentences — the opening line of the player's text description, which is what a screen-reader user hears before any step.\n\nThe rest of that description (the cast of elements and every step) is generated from the spec, so omitting this still produces a usable one; it loses only the part no structure can supply, which is what the animation is ABOUT. Per-step wording is  {@link  Action.description } .",
+          "examples": [
+            "How a page load reaches the database and comes back"
+          ]
         }
       },
       "required": [
@@ -880,6 +887,13 @@
           "type": "string",
           "description": "Action ID to refer to it (wait_for / keep_until)."
         },
+        "description": {
+          "type": "string",
+          "description": "What this step means, in one sentence, for the player's text description (see  {@link  DataFlowSpec.description } ).\n\nThe description is generated from the action itself when this is omitted — \"GET /users travels from Browser to Web server\" — so an animation is described whether or not anyone writes anything. Provide it when the generated sentence would be accurate and still miss the point: the structure knows a packet moved, only you know it moved BECAUSE the cache missed.\n\nA `comment` action needs it least of all: its `text` is already your own narration, and it is used verbatim.",
+          "examples": [
+            "The cache misses, so the request continues to the database"
+          ]
+        },
         "duration": {
           "type": "number",
           "description": "Animation duration in ms (default: 500, 1200 for loading).",
@@ -952,6 +966,13 @@
         "id": {
           "type": "string",
           "description": "Action ID to refer to it (wait_for / keep_until)."
+        },
+        "description": {
+          "type": "string",
+          "description": "What this step means, in one sentence, for the player's text description (see  {@link  DataFlowSpec.description } ).\n\nThe description is generated from the action itself when this is omitted — \"GET /users travels from Browser to Web server\" — so an animation is described whether or not anyone writes anything. Provide it when the generated sentence would be accurate and still miss the point: the structure knows a packet moved, only you know it moved BECAUSE the cache missed.\n\nA `comment` action needs it least of all: its `text` is already your own narration, and it is used verbatim.",
+          "examples": [
+            "The cache misses, so the request continues to the database"
+          ]
         },
         "duration": {
           "type": "number",
@@ -1043,6 +1064,13 @@
           "type": "string",
           "description": "Action ID to refer to it (wait_for / keep_until)."
         },
+        "description": {
+          "type": "string",
+          "description": "What this step means, in one sentence, for the player's text description (see  {@link  DataFlowSpec.description } ).\n\nThe description is generated from the action itself when this is omitted — \"GET /users travels from Browser to Web server\" — so an animation is described whether or not anyone writes anything. Provide it when the generated sentence would be accurate and still miss the point: the structure knows a packet moved, only you know it moved BECAUSE the cache missed.\n\nA `comment` action needs it least of all: its `text` is already your own narration, and it is used verbatim.",
+          "examples": [
+            "The cache misses, so the request continues to the database"
+          ]
+        },
         "duration": {
           "type": "number",
           "description": "Animation duration in ms (default: 500, 1200 for loading).",
@@ -1108,6 +1136,13 @@
           "type": "string",
           "description": "Action ID to refer to it (wait_for / keep_until)."
         },
+        "description": {
+          "type": "string",
+          "description": "What this step means, in one sentence, for the player's text description (see  {@link  DataFlowSpec.description } ).\n\nThe description is generated from the action itself when this is omitted — \"GET /users travels from Browser to Web server\" — so an animation is described whether or not anyone writes anything. Provide it when the generated sentence would be accurate and still miss the point: the structure knows a packet moved, only you know it moved BECAUSE the cache missed.\n\nA `comment` action needs it least of all: its `text` is already your own narration, and it is used verbatim.",
+          "examples": [
+            "The cache misses, so the request continues to the database"
+          ]
+        },
         "duration": {
           "type": "number",
           "description": "Animation duration in ms (default: 500, 1200 for loading).",
@@ -1169,6 +1204,13 @@
         "id": {
           "type": "string",
           "description": "Action ID to refer to it (wait_for / keep_until)."
+        },
+        "description": {
+          "type": "string",
+          "description": "What this step means, in one sentence, for the player's text description (see  {@link  DataFlowSpec.description } ).\n\nThe description is generated from the action itself when this is omitted — \"GET /users travels from Browser to Web server\" — so an animation is described whether or not anyone writes anything. Provide it when the generated sentence would be accurate and still miss the point: the structure knows a packet moved, only you know it moved BECAUSE the cache missed.\n\nA `comment` action needs it least of all: its `text` is already your own narration, and it is used verbatim.",
+          "examples": [
+            "The cache misses, so the request continues to the database"
+          ]
         },
         "duration": {
           "type": "number",
@@ -1235,6 +1277,13 @@
         "id": {
           "type": "string",
           "description": "Action ID to refer to it (wait_for / keep_until)."
+        },
+        "description": {
+          "type": "string",
+          "description": "What this step means, in one sentence, for the player's text description (see  {@link  DataFlowSpec.description } ).\n\nThe description is generated from the action itself when this is omitted — \"GET /users travels from Browser to Web server\" — so an animation is described whether or not anyone writes anything. Provide it when the generated sentence would be accurate and still miss the point: the structure knows a packet moved, only you know it moved BECAUSE the cache missed.\n\nA `comment` action needs it least of all: its `text` is already your own narration, and it is used verbatim.",
+          "examples": [
+            "The cache misses, so the request continues to the database"
+          ]
         },
         "duration": {
           "type": "number",
@@ -1306,6 +1355,13 @@
           "type": "string",
           "description": "Action ID to refer to it (wait_for / keep_until)."
         },
+        "description": {
+          "type": "string",
+          "description": "What this step means, in one sentence, for the player's text description (see  {@link  DataFlowSpec.description } ).\n\nThe description is generated from the action itself when this is omitted — \"GET /users travels from Browser to Web server\" — so an animation is described whether or not anyone writes anything. Provide it when the generated sentence would be accurate and still miss the point: the structure knows a packet moved, only you know it moved BECAUSE the cache missed.\n\nA `comment` action needs it least of all: its `text` is already your own narration, and it is used verbatim.",
+          "examples": [
+            "The cache misses, so the request continues to the database"
+          ]
+        },
         "duration": {
           "type": "number",
           "description": "Animation duration in ms (default: 500, 1200 for loading).",
@@ -1368,6 +1424,13 @@
         "id": {
           "type": "string",
           "description": "Action ID to refer to it (wait_for / keep_until)."
+        },
+        "description": {
+          "type": "string",
+          "description": "What this step means, in one sentence, for the player's text description (see  {@link  DataFlowSpec.description } ).\n\nThe description is generated from the action itself when this is omitted — \"GET /users travels from Browser to Web server\" — so an animation is described whether or not anyone writes anything. Provide it when the generated sentence would be accurate and still miss the point: the structure knows a packet moved, only you know it moved BECAUSE the cache missed.\n\nA `comment` action needs it least of all: its `text` is already your own narration, and it is used verbatim.",
+          "examples": [
+            "The cache misses, so the request continues to the database"
+          ]
         },
         "duration": {
           "type": "number",
@@ -1436,6 +1499,13 @@
         "id": {
           "type": "string",
           "description": "Action ID to refer to it (wait_for / keep_until)."
+        },
+        "description": {
+          "type": "string",
+          "description": "What this step means, in one sentence, for the player's text description (see  {@link  DataFlowSpec.description } ).\n\nThe description is generated from the action itself when this is omitted — \"GET /users travels from Browser to Web server\" — so an animation is described whether or not anyone writes anything. Provide it when the generated sentence would be accurate and still miss the point: the structure knows a packet moved, only you know it moved BECAUSE the cache missed.\n\nA `comment` action needs it least of all: its `text` is already your own narration, and it is used verbatim.",
+          "examples": [
+            "The cache misses, so the request continues to the database"
+          ]
         },
         "duration": {
           "type": "number",
@@ -1528,6 +1598,13 @@
           "type": "string",
           "description": "Action ID to refer to it (wait_for / keep_until)."
         },
+        "description": {
+          "type": "string",
+          "description": "What this step means, in one sentence, for the player's text description (see  {@link  DataFlowSpec.description } ).\n\nThe description is generated from the action itself when this is omitted — \"GET /users travels from Browser to Web server\" — so an animation is described whether or not anyone writes anything. Provide it when the generated sentence would be accurate and still miss the point: the structure knows a packet moved, only you know it moved BECAUSE the cache missed.\n\nA `comment` action needs it least of all: its `text` is already your own narration, and it is used verbatim.",
+          "examples": [
+            "The cache misses, so the request continues to the database"
+          ]
+        },
         "duration": {
           "type": "number",
           "description": "Animation duration in ms (default: 500, 1200 for loading).",
@@ -1598,6 +1675,13 @@
         "id": {
           "type": "string",
           "description": "Action ID to refer to it (wait_for / keep_until)."
+        },
+        "description": {
+          "type": "string",
+          "description": "What this step means, in one sentence, for the player's text description (see  {@link  DataFlowSpec.description } ).\n\nThe description is generated from the action itself when this is omitted — \"GET /users travels from Browser to Web server\" — so an animation is described whether or not anyone writes anything. Provide it when the generated sentence would be accurate and still miss the point: the structure knows a packet moved, only you know it moved BECAUSE the cache missed.\n\nA `comment` action needs it least of all: its `text` is already your own narration, and it is used verbatim.",
+          "examples": [
+            "The cache misses, so the request continues to the database"
+          ]
         },
         "duration": {
           "type": "number",
@@ -1676,6 +1760,13 @@
           "type": "string",
           "description": "Action ID to refer to it (wait_for / keep_until)."
         },
+        "description": {
+          "type": "string",
+          "description": "What this step means, in one sentence, for the player's text description (see  {@link  DataFlowSpec.description } ).\n\nThe description is generated from the action itself when this is omitted — \"GET /users travels from Browser to Web server\" — so an animation is described whether or not anyone writes anything. Provide it when the generated sentence would be accurate and still miss the point: the structure knows a packet moved, only you know it moved BECAUSE the cache missed.\n\nA `comment` action needs it least of all: its `text` is already your own narration, and it is used verbatim.",
+          "examples": [
+            "The cache misses, so the request continues to the database"
+          ]
+        },
         "duration": {
           "type": "number",
           "description": "Animation duration in ms (default: 500, 1200 for loading).",
@@ -1747,6 +1838,13 @@
         "id": {
           "type": "string",
           "description": "Action ID to refer to it (wait_for / keep_until)."
+        },
+        "description": {
+          "type": "string",
+          "description": "What this step means, in one sentence, for the player's text description (see  {@link  DataFlowSpec.description } ).\n\nThe description is generated from the action itself when this is omitted — \"GET /users travels from Browser to Web server\" — so an animation is described whether or not anyone writes anything. Provide it when the generated sentence would be accurate and still miss the point: the structure knows a packet moved, only you know it moved BECAUSE the cache missed.\n\nA `comment` action needs it least of all: its `text` is already your own narration, and it is used verbatim.",
+          "examples": [
+            "The cache misses, so the request continues to the database"
+          ]
         },
         "duration": {
           "type": "number",
@@ -1845,6 +1943,13 @@
           "type": "string",
           "description": "Action ID to refer to it (wait_for / keep_until)."
         },
+        "description": {
+          "type": "string",
+          "description": "What this step means, in one sentence, for the player's text description (see  {@link  DataFlowSpec.description } ).\n\nThe description is generated from the action itself when this is omitted — \"GET /users travels from Browser to Web server\" — so an animation is described whether or not anyone writes anything. Provide it when the generated sentence would be accurate and still miss the point: the structure knows a packet moved, only you know it moved BECAUSE the cache missed.\n\nA `comment` action needs it least of all: its `text` is already your own narration, and it is used verbatim.",
+          "examples": [
+            "The cache misses, so the request continues to the database"
+          ]
+        },
         "duration": {
           "type": "number",
           "description": "Animation duration in ms (default: 500, 1200 for loading).",
@@ -1912,6 +2017,13 @@
         "id": {
           "type": "string",
           "description": "Action ID to refer to it (wait_for / keep_until)."
+        },
+        "description": {
+          "type": "string",
+          "description": "What this step means, in one sentence, for the player's text description (see  {@link  DataFlowSpec.description } ).\n\nThe description is generated from the action itself when this is omitted — \"GET /users travels from Browser to Web server\" — so an animation is described whether or not anyone writes anything. Provide it when the generated sentence would be accurate and still miss the point: the structure knows a packet moved, only you know it moved BECAUSE the cache missed.\n\nA `comment` action needs it least of all: its `text` is already your own narration, and it is used verbatim.",
+          "examples": [
+            "The cache misses, so the request continues to the database"
+          ]
         },
         "duration": {
           "type": "number",

@@ -7,6 +7,36 @@ here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- **The animation is now rendered as text, not just as pixels.**
+  `describeAnimation(spec, timeline, labels)` (exported from
+  `@dataflow-animator/core`) turns a compiled timeline into a summary and one
+  sentence per step — a pure function, in the spirit of `evaluate`, so the two
+  renderings cannot drift apart.
+- **The player carries that description.** Its root is now a named `region`,
+  and it renders a summary plus one BUTTON per step that pauses and seeks to
+  that step: the same navigation the control bar offers, exposed as text. A
+  `polite` live region announces the step the playhead enters. Controlled by
+  the new `transcript` option / prop / attribute — `'sr-only'` (default),
+  `'visible'`, `'none'` — on all four packages.
+- **Two optional spec fields**, `DataFlowSpec.description` and
+  `Action.description`, for the intent a generated sentence cannot infer. Both
+  are optional: an animation with neither is still fully described.
+- **32 new `PlayerLabels` templates** (`describeMove`, `describeArrow`…), so
+  the description localises through the same object as the rest of the chrome,
+  with word order left to the translator.
+
+### Changed
+
+- **The stage is now `aria-hidden`.** Its labels are absolutely positioned, so
+  a screen reader read them in DOM order as a bag of loose strings in which the
+  animation appeared nowhere. The text description is the accessible
+  equivalent; the stage is decor. No visible rendering changes — the closed
+  transcript is clipped to nothing, and the visual goldens are unchanged.
+
 ## 1.0.0 — 2026-08-17
 
 First public release: a framework-agnostic core and three thin bindings.

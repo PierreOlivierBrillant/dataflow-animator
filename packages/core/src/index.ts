@@ -34,6 +34,13 @@ export type { PlayerLabels } from './dom/labels';
 // instead of writing a default that drifts from it.
 export { DEFAULT_PLAYER_LABELS } from './dom/labels';
 
+// The animation as an ordered text, for callers that want the description
+// without a player: a static page listing what each demo does, an export, a
+// braille-display feed. The player builds its own transcript from this exact
+// function, so the two can never say different things.
+export { describeAnimation } from './a11y/describe';
+export type { AnimationDescription, DescribedStep } from './a11y/describe';
+
 // The stage on its own, for a host that brings its own chrome and drives
 // `update(t)` itself. `mountPlayer` is built on top of it.
 export { mountStage } from './dom/mount';

@@ -45,6 +45,11 @@ export interface PlayerInputs {
   autoPlay?: boolean;
   loop?: boolean;
   debug?: boolean;
+  /**
+   * The animation's text description: `'sr-only'` (default), `'visible'` or
+   * `'none'`. See the core's `PlayerOptions.transcript`.
+   */
+  transcript?: PlayerOptions['transcript'];
   highlight?: Highlighter;
   /** Chrome strings — any key left out keeps the core's English default. */
   labels?: Partial<PlayerLabels>;
@@ -81,6 +86,7 @@ export function toPlayerOptions(inputs: PlayerInputs): PlayerOptions {
   put(options, 'autoPlay', inputs.autoPlay);
   put(options, 'loop', inputs.loop);
   put(options, 'debug', inputs.debug);
+  put(options, 'transcript', inputs.transcript);
   put(options, 'highlight', inputs.highlight);
   put(options, 'labels', inputs.labels);
 
