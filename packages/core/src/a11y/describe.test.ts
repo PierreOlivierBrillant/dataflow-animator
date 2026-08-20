@@ -34,7 +34,8 @@ describe('describeAnimation', () => {
     });
 
     expect(result.summary).toContain('Browser, Web server, Database');
-    expect(result.summary).toContain('1 steps');
+    expect(result.summary).toContain('1 step');
+    expect(result.summary).not.toContain('1 steps');
   });
 
   it("opens with the spec's own description when it has one", () => {
@@ -129,6 +130,113 @@ describe('describeAnimation', () => {
     expect(result.steps[0].text).toContain('Browser is working');
   });
 
+  it('names a packet by WHAT IT IS when nothing it carries can name it', () => {
+    // The id is the author's handle on the packet, not a name a listener can
+    // use: "rows travels from Database to API" tells them nothing about what
+    // moved. This is the whole reason the fallback is not the id.
+    const result = run({
+      nodes: [
+        { id: 'db', type: 'database', text: 'Database' },
+        { id: 'api', type: 'server', text: 'API' },
+      ],
+      packets: [
+        { id: 'rows', kind: 'sql_response', response_content: { rows: 12 } },
+        { id: 'one', kind: 'sql_response', response_content: { rows: 1 } },
+        { id: 'bare', kind: 'sql_response' },
+        { id: 'q', kind: 'sql_request' },
+        { id: 'h', kind: 'http_packet' },
+        { id: 'badge', kind: 'subicon' },
+        { id: 'panel', kind: 'complex_node' },
+      ],
+      timeline: [
+        { type: 'move', object: 'rows', from: 'db', to: 'api' },
+        { type: 'move', object: 'one', from: 'db', to: 'api' },
+        { type: 'move', object: 'bare', from: 'db', to: 'api' },
+        { type: 'move', object: 'q', from: 'api', to: 'db' },
+        { type: 'move', object: 'h', from: 'api', to: 'db' },
+        { type: 'move', object: 'badge', from: 'api', to: 'db' },
+        { type: 'move', object: 'panel', from: 'api', to: 'db' },
+      ],
+    });
+
+    const said = result.steps.map((step) => step.text);
+    expect(said[0]).toBe(
+      'a SQL response of 12 rows travels from Database to API.'
+    );
+    expect(said[1]).toBe(
+      'a SQL response of 1 row travels from Database to API.'
+    );
+    expect(said[2]).toBe('a SQL response travels from Database to API.');
+    expect(said[3]).toBe('a SQL query travels from API to Database.');
+    expect(said[4]).toBe('an HTTP packet travels from API to Database.');
+    expect(said[5]).toBe('a badge travels from API to Database.');
+    expect(said[6]).toBe('a panel travels from API to Database.');
+    // None of them OPENS on the raw id, which is the shape the bug had.
+    for (const text of said)
+      expect(text).not.toMatch(/^(rows|one|bare|q|h|badge|panel) /);
+  });
+
+  it('rejects a label a screen reader would spell out instead of read', () => {
+    // A label made only of spaces or symbols is announced character by
+    // character — "space", "right arrow" — which names nothing. It is not a
+    // label, so the packet falls back to what it is.
+    const result = run({
+      nodes: [
+        { id: 'a', type: 'square', text: '   ' },
+        { id: 'b', type: 'square', text: 'B' },
+      ],
+      packets: [
+        { id: 'p', kind: 'http_packet', packet_content: { header: ' ' } },
+        { id: 'q', kind: 'http_packet', packet_content: { header: '→' } },
+      ],
+      timeline: [
+        { type: 'move', object: 'p', from: 'a', to: 'b' },
+        { type: 'move', object: 'q', from: 'a', to: 'b' },
+      ],
+    });
+
+    // The node keeps its id, which at least identifies it; the packets are
+    // named by their kind.
+    expect(result.steps[0].text).toBe('an HTTP packet travels from a to B.');
+    expect(result.steps[1].text).toBe('an HTTP packet travels from a to B.');
+  });
+
+  it('keeps a label that mixes symbols with real words', () => {
+    const result = run({
+      ...base,
+      packets: [
+        {
+          id: 'req',
+          kind: 'http_packet',
+          packet_content: { header: 'GET / 🔒' },
+        },
+      ],
+      timeline: [{ type: 'move', object: 'req', from: 'browser', to: 'api' }],
+    });
+
+    expect(result.steps[0].text).toBe(
+      'GET / 🔒 travels from Browser to Web server.'
+    );
+  });
+
+  it('agrees the singular of every counted sentence', () => {
+    const result = run({
+      ...base,
+      timeline: [
+        {
+          type: 'set_content',
+          object: 'db',
+          content: { type: 'table', columns: ['id'], rows_data: [[1]] },
+        },
+      ],
+    });
+
+    expect(result.summary).toContain('1 step');
+    expect(result.steps[0].text).toBe(
+      'Database now shows: a table of 1 row, columns id.'
+    );
+  });
+
   it('falls back to ids when nothing carries a label', () => {
     const result = run({
       nodes: [
@@ -139,7 +247,9 @@ describe('describeAnimation', () => {
       timeline: [{ type: 'move', object: 'blob', from: 'left', to: 'right' }],
     });
 
-    expect(result.steps[0].text).toBe('blob travels from left to right.');
+    // A node has no kind worth speaking, so its id stays its name; the packet
+    // is named by what it is.
+    expect(result.steps[0].text).toBe('a panel travels from left to right.');
   });
 
   it('describes every action type without producing an empty step', () => {

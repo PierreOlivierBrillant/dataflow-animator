@@ -89,6 +89,22 @@ without them is still fully described.
 A `comment` action never needs one: its `text` is already your own narration of
 the step, and it is used verbatim.
 
+### How an element gets named
+
+A step has to say WHAT moved, so each element is named from the first thing
+that can actually be spoken:
+
+1. **The text it carries** — an HTTP packet's header, a query's SQL, a badge's
+   value, a node's `text`.
+2. **Failing that, what it is** — "a SQL response of 12 rows", "an HTTP
+   packet". A packet's id is your handle on it, not a name a listener can use:
+   `rows travels from Database to API` names nothing.
+
+A label made only of spaces, punctuation or symbols does not count as text: a
+screen reader spells those out character by character ("space", "right
+arrow"), so `header: '→'` falls through to the packet's kind. A label that
+mixes symbols with words — `GET / 🔒` — is kept as is.
+
 ## Localising the description
 
 The sentences are built from **templates** in

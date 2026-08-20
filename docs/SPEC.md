@@ -65,6 +65,12 @@ Values: `'sr-only'` (default — present for assistive technology, revealed by a
 button), `'visible'` (rendered open), `'none'` (omitted; leaves no accessible
 equivalent at all, since the stage is hidden decor).
 
+An element is named from the first speakable thing it offers: the text it
+carries (header, query, badge, `text`), then WHAT IT IS (`a SQL response of 12
+rows`, `an HTTP packet`). A packet's id is never a name — it is the author's
+handle. A label with no letter or digit (spaces, punctuation, a lone symbol) is
+not text either: a screen reader spells it out, so it falls through to the kind.
+
 Sentences come from `{placeholder}` templates in `PlayerLabels`
 (`describeMove`, `describeArrow`…), so they localise through the same object as
 the rest of the chrome, and word order is the translator's. `spec.description`

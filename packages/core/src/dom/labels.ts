@@ -80,8 +80,17 @@ export interface PlayerLabels {
   stepAnnouncement: string;
   /** Opens the summary with the cast of the animation. `{list}`. */
   describeActors: string;
-  /** States how many steps the animation has. `{count}`. */
+  /**
+   * States how many steps the animation has. `{count}`.
+   *
+   * Paired with a `…One` singular below, and every counted template here is:
+   * "1 steps" is the kind of detail that makes a generated description sound
+   * generated. The core picks the singular at exactly one — the English rule;
+   * a language that also singularises zero can put the same wording in both.
+   */
   describeStepCount: string;
+  /** Singular of {@link PlayerLabels.describeStepCount}. */
+  describeStepCountOne: string;
   /** Names a connection that carries no label of its own. `{id}`. */
   describeConnection: string;
   /** `move`. `{object}`, `{from}`, `{to}`. */
@@ -124,10 +133,29 @@ export interface PlayerLabels {
   describeToggleOpen: string;
   /** `wait`. */
   describePause: string;
+  /**
+   * What a packet IS, when nothing it carries can name it — its id is the
+   * author's handle on it, not a name a listener can use.
+   */
+  describePacketHttp: string;
+  /** A `sql_request` with no readable query. */
+  describePacketSqlRequest: string;
+  /** A `sql_response` with neither header nor row count. */
+  describePacketSqlResponse: string;
+  /** A `sql_response` known only by its row count. `{rows}`. */
+  describePacketRows: string;
+  /** Singular of {@link PlayerLabels.describePacketRows}. */
+  describePacketRowsOne: string;
+  /** A `simple_node` / `complex_node` packet with no readable content. */
+  describePacketPanel: string;
+  /** A `subicon` packet with no readable badge. */
+  describePacketBadge: string;
   /** A `set_content` carrying an image. */
   describeContentImage: string;
   /** A `set_content` carrying a table. `{columns}`, `{rows}`. */
   describeContentTable: string;
+  /** Singular of {@link PlayerLabels.describeContentTable}. */
+  describeContentTableOne: string;
   /** A `set_content` with nothing to read out. */
   describeContentEmpty: string;
 }
@@ -159,6 +187,7 @@ export const DEFAULT_PLAYER_LABELS: PlayerLabels = {
   stepAnnouncement: 'Step {n} of {total}. {text}',
   describeActors: 'Elements: {list}',
   describeStepCount: '{count} steps',
+  describeStepCountOne: '{count} step',
   describeConnection: 'the {id} link',
   describeMove: '{object} travels from {from} to {to}',
   describeArrow: 'An arrow is drawn from {from} to {to}',
@@ -181,8 +210,16 @@ export const DEFAULT_PLAYER_LABELS: PlayerLabels = {
   describeToggleClosed: '{object} closes',
   describeToggleOpen: '{object} opens',
   describePause: 'Pause',
+  describePacketHttp: 'an HTTP packet',
+  describePacketSqlRequest: 'a SQL query',
+  describePacketSqlResponse: 'a SQL response',
+  describePacketRows: 'a SQL response of {rows} rows',
+  describePacketRowsOne: 'a SQL response of {rows} row',
+  describePacketPanel: 'a panel',
+  describePacketBadge: 'a badge',
   describeContentImage: 'an image',
   describeContentTable: 'a table of {rows} rows, columns {columns}',
+  describeContentTableOne: 'a table of {rows} row, columns {columns}',
   describeContentEmpty: 'nothing',
 };
 

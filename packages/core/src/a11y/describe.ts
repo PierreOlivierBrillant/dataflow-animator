@@ -59,6 +59,26 @@ function fill(template: string, vars: Record<string, string>): string {
   );
 }
 
+/**
+ * Fills a counted template, taking the singular form at exactly one.
+ *
+ * Two whole templates rather than an inflection rule: a count is embedded in a
+ * sentence, and which words around it change is the translator's business, not
+ * something a suffix rule can decide from English.
+ */
+function fillCount(
+  plural: string,
+  singular: string,
+  key: string,
+  count: number,
+  extra: Record<string, string> = {}
+): string {
+  return fill(count === 1 ? singular : plural, {
+    ...extra,
+    [key]: String(count),
+  });
+}
+
 /** Ends a fragment with a period unless it already ends in punctuation. */
 function sentence(text: string): string {
   const trimmed = text.trim();
@@ -81,15 +101,64 @@ function condense(text: string, max = 80): string {
  * the story entirely.
  */
 function nodeName(node: Node | undefined, id: string): string {
-  return node?.text?.trim() || id;
+  const text = node?.text?.trim();
+  return text && isSpeakable(text) ? text : id;
+}
+
+/**
+ * Whether a string can serve as a NAME when spoken.
+ *
+ * A label made only of spaces, punctuation or symbols is not a name: a screen
+ * reader verbalises each character, so `" "` is announced "space" and `"→"`
+ * "right arrow" — the listener learns nothing about what just moved. Requiring
+ * one letter or digit is what separates a label from a decoration.
+ */
+function isSpeakable(text: string): boolean {
+  return /[\p{L}\p{N}]/u.test(text);
+}
+
+/**
+ * What KIND of thing a packet is, when nothing it carries can name it.
+ *
+ * The fallback used to be the packet's id, and an id is a name for the author,
+ * not for the listener: `"rows travels from Database to API"` says nothing,
+ * while `"a SQL response of 12 rows travels from Database to API"` says
+ * exactly what moved. An id is a last resort below this, not above it.
+ */
+function packetKindName(packet: Packet, labels: PlayerLabels): string {
+  switch (packet.kind) {
+    case 'http_packet':
+      return labels.describePacketHttp;
+    case 'sql_request':
+      return labels.describePacketSqlRequest;
+    case 'sql_response': {
+      const rows = packet.response_content?.rows;
+      return rows === undefined
+        ? labels.describePacketSqlResponse
+        : fillCount(
+            labels.describePacketRows,
+            labels.describePacketRowsOne,
+            'rows',
+            rows
+          );
+    }
+    case 'subicon':
+      return labels.describePacketBadge;
+    default:
+      return labels.describePacketPanel;
+  }
 }
 
 /**
  * How a packet is called out loud, taken from whichever content field its
  * `kind` actually fills — the header of an HTTP packet, the SQL of a request,
- * the badge of a travelling `subicon`.
+ * the badge of a travelling `subicon`. Failing all of those, what it IS.
  */
-function packetName(packet: Packet | undefined, id: string): string {
+function packetName(
+  packet: Packet | undefined,
+  id: string,
+  labels: PlayerLabels
+): string {
   if (!packet) return id;
   const candidates = [
     packet.packet_content?.header,
@@ -101,9 +170,9 @@ function packetName(packet: Packet | undefined, id: string): string {
   ];
   for (const candidate of candidates) {
     const text = candidate?.trim();
-    if (text) return condense(text, 40);
+    if (text && isSpeakable(text)) return condense(text, 40);
   }
-  return id;
+  return packetKindName(packet, labels);
 }
 
 /** Resolves a `"node"` or `"node:pin"` reference to the node's spoken name. */
@@ -124,7 +193,7 @@ function objectName(id: string, cast: Cast, labels: PlayerLabels): string {
   const node = cast.nodes.get(id);
   if (node) return nodeName(node, id);
   const packet = cast.packets.get(id);
-  if (packet) return packetName(packet, id);
+  if (packet) return packetName(packet, id, labels);
   if (cast.connections.has(id)) return fill(labels.describeConnection, { id });
   return id;
 }
@@ -134,10 +203,13 @@ function contentName(content: ObjectContent, labels: PlayerLabels): string {
   const { type, value, url, columns, rows_data: rows } = content;
   if (type === 'image') return labels.describeContentImage;
   if (type === 'table') {
-    return fill(labels.describeContentTable, {
-      columns: (columns ?? []).join(', '),
-      rows: String(rows?.length ?? 0),
-    });
+    return fillCount(
+      labels.describeContentTable,
+      labels.describeContentTableOne,
+      'rows',
+      rows?.length ?? 0,
+      { columns: (columns ?? []).join(', ') }
+    );
   }
   const text = value?.trim();
   if (!text) return url?.trim() ?? labels.describeContentEmpty;
@@ -296,7 +368,12 @@ export function describeAnimation(
     actors.length > 0
       ? fill(labels.describeActors, { list: actors.join(', ') })
       : '',
-    fill(labels.describeStepCount, { count: String(steps.length) }),
+    fillCount(
+      labels.describeStepCount,
+      labels.describeStepCountOne,
+      'count',
+      steps.length
+    ),
   ]
     .map((part) => sentence(part ?? ''))
     .filter((part) => part !== '');

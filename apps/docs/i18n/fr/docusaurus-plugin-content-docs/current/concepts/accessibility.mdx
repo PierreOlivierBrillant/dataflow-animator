@@ -93,6 +93,24 @@ animation qui s'en passe reste entièrement décrite.
 Une action `comment` n'en a jamais besoin : son `text` est déjà votre propre
 narration de l'étape, et il est repris tel quel.
 
+### Comment un élément est nommé
+
+Une étape doit dire CE QUI s'est déplacé, donc chaque élément est nommé à
+partir de la première chose réellement prononçable :
+
+1. **Le texte qu'il porte** — l'en-tête d'un paquet HTTP, le SQL d'une requête,
+   la valeur d'une pastille, le `text` d'un nœud.
+2. **À défaut, ce qu'il est** — « une réponse SQL de 12 lignes », « un paquet
+   HTTP ». L'identifiant d'un paquet est votre poignée sur lui, pas un nom
+   qu'un auditeur peut utiliser : « rows va de Base de données vers API » ne
+   nomme rien.
+
+Un libellé fait uniquement d'espaces, de ponctuation ou de symboles ne compte
+pas comme du texte : un lecteur d'écran les épelle caractère par caractère
+(« espace », « flèche vers la droite »), donc `header: '→'` retombe sur la
+nature du paquet. Un libellé qui mêle symboles et mots — `GET / 🔒` — est
+conservé tel quel.
+
 ## Localiser la description
 
 Les phrases sont construites à partir de **gabarits** dans

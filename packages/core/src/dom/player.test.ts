@@ -93,7 +93,9 @@ describe('mountPlayer — the root', () => {
     ).toBe('true');
     const steps = player.el.querySelectorAll('.rdfa-transcript-step');
     expect(steps).toHaveLength(1);
-    expect(steps[0].textContent).toBe('p travels from A to B.');
+    // The packet carries no content, so it is named by what it is rather than
+    // by the id `p`, which would name nothing to a listener.
+    expect(steps[0].textContent).toBe('an HTTP packet travels from A to B.');
   });
 
   it('seeks the clock to the step a reader activates, paused', () => {

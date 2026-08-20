@@ -29,6 +29,16 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   the description localises through the same object as the rest of the chrome,
   with word order left to the translator.
 
+### Fixed
+
+- **A moving element is now always named.** A packet with no readable content
+  used to be announced by its id — `rows travels from Database to API`, which
+  names nothing — and a label made only of spaces or symbols was read out
+  character by character ("space", "right arrow"). Both now fall through to
+  what the packet IS: `a SQL response of 12 rows travels from Database to API`.
+- **Counted sentences agree in number** ("1 step", not "1 steps"), through a
+  singular template beside each counted one.
+
 ### Changed
 
 - **The stage is now `aria-hidden`.** Its labels are absolutely positioned, so
