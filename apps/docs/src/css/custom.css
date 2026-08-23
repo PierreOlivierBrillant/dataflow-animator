@@ -55,6 +55,13 @@
   --rdfa-hairline: rgba(0, 0, 0, 0.1);
   --rdfa-surface-hover: rgba(0, 0, 0, 0.04);
 
+  /* The chip surface every navbar control wears — the language and theme
+     switchers, the GitHub button, DocSearch's own button. One source, because
+     the four spelling it separately is exactly how they drifted to four
+     different heights and two different palettes. */
+  --rdfa-chip-bg: rgba(0, 0, 0, 0.03);
+  --rdfa-chip-bg-hover: rgba(0, 0, 0, 0.06);
+
   --ifm-font-family-base: 'Inter', ui-sans-serif, system-ui, sans-serif;
   --ifm-heading-font-family:
     'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
@@ -68,6 +75,10 @@
 
   --nav-h: 64px;
   --ifm-navbar-height: 64px !important;
+  /* THE height of every interactive control in the navbar row: nav links,
+     search button, both switchers, the GitHub and menu buttons. Changing it
+     moves all of them together, which is the point. */
+  --rdfa-control-h: 36px;
 
   --white: #fff;
 }
@@ -82,6 +93,8 @@
 
   --rdfa-hairline: rgba(255, 255, 255, 0.08);
   --rdfa-surface-hover: rgba(255, 255, 255, 0.05);
+  --rdfa-chip-bg: rgba(255, 255, 255, 0.03);
+  --rdfa-chip-bg-hover: rgba(255, 255, 255, 0.08);
 
   --ifm-navbar-background-color: rgba(6, 5, 15, 0.65);
   --ifm-footer-background-color: #06050f;
@@ -111,15 +124,72 @@ html {
   box-shadow: none;
 }
 
-/* The desktop row has to fit from 997px up (see `--breakpoint-nav`), and the
-   full DocSearch button — placeholder + the Ctrl-K keys — is 174px of it. Below
-   1200px it collapses to its magnifier, which is the same compact form DocSearch
-   itself falls back to on narrow screens (`@media (max-width: 768px)` in
-   @docsearch/css); we only move the threshold up to where the row needs it. */
-@media (max-width: 1199px) {
+/* The shell shared by every boxed navbar control. Written once so the language
+   switcher, the theme switcher, the GitHub button and the menu button cannot
+   drift apart again — they had reached 30 / 36 / 34 / 37px tall, each spelling
+   its own padding. Children get `px-1` and a 28px segment; a chip that holds a
+   single icon gets `w-9` and centres it.
+
+   Box metrics only — `flex`/`items-center` stay Tailwind utilities on the
+   element. This rule is unlayered, so a `display` here would outrank every
+   layered utility, `nav:hidden` on the mobile menu button included. */
+.rdfa-chip {
+  height: var(--rdfa-control-h);
+  border: 1px solid var(--rdfa-hairline);
+  border-radius: 8px;
+  background: var(--rdfa-chip-bg);
+}
+
+/* DocSearch's button is a bar control like the others, so it wears the same
+   chip. Left to @docsearch/css it keeps its own navy palette — a foreign box
+   among translucent hairlines — and a content-box height, which is what made it
+   38px next to its 36px neighbours. */
+.navbar .DocSearch-Button {
+  box-sizing: border-box;
+  height: var(--rdfa-control-h);
+  margin: 0;
+  padding: 0 10px;
+  border: 1px solid var(--rdfa-hairline);
+  border-radius: 8px;
+  background: var(--rdfa-chip-bg);
+  color: var(--ifm-color-content-secondary);
+}
+
+.navbar .DocSearch-Button:hover {
+  background: var(--rdfa-chip-bg-hover);
+  box-shadow: none;
+}
+
+/* 16px is the navbar's standalone-icon size (nav links, GitHub, menu); the
+   magnifier shipped at 20px. */
+.navbar .DocSearch-Search-Icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* The desktop row has to fit from 997px up (see `--breakpoint-nav`). Below the
+   threshold the search collapses to a square holding just its magnifier — the
+   same compact form DocSearch itself falls back to on narrow screens
+   (`@media (max-width: 768px)` in @docsearch/css); we only move the threshold up
+   to where the row needs it. The search sits in the right-hand cluster at every
+   width now, so this rule covers the mobile layout too.
+
+   The threshold is set by FRENCH, not by English: the expanded button measures
+   174px on "Search" and 191px on "Chercher", and it has to stay clear of the nav
+   links anchored to the brand. At 1150px that leaves 59px between the two
+   clusters in French and 76px in English; the row still fits at 1100px, but the
+   French gap narrows to the point where the two clusters read as one run of
+   controls. Re-measure both locales if the nav labels change. */
+@media (max-width: 1149px) {
   .navbar .DocSearch-Button-Placeholder,
   .navbar .DocSearch-Button-Keys {
     display: none;
+  }
+
+  .navbar .DocSearch-Button {
+    width: var(--rdfa-control-h);
+    padding: 0;
+    justify-content: center;
   }
 }
 

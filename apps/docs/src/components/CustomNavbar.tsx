@@ -67,70 +67,67 @@ export function CustomNavbar() {
             : 'bg-transparent border-b border-transparent'
         }`}
       >
-        <div className="w-full px-5 h-16 flex items-center gap-4">
-          {/* Logo */}
+        <div className="flex h-16 w-full items-center gap-4 px-5">
+          {/* Brand. No gap here: LogoText already spaces its own two halves. */}
           <Link
             to="/"
-            className="flex items-center gap-2.5 shrink-0 no-underline hover:no-underline"
+            className="flex shrink-0 items-center no-underline hover:no-underline"
           >
             <LogoText logoSize={32} />
           </Link>
 
-          {/* Algolia search */}
-          <div className="hidden nav:flex items-center">
+          {/* Primary navigation, anchored to the brand it belongs to. Pushed to
+              the far right it left a void between itself and the search. */}
+          <nav className="hidden nav:flex items-center gap-1">
+            <NavLink
+              to="/docs/intro"
+              label={t.nav.documentation}
+              icon={<BookOpen size={16} />}
+            />
+            <NavLink
+              to="/examples"
+              label={t.nav.examples}
+              icon={<LayoutGrid size={16} />}
+            />
+            <NavLink
+              to="/playground"
+              label={t.nav.playground}
+              exact={true}
+              icon={<Zap size={16} />}
+            />
+          </nav>
+
+          {/* Tools, right-aligned. ONE SearchBar across every width: the layout
+              used to mount a second one for the mobile row, and each instance
+              registers DocSearch's own Ctrl-K handler — the shortcut opened two
+              stacked modals, and dismissing one left the other. */}
+          <div className="ml-auto flex items-center gap-2">
             <SearchBar />
-          </div>
 
-          {/* Links + actions */}
-          <div className="flex items-center gap-1 ml-auto">
-            {/* Desktop links */}
-            <nav className="hidden nav:flex items-center gap-1">
-              <NavLink
-                to="/docs/intro"
-                label={t.nav.documentation}
-                icon={<BookOpen size={13} />}
-              />
-              <NavLink
-                to="/examples"
-                label={t.nav.examples}
-                icon={<LayoutGrid size={13} />}
-              />
-              <NavLink
-                to="/playground"
-                label={t.nav.playground}
-                exact={true}
-                icon={<Zap size={13} />}
-              />
-            </nav>
-
-            {/* Mobile search (Algolia) */}
-            <div className="nav:hidden flex items-center">
-              <SearchBar />
-            </div>
-
-            {/* Separator + language + GitHub (desktop) */}
             <div className="hidden nav:flex items-center gap-2">
-              <div className="w-px h-4 bg-slate-900/10 dark:bg-white/10 mx-1" />
+              <div className="h-5 w-px bg-[var(--rdfa-hairline)]" />
               <LanguageSwitcher />
               <ThemeToggle />
               <a
                 href={GITHUB_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-white/70 dark:hover:text-white rounded-lg transition-all no-underline hover:no-underline"
+                aria-label={t.nav.sources}
+                title={t.nav.sources}
+                className="rdfa-chip flex w-9 items-center justify-center text-slate-600 no-underline transition-colors hover:bg-[var(--rdfa-chip-bg-hover)] hover:text-slate-900 hover:no-underline dark:text-white/70 dark:hover:text-white"
               >
-                <FaGithub size={18} />
+                <FaGithub size={16} />
               </a>
             </div>
 
-            {/* Mobile menu button */}
+            {/* Mobile menu button — same chip as the controls it replaces. */}
             <button
-              className="nav:hidden p-2 text-slate-500 hover:text-slate-900 dark:text-white/50 dark:hover:text-white cursor-pointer bg-transparent border-none"
+              className="rdfa-chip flex nav:hidden w-9 cursor-pointer items-center justify-center text-slate-600 transition-colors hover:bg-[var(--rdfa-chip-bg-hover)] hover:text-slate-900 dark:text-white/70 dark:hover:text-white"
               onClick={mobileSidebar.toggle}
               aria-expanded={mobileOpen}
               aria-label={t.nav.toggleMenu}
             >
-              {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+              {mobileOpen ? <X size={16} /> : <Menu size={16} />}
             </button>
           </div>
         </div>
@@ -150,17 +147,32 @@ export function CustomNavbar() {
                   which is what the height animation needs. */}
               <div className="max-h-[calc(100dvh_-_var(--ifm-navbar-height))] overflow-y-auto px-5 pb-5">
                 <div className="flex flex-col gap-1 pt-3">
+                  {/* Same labels, same icons, same 16px as the desktop row —
+                      the two navigations are one list rendered twice. */}
                   {[
-                    { label: t.nav.documentation, to: '/docs/intro' },
-                    { label: t.nav.examples, to: '/examples' },
-                    { label: t.nav.playground, to: '/playground' },
-                  ].map(({ label, to }) => (
+                    {
+                      label: t.nav.documentation,
+                      to: '/docs/intro',
+                      icon: <BookOpen size={16} />,
+                    },
+                    {
+                      label: t.nav.examples,
+                      to: '/examples',
+                      icon: <LayoutGrid size={16} />,
+                    },
+                    {
+                      label: t.nav.playground,
+                      to: '/playground',
+                      icon: <Zap size={16} />,
+                    },
+                  ].map(({ label, to, icon }) => (
                     <Link
                       key={to}
                       to={to}
-                      className="px-3 py-2.5 text-sm text-slate-600 hover:text-slate-900 dark:text-white/60 dark:hover:text-white rounded-lg hover:bg-slate-900/[0.05] dark:hover:bg-white/[0.05] transition-colors no-underline hover:no-underline"
+                      className="flex h-11 items-center gap-2.5 rounded-lg px-3 text-sm text-slate-600 no-underline transition-colors hover:bg-[var(--rdfa-chip-bg-hover)] hover:text-slate-900 hover:no-underline dark:text-white/60 dark:hover:text-white"
                       onClick={mobileSidebar.toggle}
                     >
+                      {icon}
                       {label}
                     </Link>
                   ))}
@@ -168,10 +180,11 @@ export function CustomNavbar() {
                     href={GITHUB_URL}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-3 py-2.5 text-sm text-slate-600 hover:text-slate-900 dark:text-white/60 dark:hover:text-white rounded-lg hover:bg-slate-900/[0.05] dark:hover:bg-white/[0.05] transition-colors no-underline hover:no-underline"
+                    className="flex h-11 items-center gap-2.5 rounded-lg px-3 text-sm text-slate-600 no-underline transition-colors hover:bg-[var(--rdfa-chip-bg-hover)] hover:text-slate-900 hover:no-underline dark:text-white/60 dark:hover:text-white"
                     onClick={mobileSidebar.toggle}
                   >
-                    <FaGithub size={15} /> {t.nav.sources}
+                    <FaGithub size={16} />
+                    {t.nav.sources}
                   </a>
                   <div className="flex items-center gap-2 px-3 pt-2">
                     <LanguageSwitcher />
@@ -215,12 +228,11 @@ function NavLink({ to, label, icon, exact = false }: NavLinkProps) {
 
   return (
     <Link
-      key={label}
       to={to}
-      className={`flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg transition-colors no-underline hover:no-underline font-sans border ${
+      className={`flex h-9 items-center gap-1.5 rounded-lg border px-3 font-sans text-sm no-underline transition-colors hover:no-underline ${
         isActive
-          ? 'text-violet-700 bg-violet-600/10 border-violet-500/25 dark:text-violet-300'
-          : 'text-slate-600 hover:text-slate-900 border-transparent dark:text-white/50 dark:hover:text-white'
+          ? 'border-violet-500/25 bg-violet-600/10 text-violet-700 dark:text-violet-300'
+          : 'border-transparent text-slate-600 hover:bg-[var(--rdfa-chip-bg)] hover:text-slate-900 dark:text-white/50 dark:hover:text-white'
       }`}
     >
       {icon}

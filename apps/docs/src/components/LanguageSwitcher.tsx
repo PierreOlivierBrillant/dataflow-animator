@@ -6,6 +6,9 @@ import { setStoredLocale, useTranslation, type Locale } from '../i18n';
 // Native i18n locale switcher: each language is a distinct URL, so we use
 // links (full navigation) rather than a state toggle. Clicking memorizes
 // the choice to neutralize browser redirection (see Root.tsx).
+//
+// Its shell is `.rdfa-chip` and its segments are 28px tall — the same two
+// numbers ThemeToggle uses, so the pair reads as one control family.
 export function LanguageSwitcher({ className = '' }: { className?: string }) {
   const t = useTranslation();
   const { i18n } = useDocusaurusContext();
@@ -15,11 +18,11 @@ export function LanguageSwitcher({ className = '' }: { className?: string }) {
     <div
       role="group"
       aria-label={t.nav.languageLabel}
-      className={`flex items-center gap-1 rounded-lg border border-slate-900/10 bg-slate-900/[0.03] px-1.5 py-1 dark:border-white/10 dark:bg-white/[0.03] ${className}`}
+      className={`rdfa-chip flex items-center gap-0.5 px-1 ${className}`}
     >
       <Globe
-        size={13}
-        className="text-slate-400 dark:text-white/30"
+        size={14}
+        className="mx-1 shrink-0 text-slate-400 dark:text-white/30"
         aria-hidden="true"
       />
       {i18n.locales.map((locale) => {
@@ -30,10 +33,10 @@ export function LanguageSwitcher({ className = '' }: { className?: string }) {
             href={createUrl({ locale, fullyQualified: false })}
             onClick={() => setStoredLocale(locale as Locale)}
             aria-current={active ? 'true' : undefined}
-            className={`rounded-md px-1.5 py-0.5 text-xs font-semibold uppercase no-underline transition-colors hover:no-underline ${
+            className={`flex h-7 items-center rounded-md px-2 text-xs font-semibold uppercase no-underline transition-colors hover:no-underline ${
               active
                 ? 'bg-violet-600/25 text-violet-700 dark:text-violet-200'
-                : 'text-slate-500 hover:text-slate-900 dark:text-white/45 dark:hover:text-white'
+                : 'bg-transparent text-slate-500 hover:bg-[var(--rdfa-chip-bg-hover)] hover:text-slate-900 dark:text-white/45 dark:hover:text-white'
             }`}
           >
             {locale}

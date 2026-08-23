@@ -32,7 +32,7 @@ function getSystemTheme(): 'light' | 'dark' {
 }
 
 // Three-mode theme toggle (light / system / dark) wired to Docusaurus'
-// color mode. The "system" option follows the OS preference and reacts
+// color mode. Shares `.rdfa-chip` and the 28px segment with LanguageSwitcher. The "system" option follows the OS preference and reacts
 // live to changes (e.g. macOS auto-switch). The preference is persisted
 // independently from Docusaurus' own storage so that the "system" concept
 // survives reloads.
@@ -81,7 +81,7 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
     <div
       role="radiogroup"
       aria-label={t.nav.toggleTheme}
-      className={`flex items-center gap-0.5 rounded-lg border border-slate-900/10 bg-slate-900/[0.03] px-1 py-1 dark:border-white/10 dark:bg-white/[0.03] ${className}`}
+      className={`rdfa-chip flex items-center gap-0.5 px-1 ${className}`}
     >
       {options.map(({ value, icon: Icon, label }) => {
         const active = preference === value;
@@ -94,10 +94,14 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
             aria-label={label}
             title={label}
             onClick={() => apply(value)}
-            className={`flex items-center justify-center p-1.5 rounded-md cursor-pointer bg-transparent border-none transition-colors ${
+            // The unselected branch carries its own `bg-transparent`: sharing a
+            // base one with the selected branch left two background utilities on
+            // the element, and which won was down to their order in the emitted
+            // stylesheet rather than to anything written here.
+            className={`flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border-none transition-colors ${
               active
                 ? 'bg-violet-600/25 text-violet-700 dark:text-violet-200'
-                : 'text-slate-400 hover:text-slate-900 dark:text-white/30 dark:hover:text-white'
+                : 'bg-transparent text-slate-400 hover:bg-[var(--rdfa-chip-bg-hover)] hover:text-slate-900 dark:text-white/30 dark:hover:text-white'
             }`}
           >
             <Icon size={14} aria-hidden="true" />
