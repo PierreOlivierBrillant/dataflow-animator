@@ -43,6 +43,52 @@ export interface PlayerLabels {
   close: string;
   /** The dialog backdrop's accessible name. */
   closeDialog: string;
+
+  // ─── Video export ─────────────────────────────────────────────────────────
+  //
+  // The format NAMES themselves (`WebM`, `MP4`, `GIF`) are not here on purpose:
+  // they are file extensions, identical in every language, and translating them
+  // would only invent variants of a fixed identifier.
+
+  /** The export button of the control bar, and the menu's accessible name. */
+  exportVideo: string;
+  /** Label of the format control. */
+  exportFormat: string;
+  /** Label of the output-resolution control. Values read `720p`, `1080p`… */
+  exportResolution: string;
+  /** Label of the frame-rate control. */
+  exportFrameRate: string;
+  /** One frame-rate option. `{n}` is the number. */
+  exportFps: string;
+  /**
+   * The estimate shown under the settings. `{duration}` is filled with
+   * `exportSeconds`/`exportMinutes`, `{size}` with
+   * `exportKilobytes`/`exportMegabytes`.
+   *
+   * It is an ESTIMATE and the wording should say so — the first one is a model,
+   * refined by what this machine actually does once it has exported once. Size
+   * is the shakier half: it depends on how much of the picture moves, which no
+   * model can know in advance.
+   */
+  exportEstimate: string;
+  /** An estimate under a minute. `{n}` seconds. */
+  exportSeconds: string;
+  /** An estimate of a minute or more. `{m}` minutes, `{s}` seconds. */
+  exportMinutes: string;
+  /** An estimated size under a megabyte. `{n}` kilobytes. */
+  exportKilobytes: string;
+  /** An estimated size of a megabyte or more. `{n}` megabytes. */
+  exportMegabytes: string;
+  /** The button that starts the export. */
+  startExport: string;
+  /** Progress readout while frames are being written. A percentage follows it. */
+  exporting: string;
+  /** Progress readout during the final mux, which has no per-frame progress. */
+  finalisingExport: string;
+  /** Button that stops a running export. */
+  cancelExport: string;
+  /** Fallback message when an export fails without one of its own. */
+  exportFailed: string;
   /**
    * The loading indicator a host shows while the player is still mounting —
    * the React binding's pre-mount placeholder today.
@@ -177,6 +223,21 @@ export const DEFAULT_PLAYER_LABELS: PlayerLabels = {
   copyToClipboard: 'Copy to clipboard',
   close: 'Close',
   closeDialog: 'Close the dialog',
+  exportVideo: 'Export the animation',
+  exportFormat: 'Format',
+  exportResolution: 'Resolution',
+  exportFrameRate: 'Frame rate',
+  exportFps: '{n} fps',
+  exportEstimate: 'About {duration} · {size}',
+  exportSeconds: '{n} s',
+  exportMinutes: '{m} min {s} s',
+  exportKilobytes: '{n} kB',
+  exportMegabytes: '{n} MB',
+  startExport: 'Export',
+  exporting: 'Exporting…',
+  finalisingExport: 'Finalising…',
+  cancelExport: 'Cancel',
+  exportFailed: 'The export failed.',
   loading: 'Loading…',
 
   playerRegion: 'Data flow animation',

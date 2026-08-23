@@ -103,24 +103,25 @@ export class DemoComponent {
 
 ## Inputs
 
-| Input         | Type                                       | Default (the core's) |
-| ------------- | ------------------------------------------ | -------------------- |
-| `spec`        | `DataFlowSpec` — **required**              | —                    |
-| `theme`       | `PlayerTheme`                              | `'default'`          |
-| `mode`        | `'auto' \| 'light' \| 'dark'`              | `'auto'`             |
-| `density`     | `'compact' \| 'comfortable' \| 'spacious'` | `'comfortable'`      |
-| `height`      | `number \| string` (a number is pixels)    | `420`                |
-| `width`       | `number \| string`                         | the container's      |
-| `playerClass` | `string` — extra class on `.rdfa-player`   | —                    |
-| `speed`       | `number`                                   | `1`                  |
-| `initialT`    | `number` — opening instant, in ms          | `0`                  |
-| `controls`    | `boolean`                                  | **`true`**           |
-| `exportable`  | `boolean` — the JSON spec button           | `false`              |
-| `autoPlay`    | `boolean`                                  | `false`              |
-| `loop`        | `boolean`                                  | `false`              |
-| `debug`       | `boolean` — the timeline overlay           | `false`              |
-| `highlight`   | `Highlighter` — replaces Prism             | Prism                |
-| `labels`      | `Partial<PlayerLabels>` — chrome strings   | English              |
+| Input         | Type                                           | Default (the core's) |
+| ------------- | ---------------------------------------------- | -------------------- |
+| `spec`        | `DataFlowSpec` — **required**                  | —                    |
+| `theme`       | `PlayerTheme`                                  | `'default'`          |
+| `mode`        | `'auto' \| 'light' \| 'dark'`                  | `'auto'`             |
+| `density`     | `'compact' \| 'comfortable' \| 'spacious'`     | `'comfortable'`      |
+| `height`      | `number \| string` (a number is pixels)        | `420`                |
+| `width`       | `number \| string`                             | the container's      |
+| `playerClass` | `string` — extra class on `.rdfa-player`       | —                    |
+| `speed`       | `number`                                       | `1`                  |
+| `initialT`    | `number` — opening instant, in ms              | `0`                  |
+| `controls`    | `boolean`                                      | **`true`**           |
+| `exportable`  | `boolean` — the JSON spec button               | `false`              |
+| `videoExport` | `boolean \| VideoExportConfig` — export button | `false`              |
+| `autoPlay`    | `boolean`                                      | `false`              |
+| `loop`        | `boolean`                                      | `false`              |
+| `debug`       | `boolean` — the timeline overlay               | `false`              |
+| `highlight`   | `Highlighter` — replaces Prism                 | Prism                |
+| `labels`      | `Partial<PlayerLabels>` — chrome strings       | English              |
 
 **An input you never bind falls through to the core's default — it is not
 `false`.** `controls` defaults to `true`, so `<dfa-player [spec]="spec" />` shows

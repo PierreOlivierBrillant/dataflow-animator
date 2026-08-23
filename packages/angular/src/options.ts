@@ -5,6 +5,7 @@ import type {
   PlayerMode,
   PlayerOptions,
   PlayerTheme,
+  VideoExportConfig,
 } from '@dataflow-animator/core';
 
 /**
@@ -42,6 +43,8 @@ export interface PlayerInputs {
   initialT?: number;
   controls?: boolean;
   exportable?: boolean;
+  /** Adds the video export button. See the core's `PlayerOptions.videoExport`. */
+  videoExport?: boolean | VideoExportConfig;
   autoPlay?: boolean;
   loop?: boolean;
   debug?: boolean;
@@ -83,6 +86,7 @@ export function toPlayerOptions(inputs: PlayerInputs): PlayerOptions {
   put(options, 'initialT', inputs.initialT);
   put(options, 'controls', inputs.controls);
   put(options, 'exportable', inputs.exportable);
+  put(options, 'videoExport', inputs.videoExport);
   put(options, 'autoPlay', inputs.autoPlay);
   put(options, 'loop', inputs.loop);
   put(options, 'debug', inputs.debug);

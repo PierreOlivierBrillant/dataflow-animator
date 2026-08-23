@@ -143,6 +143,7 @@ camelCase name.
 | `initial-t`    | `initialT`    | number (ms)                                | `0`             |
 | `controls`     | `controls`    | boolean                                    | **`true`**      |
 | `exportable`   | `exportable`  | boolean                                    | `false`         |
+| `video-export` | `videoExport` | boolean                                    | `false`         |
 | `auto-play`    | `autoPlay`    | boolean                                    | `false`         |
 | `loop`         | `loop`        | boolean                                    | `false`         |
 | `debug`        | `debug`       | boolean                                    | `false`         |

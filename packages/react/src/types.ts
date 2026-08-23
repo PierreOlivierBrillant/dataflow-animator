@@ -5,6 +5,7 @@ import type {
   PlayerMode,
   Highlighter,
   PlayerLabels,
+  VideoExportConfig,
 } from '@dataflow-animator/core';
 
 // The framework-agnostic spec types live in @dataflow-animator/core. Re-exported
@@ -65,6 +66,17 @@ export interface DataFlowPlayerProps {
    * Default: false.
    */
   exportable?: boolean;
+  /**
+   * Adds a button in the controls bar that renders the animation to a video or
+   * GIF file. `true` offers WebM, MP4 and GIF; an object narrows the list
+   * (`{ formats: ['mp4'] }`) or fixes the output size and frame rate.
+   * No effect if `controls` is false. Default: false.
+   *
+   * The export mounts a second player off screen and walks it through virtual
+   * time, so the player on screen keeps playing untouched while a file is
+   * written — and the file takes a fraction of the animation's own duration.
+   */
+  videoExport?: boolean | VideoExportConfig;
   /** Visual palette; each one has a light and a dark variant. Default: 'default'. */
   theme?: PlayerTheme;
   /**

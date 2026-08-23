@@ -33,26 +33,27 @@ import '@dataflow-animator/core/styles.css';
 The component that compiles a `spec` and displays it in a media player.
 Only the `spec` prop is required.
 
-| Prop         | Type                                       | Default         | Role                                                                                   |
-| ------------ | ------------------------------------------ | --------------- | -------------------------------------------------------------------------------------- |
-| `spec`       | `DataFlowSpec`                             | — (required)    | The specification to animate.                                                          |
-| `height`     | `number \| string`                         | `420`           | Scene height (e.g. `420`, `'60vh'`).                                                   |
-| `controls`   | `boolean`                                  | `true`          | Shows the playback bar and step navigation.                                            |
-| `exportable` | `boolean`                                  | `false`         | Adds a button that opens the JSON spec (copy / download).                              |
-| `autoPlay`   | `boolean`                                  | `false`         | Starts playback automatically.                                                         |
-| `loop`       | `boolean`                                  | `false`         | Loops playback at the end.                                                             |
-| `speed`      | `number`                                   | `1`             | Playback speed (`1` = normal).                                                         |
-| `theme`      | `PlayerTheme`                              | `'default'`     | Visual palette ([see below](#themes)).                                                 |
-| `mode`       | `'light' \| 'dark' \| 'auto'`              | `'auto'`        | Which variant of `theme` to show.                                                      |
-| `density`    | `'compact' \| 'comfortable' \| 'spacious'` | `'comfortable'` | Visual density (element size / spacing).                                               |
-| `width`      | `number \| string`                         | container       | Stage width. Read at mount, before the first measurement.                              |
-| `initialT`   | `number`                                   | `0`             | Instant the player opens at, in ms. Read once, at mount.                               |
-| `debug`      | `boolean`                                  | `false`         | Internal timeline inspection overlay.                                                  |
-| `highlight`  | `Highlighter`                              | Prism           | Custom syntax highlighting (see below).                                                |
-| `fallback`   | `ReactNode`                                | —               | Rendered on the server and until the player mounts, in place of the loading indicator. |
-| `className`  | `string`                                   | —               | Additional CSS class on the root container.                                            |
-| `style`      | `CSSProperties`                            | —               | Inline styles on the root container.                                                   |
-| `labels`     | `Partial<PlayerLabels>`                    | English         | Localises the player chrome ([see below](#labels)).                                    |
+| Prop          | Type                                       | Default         | Role                                                                                   |
+| ------------- | ------------------------------------------ | --------------- | -------------------------------------------------------------------------------------- |
+| `spec`        | `DataFlowSpec`                             | — (required)    | The specification to animate.                                                          |
+| `height`      | `number \| string`                         | `420`           | Scene height (e.g. `420`, `'60vh'`).                                                   |
+| `controls`    | `boolean`                                  | `true`          | Shows the playback bar and step navigation.                                            |
+| `exportable`  | `boolean`                                  | `false`         | Adds a button that opens the JSON spec (copy / download).                              |
+| `videoExport` | `boolean \| VideoExportConfig`             | `false`         | Adds a button that renders the animation to a WebM, MP4 or GIF file.                   |
+| `autoPlay`    | `boolean`                                  | `false`         | Starts playback automatically.                                                         |
+| `loop`        | `boolean`                                  | `false`         | Loops playback at the end.                                                             |
+| `speed`       | `number`                                   | `1`             | Playback speed (`1` = normal).                                                         |
+| `theme`       | `PlayerTheme`                              | `'default'`     | Visual palette ([see below](#themes)).                                                 |
+| `mode`        | `'light' \| 'dark' \| 'auto'`              | `'auto'`        | Which variant of `theme` to show.                                                      |
+| `density`     | `'compact' \| 'comfortable' \| 'spacious'` | `'comfortable'` | Visual density (element size / spacing).                                               |
+| `width`       | `number \| string`                         | container       | Stage width. Read at mount, before the first measurement.                              |
+| `initialT`    | `number`                                   | `0`             | Instant the player opens at, in ms. Read once, at mount.                               |
+| `debug`       | `boolean`                                  | `false`         | Internal timeline inspection overlay.                                                  |
+| `highlight`   | `Highlighter`                              | Prism           | Custom syntax highlighting (see below).                                                |
+| `fallback`    | `ReactNode`                                | —               | Rendered on the server and until the player mounts, in place of the loading indicator. |
+| `className`   | `string`                                   | —               | Additional CSS class on the root container.                                            |
+| `style`       | `CSSProperties`                            | —               | Inline styles on the root container.                                                   |
+| `labels`      | `Partial<PlayerLabels>`                    | English         | Localises the player chrome ([see below](#labels)).                                    |
 
 :::info Changing the spec remounts the player
 
@@ -220,6 +221,77 @@ With `exportable`, a button appears in the controls bar; it opens the
 Copying and downloading are **browser-side** operations
 (`navigator.clipboard`, download anchor): they have no effect during SSR, the
 window only opens after hydration. Has no effect if `controls` is `false`.
+
+## Exporting a video (`videoExport`)
+
+With `videoExport`, a second button appears in the controls bar. It opens a
+small panel — format, resolution, frame rate — and writes the animation to a
+file.
+
+```tsx
+<DataFlowPlayer spec={spec} videoExport />
+```
+
+Pass an object to narrow what the panel offers:
+
+```tsx
+<DataFlowPlayer
+  spec={spec}
+  videoExport={{ formats: ['mp4'], resolutions: [1080], frameRates: [30] }}
+/>
+```
+
+| Field         | Type                  | Default                 | Meaning                                                 |
+| ------------- | --------------------- | ----------------------- | ------------------------------------------------------- |
+| `formats`     | `VideoExportFormat[]` | all three               | Which formats the panel offers, in order.               |
+| `resolutions` | `number[]`            | `[360, 540, 720, 1080]` | Output heights offered, in pixels — `720` reads `720p`. |
+| `frameRates`  | `number[]`            | `[15, 20, 24, 30, 60]`  | Frame rates offered.                                    |
+| `bitrate`     | `number`              | `4_000_000`             | Video bitrate. Ignored by GIF.                          |
+| `filename`    | `string`              | `'dataflow'`            | Base name of the file, extension excluded.              |
+
+A list with a **single entry** stops being a question: the control is shown as
+plain text instead of a dropdown, so the value is still visible without being
+adjustable. `{ formats: ['mp4'], resolutions: [1080] }` therefore pins the
+output and leaves only the frame rate to choose.
+
+### The panel estimates before it commits
+
+The three settings interact, so the panel shows how long the export will take
+and updates it as they change. That estimate is what makes the controls
+meaningful: on the same 30-second animation, 720p WebM reads _about 8 s_ while
+1080p60 GIF reads _about 1 min 40 s_ — a difference worth seeing before pressing
+the button rather than after.
+
+The first estimate comes from a measured cost model, and the two formats behave
+nothing alike: **video is almost flat in resolution** (the work is rasterising
+the DOM once, plus a hardware encoder), while **GIF is linear in pixels**
+(quantisation and LZW run in JavaScript). After one export the player uses what
+this machine actually did instead of the model, so later estimates are sharper.
+
+### It does not interrupt playback
+
+The export mounts a **second player off screen** and walks it through virtual
+time with `clock.seek`. The player on screen keeps playing, at its own speed,
+while the file is being written — and the export never waits for real time, so
+it finishes in a fraction of the animation's own duration (roughly a tenth to a
+third of it across the demos on this site). A progress bar and a **Cancel**
+button sit in the menu while it runs.
+
+### Choosing a format
+
+- **WebM** is the fastest and the smallest. It plays in Chrome, Firefox and
+  Edge — but not in Safari, and not in PowerPoint.
+- **MP4** plays everywhere: Safari, slide decks, social platforms, chat apps.
+  Reach for it whenever the file is going to be handed to someone else.
+- **GIF** auto-plays where a video will not — a GitHub README, a Markdown file.
+  It defaults to a smaller frame and a lower rate, as the format usually does.
+  These diagrams are flat colour, so the 256-colour palette costs nothing
+  visible.
+
+Exporting needs the **WebCodecs** API for WebM and MP4 (Chromium, Firefox and
+recent Safari); GIF does not. The encoders are loaded **on demand**, so a player
+that never exports downloads none of that code. Has no effect if `controls` is
+`false`.
 
 ## Localising the chrome (`labels`) {#labels}
 

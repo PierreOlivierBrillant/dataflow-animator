@@ -374,6 +374,7 @@ describe('properties', () => {
     expect(el.initialT).toBeUndefined();
     expect(el.controls).toBeUndefined();
     expect(el.exportable).toBeUndefined();
+    expect(el.videoExport).toBeUndefined();
     expect(el.autoPlay).toBeUndefined();
     expect(el.loop).toBeUndefined();
     expect(el.debug).toBeUndefined();
@@ -394,6 +395,7 @@ describe('properties', () => {
     el.initialT = 100;
     el.controls = true;
     el.exportable = true;
+    el.videoExport = true;
     el.autoPlay = true;
     el.loop = true;
     el.debug = false;
@@ -407,6 +409,7 @@ describe('properties', () => {
     expect(el.getAttribute('player-class')).toBe('mine');
     expect(el.getAttribute('speed')).toBe('2');
     expect(el.getAttribute('initial-t')).toBe('100');
+    expect(el.getAttribute('video-export')).toBe('true');
     expect(el.getAttribute('auto-play')).toBe('true');
     expect(el.getAttribute('loop')).toBe('true');
     expect(el.getAttribute('debug')).toBe('false');
@@ -668,5 +671,48 @@ describe('defineDataFlowPlayer', () => {
     expect(warn).toHaveBeenCalledWith(
       expect.stringContaining('already defined by something else')
     );
+  });
+});
+
+describe('videoExport, the one option with two shapes', () => {
+  it('renders the export button from the bare attribute', async () => {
+    const el = await mount({ 'video-export': '' });
+    expect(el.querySelector('.rdfa-export')).not.toBeNull();
+  });
+
+  it('takes an object through the property and narrows the menu', async () => {
+    const el = create();
+    el.spec = SPEC;
+    el.videoExport = { formats: ['mp4'] };
+    const mounted = whenMounted(el);
+    document.body.append(el);
+    await mounted;
+
+    // One format is not a choice, so the panel states it rather than offering
+    // a dropdown of one.
+    const fixed = Array.from(el.querySelectorAll('.rdfa-export-fixed')).map(
+      (e) => e.textContent
+    );
+    expect(fixed).toContain('MP4');
+    // An object has no attribute spelling, so it stays a property — like
+    // `labels` and `highlight`.
+    expect(el.getAttribute('video-export')).toBeNull();
+    expect(el.videoExport).toEqual({ formats: ['mp4'] });
+  });
+
+  it('clears a previously assigned object when set back to a boolean', async () => {
+    const el = await mount();
+    el.videoExport = { formats: ['gif'] };
+    el.videoExport = true;
+
+    // The two forms must not silently disagree about what the menu offers.
+    expect(el.videoExport).toBe(true);
+    expect(el.getAttribute('video-export')).toBe('true');
+  });
+
+  it('leaves the button out when the attribute says false', async () => {
+    const el = await mount({ 'video-export': 'false' });
+    expect(el.querySelector('.rdfa-export')).toBeNull();
+    expect(el.videoExport).toBe(false);
   });
 });

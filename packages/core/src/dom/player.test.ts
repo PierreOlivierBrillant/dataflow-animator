@@ -1,7 +1,21 @@
 /** @vitest-environment jsdom */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { mountPlayer } from './player';
 import type { DataFlowSpec } from '../types';
+
+/**
+ * The exporter is mocked so the OPTIONS the export button hands it can be
+ * asserted — notably the light/dark it resolved. Nothing else in this file
+ * exports, so the mock is inert for every other test.
+ */
+const exportVideoMock: ReturnType<typeof vi.fn> = vi.fn(() =>
+  Promise.resolve({ blob: new Blob(), filename: 'x.webm' })
+);
+vi.mock('../export/video/exportVideo', () => ({
+  exportVideo: (...args: unknown[]) => exportVideoMock(...args),
+  downloadExport: () => {},
+}));
+
+const { mountPlayer } = await import('./player');
 
 const spec: DataFlowSpec = {
   nodes: [
@@ -637,5 +651,206 @@ describe('mountPlayer — style and warnings', () => {
 
   it('reports no warnings for a clean spec', () => {
     expect(mount().player.warnings).toEqual([]);
+  });
+});
+
+describe('mountPlayer — the video export button', () => {
+  const exportEl = (root: HTMLElement): HTMLElement | null =>
+    root.querySelector('.rdfa-export');
+
+  it('is absent by default, so no existing player changes shape', () => {
+    // The whole reason the option is opt-in: adding a button to the bar by
+    // default would restyle every player already in the wild.
+    expect(exportEl(mount().player.el)).toBeNull();
+  });
+
+  const formatOptions = (root: HTMLElement): string[] =>
+    Array.from(root.querySelectorAll('[id^="rdfa-export-format-"] option')).map(
+      (o) => o.textContent ?? ''
+    );
+
+  it('appears when asked, offering all three formats', () => {
+    const { player } = mount({ videoExport: true });
+
+    expect(exportEl(player.el)).not.toBeNull();
+    expect(formatOptions(player.el)).toEqual(['WebM', 'MP4', 'GIF']);
+  });
+
+  it('narrows the choices to the formats a config lists', () => {
+    const { player } = mount({ videoExport: { formats: ['gif'] } });
+    // One format is not a choice, so it is shown as text rather than a select.
+    expect(
+      Array.from(player.el.querySelectorAll('.rdfa-export-fixed')).map(
+        (e) => e.textContent
+      )
+    ).toContain('GIF');
+  });
+
+  it('offers the resolutions and frame rates a config lists', () => {
+    const { player } = mount({
+      videoExport: { resolutions: [720], frameRates: [24, 30] },
+    });
+    const rates = Array.from(
+      player.el.querySelectorAll('[id^="rdfa-export-fps-"] option')
+    ).map((o) => o.textContent);
+
+    expect(
+      Array.from(player.el.querySelectorAll('.rdfa-export-fixed')).map(
+        (e) => e.textContent
+      )
+    ).toContain('720p');
+    expect(rates).toEqual(['24 fps', '30 fps']);
+  });
+
+  it('sits between the JSON button and fullscreen', () => {
+    const { player } = mount({ videoExport: true, exportable: true });
+    const bar = player.el.querySelector('.rdfa-controls') as HTMLElement;
+    const labels = Array.from(bar.children).map((child) =>
+      child.classList.contains('rdfa-export')
+        ? 'export'
+        : child.getAttribute('aria-label')
+    );
+
+    expect(labels.slice(-3)).toEqual([
+      'JSON specification',
+      'export',
+      'Fullscreen',
+    ]);
+  });
+
+  it('needs the control bar, since that is where it lives', () => {
+    const { player } = mount({ videoExport: true, controls: false });
+    expect(exportEl(player.el)).toBeNull();
+  });
+
+  it('resolves an auto mode to what the viewer is seeing right now', () => {
+    // An exported file has no viewer to follow, so `auto` has to be pinned to
+    // something — and the honest choice is what is on screen at that moment.
+    vi.stubGlobal(
+      'matchMedia',
+      (query: string) => ({ matches: query.includes('dark') }) as MediaQueryList
+    );
+    const { player } = mount({ videoExport: true, mode: 'auto' });
+
+    expect(exportEl(player.el)).not.toBeNull();
+    player.destroy();
+    vi.unstubAllGlobals();
+  });
+
+  it('caps the panel to the room inside a short player', () => {
+    // jsdom reports zero-size boxes, so what is asserted is that the cap is
+    // APPLIED from a measurement rather than left to a viewport unit — the
+    // pixel behaviour is verified in a browser, where a 200px-tall player
+    // clipped the form by 12px before this existed.
+    const { player } = mount({ videoExport: true, height: 200 });
+    const trigger = player.el.querySelector(
+      '.rdfa-export > button'
+    ) as HTMLButtonElement;
+    const panel = player.el.querySelector('.rdfa-export-menu') as HTMLElement;
+
+    vi.spyOn(trigger, 'getBoundingClientRect').mockReturnValue({
+      top: 300,
+    } as DOMRect);
+    vi.spyOn(player.el, 'getBoundingClientRect').mockReturnValue({
+      top: 100,
+    } as DOMRect);
+    trigger.click();
+
+    // 300 - 100 - 12 = 188px of room above the button, inside the player.
+    expect(panel.style.maxHeight).toBe('188px');
+  });
+
+  it('leaves the cap off when there is too little room to be useful', () => {
+    const { player } = mount({ videoExport: true, height: 200 });
+    const trigger = player.el.querySelector(
+      '.rdfa-export > button'
+    ) as HTMLButtonElement;
+    const panel = player.el.querySelector('.rdfa-export-menu') as HTMLElement;
+
+    vi.spyOn(trigger, 'getBoundingClientRect').mockReturnValue({
+      top: 150,
+    } as DOMRect);
+    vi.spyOn(player.el, 'getBoundingClientRect').mockReturnValue({
+      top: 100,
+    } as DOMRect);
+    trigger.click();
+
+    // 38px would be a two-line scroll area: more frustrating than useful.
+    expect(panel.style.maxHeight).toBe('');
+  });
+
+  /** Presses Export and returns the options the exporter was handed. */
+  const optionsOfExport = async (
+    root: HTMLElement
+  ): Promise<Record<string, unknown>> => {
+    exportVideoMock.mockClear();
+    (root.querySelector('.rdfa-export > button') as HTMLButtonElement).click();
+    (root.querySelector('.rdfa-export-start') as HTMLButtonElement).click();
+    await vi.waitFor(() => expect(exportVideoMock).toHaveBeenCalled());
+    return exportVideoMock.mock.calls[0]?.[1] as Record<string, unknown>;
+  };
+
+  it('exports in the theme the host site is showing, not the OS one', async () => {
+    // The stylesheet resolves `auto` from an ancestor `data-theme` — the
+    // Docusaurus convention. Reading `prefers-color-scheme` alone exported a
+    // LIGHT file from a site the reader had switched to dark.
+    vi.stubGlobal('matchMedia', () => ({ matches: false }) as MediaQueryList);
+    const site = document.createElement('div');
+    site.setAttribute('data-theme', 'dark');
+    document.body.appendChild(site);
+    const player = mountPlayer(site, spec, { videoExport: true, mode: 'auto' });
+
+    expect((await optionsOfExport(player.el)).mode).toBe('dark');
+    player.destroy();
+    vi.unstubAllGlobals();
+  });
+
+  it('follows the host toggle even after the player is mounted', async () => {
+    vi.stubGlobal('matchMedia', () => ({ matches: false }) as MediaQueryList);
+    const site = document.createElement('div');
+    site.setAttribute('data-theme', 'light');
+    document.body.appendChild(site);
+    const player = mountPlayer(site, spec, { videoExport: true, mode: 'auto' });
+
+    expect((await optionsOfExport(player.el)).mode).toBe('light');
+    // The site's theme toggle moves under a player that is already on screen.
+    site.setAttribute('data-theme', 'dark');
+    expect((await optionsOfExport(player.el)).mode).toBe('dark');
+
+    player.destroy();
+    vi.unstubAllGlobals();
+  });
+
+  it('falls back to the OS when no host theme says otherwise', async () => {
+    vi.stubGlobal('matchMedia', () => ({ matches: true }) as MediaQueryList);
+    const { player } = mount({ videoExport: true, mode: 'auto' });
+
+    expect((await optionsOfExport(player.el)).mode).toBe('dark');
+    vi.unstubAllGlobals();
+  });
+
+  it('an explicit mode wins over both', async () => {
+    vi.stubGlobal('matchMedia', () => ({ matches: true }) as MediaQueryList);
+    const site = document.createElement('div');
+    site.setAttribute('data-theme', 'dark');
+    document.body.appendChild(site);
+    const player = mountPlayer(site, spec, {
+      videoExport: true,
+      mode: 'light',
+    });
+
+    expect((await optionsOfExport(player.el)).mode).toBe('light');
+    player.destroy();
+    vi.unstubAllGlobals();
+  });
+
+  it('is torn down with the player', () => {
+    const { player } = mount({ videoExport: true });
+    const removed = vi.spyOn(document, 'removeEventListener');
+    player.destroy();
+
+    // The button listens on the document; destroying the player has to unbind
+    // it, or a destroyed player keeps a live listener.
+    expect(removed).toHaveBeenCalledWith('pointerdown', expect.any(Function));
   });
 });

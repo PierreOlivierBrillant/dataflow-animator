@@ -293,6 +293,7 @@ function DemoModal({ demo, onClose }: { demo: Demo; onClose: () => void }) {
             spec={getSpec(demo, locale)}
             mode="auto"
             controls
+            videoExport={{ filename: demo.id }}
             autoPlay={!reducedMotion}
             loop={!reducedMotion}
             height={420}

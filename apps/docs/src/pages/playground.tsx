@@ -477,6 +477,7 @@ function PlaygroundContent() {
                 mode="auto"
                 controls={true}
                 exportable={true}
+                videoExport
                 density={density}
                 height="100%"
                 className="w-full h-full rounded-none border-x-0 border-t-0 border-none"

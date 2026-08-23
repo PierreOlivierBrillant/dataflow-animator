@@ -22,6 +22,7 @@ import {
   type PlayerMode,
   type PlayerOptions,
   type PlayerTheme,
+  type VideoExportConfig,
 } from '@dataflow-animator/core';
 import { toPlayerOptions } from './options';
 
@@ -96,6 +97,12 @@ export class DataFlowPlayerComponent {
   readonly initialT = input<number>();
   readonly controls = input<boolean>();
   readonly exportable = input<boolean>();
+  /**
+   * Adds the video export button to the control bar. `true` offers WebM, MP4
+   * and GIF; an object narrows the list or fixes the output size. No effect
+   * without `controls`. See the core's `PlayerOptions.videoExport`.
+   */
+  readonly videoExport = input<boolean | VideoExportConfig>();
   readonly autoPlay = input<boolean>();
   readonly loop = input<boolean>();
   readonly debug = input<boolean>();
@@ -148,6 +155,11 @@ export class DataFlowPlayerComponent {
     JSON.stringify(this.labels() ?? null)
   );
 
+  /** And again: `[videoExport]="{ formats: ['mp4'] }"` is a new object per pass. */
+  private readonly videoExportKey = computed(() =>
+    JSON.stringify(this.videoExport() ?? null)
+  );
+
   constructor() {
     // ONE effect for every option, which is what makes the remount coalesced:
     // however many inputs change in the same change detection pass, the effect
@@ -164,6 +176,7 @@ export class DataFlowPlayerComponent {
       // untracked below.
       this.specKey();
       this.labelsKey();
+      this.videoExportKey();
 
       const options = toPlayerOptions({
         theme: this.theme(),
@@ -187,6 +200,8 @@ export class DataFlowPlayerComponent {
         // Untracked too, but NOT unwatched: `labelsKey` above re-runs the
         // effect when the content changes, identity aside.
         labels: untracked(() => this.labels()),
+        // Same pairing as `labels`: read untracked, watched through its key.
+        videoExport: untracked(() => this.videoExport()),
       });
 
       const resume = this.resume;

@@ -1,6 +1,6 @@
 {
   "name": "@dataflow-animator/core",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Framework-agnostic engine and DOM renderer for deterministic, scrubbable data-flow animations compiled from a JSON spec.",
   "type": "module",
   "license": "MIT",
@@ -45,7 +45,7 @@
     "**/*.css"
   ],
   "scripts": {
-    "build": "rm -rf dist && node scripts/generate-schema.mjs && npm run typecheck && vite build && rollup -c rollup.dts.config.mjs",
+    "build": "rm -rf dist && node scripts/generate-schema.mjs && npm run typecheck && vite build && rollup -c rollup.dts.config.mjs && node scripts/prune-orphan-chunks.mjs",
     "postbuild": "cp src/schema.generated.json dist/schema.json",
     "dev": "vite build --watch",
     "smoke:export": "node scripts/smoke-export.mjs",
@@ -59,7 +59,10 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "prismjs": "^1.30.0"
+    "gifenc": "^1.0.3",
+    "mp4-muxer": "^5.2.2",
+    "prismjs": "^1.30.0",
+    "webm-muxer": "^5.1.4"
   },
   "devDependencies": {
     "@types/prismjs": "^1.26.5",

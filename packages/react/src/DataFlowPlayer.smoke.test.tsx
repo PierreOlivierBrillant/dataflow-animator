@@ -119,6 +119,50 @@ describe('DataFlowPlayer (real mount)', () => {
     expect(code?.textContent).toContain('"nodes"');
     expect(code?.querySelector('.token')).toBeTruthy();
   });
+
+  it('does not show the video export button by default', async () => {
+    const { container } = render(<DataFlowPlayer spec={spec} />);
+
+    await waitFor(() => expect(player(container)).not.toBeNull());
+    expect(container.querySelector('.rdfa-export')).toBeNull();
+  });
+
+  it('forwards videoExport, offering the three formats', async () => {
+    const { container } = render(<DataFlowPlayer spec={spec} videoExport />);
+
+    await waitFor(() => expect(player(container)).not.toBeNull());
+    expect(
+      Array.from(
+        container.querySelectorAll('[id^="rdfa-export-format-"] option')
+      ).map((o) => o.textContent)
+    ).toEqual(['WebM', 'MP4', 'GIF']);
+  });
+
+  it('forwards the object form, which narrows the choices', async () => {
+    const { container } = render(
+      <DataFlowPlayer spec={spec} videoExport={{ formats: ['mp4'] }} />
+    );
+
+    await waitFor(() => expect(player(container)).not.toBeNull());
+    expect(
+      Array.from(container.querySelectorAll('.rdfa-export-fixed')).map(
+        (e) => e.textContent
+      )
+    ).toContain('MP4');
+  });
+
+  it('does not remount when an equal videoExport object is passed again', async () => {
+    // `videoExport={{ formats: ['mp4'] }}` written inline is a new object on
+    // every render; keyed on identity the player would remount forever.
+    const { container, rerender } = render(
+      <DataFlowPlayer spec={spec} videoExport={{ formats: ['mp4'] }} />
+    );
+    await waitFor(() => expect(player(container)).not.toBeNull());
+    const first = player(container);
+
+    rerender(<DataFlowPlayer spec={spec} videoExport={{ formats: ['mp4'] }} />);
+    expect(player(container)).toBe(first);
+  });
 });
 
 describe('DataFlowPlayer — options forwarded to the core', () => {

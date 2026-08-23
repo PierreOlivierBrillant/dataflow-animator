@@ -95,22 +95,23 @@ server rendering trivial.
 
 ## Main `mountPlayer` options
 
-| Option       | Type                                       | Default         | Description                                        |
-| ------------ | ------------------------------------------ | --------------- | -------------------------------------------------- |
-| `height`     | `number \| string`                         | `420`           | Height of the player.                              |
-| `width`      | `number \| string`                         | container       | Width; must be set before the first measurement.   |
-| `initialT`   | `number`                                   | `0`             | Instant the player opens at, in ms.                |
-| `autoPlay`   | `boolean`                                  | `false`         | Starts playing on mount.                           |
-| `loop`       | `boolean`                                  | `false`         | Replays from the start at the end.                 |
-| `controls`   | `boolean`                                  | `true`          | Control bar, keyboard shortcuts and focus ring.    |
-| `exportable` | `boolean`                                  | `false`         | Adds the JSON spec button and its dialog.          |
-| `theme`      | `PlayerTheme`                              | `'default'`     | Palette (`dots`, `blueprint`, `pcb`, `chalk`…).    |
-| `mode`       | `'auto' \| 'light' \| 'dark'`              | `'auto'`        | Follows `prefers-color-scheme` and `[data-theme]`. |
-| `density`    | `'compact' \| 'comfortable' \| 'spacious'` | `'comfortable'` | Visual scale.                                      |
-| `speed`      | `number`                                   | `1`             | Playback speed.                                    |
-| `highlight`  | `Highlighter`                              | Prism           | Replaces the syntax highlighter.                   |
-| `labels`     | `Partial<PlayerLabels>`                    | English         | Localises the chrome (tooltips, aria, dialog).     |
-| `debug`      | `boolean`                                  | `false`         | Timeline debug overlay.                            |
+| Option        | Type                                       | Default         | Description                                        |
+| ------------- | ------------------------------------------ | --------------- | -------------------------------------------------- |
+| `height`      | `number \| string`                         | `420`           | Height of the player.                              |
+| `width`       | `number \| string`                         | container       | Width; must be set before the first measurement.   |
+| `initialT`    | `number`                                   | `0`             | Instant the player opens at, in ms.                |
+| `autoPlay`    | `boolean`                                  | `false`         | Starts playing on mount.                           |
+| `loop`        | `boolean`                                  | `false`         | Replays from the start at the end.                 |
+| `controls`    | `boolean`                                  | `true`          | Control bar, keyboard shortcuts and focus ring.    |
+| `exportable`  | `boolean`                                  | `false`         | Adds the JSON spec button and its dialog.          |
+| `videoExport` | `boolean \| VideoExportConfig`             | `false`         | Adds the video export button (WebM / MP4 / GIF).   |
+| `theme`       | `PlayerTheme`                              | `'default'`     | Palette (`dots`, `blueprint`, `pcb`, `chalk`…).    |
+| `mode`        | `'auto' \| 'light' \| 'dark'`              | `'auto'`        | Follows `prefers-color-scheme` and `[data-theme]`. |
+| `density`     | `'compact' \| 'comfortable' \| 'spacious'` | `'comfortable'` | Visual scale.                                      |
+| `speed`       | `number`                                   | `1`             | Playback speed.                                    |
+| `highlight`   | `Highlighter`                              | Prism           | Replaces the syntax highlighter.                   |
+| `labels`      | `Partial<PlayerLabels>`                    | English         | Localises the chrome (tooltips, aria, dialog).     |
+| `debug`       | `boolean`                                  | `false`         | Timeline debug overlay.                            |
 
 Need the diagram without the chrome? `mountStage(container, spec, t, options)`
 returns a handle whose `update(t)` you drive yourself — `createPlayerClock` is

@@ -118,26 +118,27 @@ and keeps the whole compilation step free of any DOM.
 
 ## Main props of `<DataFlowPlayer>`
 
-| Prop         | Type                                       | Default         | Description                                                                            |
-| ------------ | ------------------------------------------ | --------------- | -------------------------------------------------------------------------------------- |
-| `spec`       | `DataFlowSpec`                             | —               | The specification to animate. Changing it remounts the player, keeping the instant.    |
-| `height`     | `number \| string`                         | `420`           | Height of the stage.                                                                   |
-| `width`      | `number \| string`                         | container       | Width of the stage. Must be known before the first measurement.                        |
-| `initialT`   | `number`                                   | `0`             | Instant the player opens at, in ms. Read once, at mount.                               |
-| `autoPlay`   | `boolean`                                  | `false`         | Starts playback automatically.                                                         |
-| `loop`       | `boolean`                                  | `false`         | Replays on loop at the end.                                                            |
-| `controls`   | `boolean`                                  | `true`          | Displays the controls bar.                                                             |
-| `exportable` | `boolean`                                  | `false`         | Button opening the JSON spec (copy / download).                                        |
-| `theme`      | `PlayerTheme`                              | `'default'`     | Palette: `default`, `dots`, `blueprint`, `pcb`, `chalk`, `terminal`, `paper`, `neon`.  |
-| `mode`       | `'light' \| 'dark' \| 'auto'`              | `'auto'`        | Variant of `theme`. `auto` follows `prefers-color-scheme` and a parent `[data-theme]`. |
-| `density`    | `'compact' \| 'comfortable' \| 'spacious'` | `'comfortable'` | Visual scale.                                                                          |
-| `speed`      | `number`                                   | `1`             | Playback speed.                                                                        |
-| `highlight`  | `Highlighter`                              | Prism           | Override syntax highlighting.                                                          |
-| `labels`     | `Partial<PlayerLabels>`                    | English         | Localises the chrome (tooltips, `aria-label`s, the JSON dialog), key by key.           |
-| `debug`      | `boolean`                                  | `false`         | Timeline debugging overlay.                                                            |
-| `fallback`   | `ReactNode`                                | —               | Rendered on the server and until the player mounts (see [SSR](#ssr)).                  |
-| `className`  | `string`                                   | —               | Extra class on the root container.                                                     |
-| `style`      | `CSSProperties`                            | —               | Inline styles on the root container.                                                   |
+| Prop          | Type                                       | Default         | Description                                                                            |
+| ------------- | ------------------------------------------ | --------------- | -------------------------------------------------------------------------------------- |
+| `spec`        | `DataFlowSpec`                             | —               | The specification to animate. Changing it remounts the player, keeping the instant.    |
+| `height`      | `number \| string`                         | `420`           | Height of the stage.                                                                   |
+| `width`       | `number \| string`                         | container       | Width of the stage. Must be known before the first measurement.                        |
+| `initialT`    | `number`                                   | `0`             | Instant the player opens at, in ms. Read once, at mount.                               |
+| `autoPlay`    | `boolean`                                  | `false`         | Starts playback automatically.                                                         |
+| `loop`        | `boolean`                                  | `false`         | Replays on loop at the end.                                                            |
+| `controls`    | `boolean`                                  | `true`          | Displays the controls bar.                                                             |
+| `exportable`  | `boolean`                                  | `false`         | Button opening the JSON spec (copy / download).                                        |
+| `videoExport` | `boolean \| VideoExportConfig`             | `false`         | Button exporting the animation as WebM, MP4 or GIF.                                    |
+| `theme`       | `PlayerTheme`                              | `'default'`     | Palette: `default`, `dots`, `blueprint`, `pcb`, `chalk`, `terminal`, `paper`, `neon`.  |
+| `mode`        | `'light' \| 'dark' \| 'auto'`              | `'auto'`        | Variant of `theme`. `auto` follows `prefers-color-scheme` and a parent `[data-theme]`. |
+| `density`     | `'compact' \| 'comfortable' \| 'spacious'` | `'comfortable'` | Visual scale.                                                                          |
+| `speed`       | `number`                                   | `1`             | Playback speed.                                                                        |
+| `highlight`   | `Highlighter`                              | Prism           | Override syntax highlighting.                                                          |
+| `labels`      | `Partial<PlayerLabels>`                    | English         | Localises the chrome (tooltips, `aria-label`s, the JSON dialog), key by key.           |
+| `debug`       | `boolean`                                  | `false`         | Timeline debugging overlay.                                                            |
+| `fallback`    | `ReactNode`                                | —               | Rendered on the server and until the player mounts (see [SSR](#ssr)).                  |
+| `className`   | `string`                                   | —               | Extra class on the root container.                                                     |
+| `style`       | `CSSProperties`                            | —               | Inline styles on the root container.                                                   |
 
 ## Extensibility
 

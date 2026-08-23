@@ -65,6 +65,7 @@ export const OPTION_ATTRIBUTES = [
   'initial-t',
   'controls',
   'exportable',
+  'video-export',
   'auto-play',
   'loop',
   'debug',
@@ -202,6 +203,12 @@ export function readOptions(source: AttributeSource): PlayerOptions {
   if (controls !== undefined) options.controls = controls;
   const exportable = parseBoolean('exportable', attr('exportable'));
   if (exportable !== undefined) options.exportable = exportable;
+  // The ATTRIBUTE is the boolean form only. A caller who wants to narrow the
+  // format list or fix the output size sets the `videoExport` PROPERTY to an
+  // object instead, which the element merges over this — an object has no
+  // honest attribute spelling, exactly as with `labels` and `highlight`.
+  const videoExport = parseBoolean('video-export', attr('video-export'));
+  if (videoExport !== undefined) options.videoExport = videoExport;
   const autoPlay = parseBoolean('auto-play', attr('auto-play'));
   if (autoPlay !== undefined) options.autoPlay = autoPlay;
   const loop = parseBoolean('loop', attr('loop'));

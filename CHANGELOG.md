@@ -7,9 +7,54 @@ here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## 1.1.0 — 2026-08-23
 
 ### Added
+
+- **The animation can now be exported as a video.** A new `videoExport` option
+  / prop / attribute / input, on all four packages, adds a button to the control
+  bar that opens a settings panel — format, resolution, frame rate — and writes
+  the animation to a **WebM**, **MP4** or **GIF** file. It is off by default, so
+  no existing player changes appearance. `true` offers everything; an object
+  narrows what the panel proposes
+  (`{ formats: ['mp4'], resolutions: [1080], frameRates: [30] }`), and a
+  single-entry list is shown as text rather than as a dropdown of one.
+- **The panel estimates how long the export will take and how large the file
+  will be**, and updates both as the settings change — the thing that makes a
+  resolution or frame-rate choice meaningful. Measured cost model to start with
+  (video is nearly flat in resolution; GIF is linear in pixels), replaced by
+  what the machine actually did once it has exported once.
+- **`'auto'` mode now exports in the theme the host site is showing.** It is
+  resolved per export, from the ancestor `data-theme` the stylesheet already
+  reads, falling back to the OS only when there is none — so a reader who
+  switched the site to dark stops getting a light file, and a theme toggle moves
+  the next export with it.
+- **`exportVideo(spec, options)`** and **`downloadExport(result)`**, exported
+  from `@dataflow-animator/core` for callers with no player on screen — a build
+  script, a "download every diagram" action. `exportVideo` mounts a player of
+  its OWN off screen and walks it through virtual time, which is why an export
+  never disturbs playback and never waits for real time: measured across the
+  documentation demos it takes roughly a tenth to a third of the animation's own
+  duration. It reports progress and accepts an `AbortSignal`.
+- **Fifteen new `PlayerLabels` keys** (`exportVideo`, `exportFormat`,
+  `exportResolution`, `exportFrameRate`, `exportFps`, `exportEstimate`,
+  `exportSeconds`, `exportMinutes`, `exportKilobytes`, `exportMegabytes`,
+  `startExport`, `exporting`, `finalisingExport`, `cancelExport`,
+  `exportFailed`), so the export chrome
+  localises through the same object as the rest. The format NAMES are not among
+  them: `MP4` is `MP4` in every language.
+
+GIF defaults to 960×540 at 20 fps rather than the postage stamp the format is
+usually associated with: measured, that costs 31% of the animation's own
+duration against 58% for 1280×720, and 20 fps is exactly the 5 centiseconds GIF
+stores delays in. MP4 negotiates its H.264 level against the requested size —
+baseline 3.1 tops out at 720p, so a 1080p MP4 would otherwise be refused
+outright.
+
+The three muxers (`webm-muxer`, `mp4-muxer`, `gifenc`) are runtime dependencies
+of the core, reached through `import()` and left external by the build — a
+consumer who never exports downloads none of that code. WebM and MP4 need the
+**WebCodecs** API; GIF does not.
 
 - **The animation is now rendered as text, not just as pixels.**
   `describeAnimation(spec, timeline, labels)` (exported from

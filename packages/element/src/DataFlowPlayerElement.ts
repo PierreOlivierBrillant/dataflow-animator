@@ -8,6 +8,7 @@ import {
   type PlayerMode,
   type PlayerOptions,
   type PlayerTheme,
+  type VideoExportConfig,
 } from '@dataflow-animator/core';
 import {
   OPTION_ATTRIBUTES,
@@ -74,6 +75,8 @@ export class DataFlowPlayerElement extends ElementBase {
   #spec: DataFlowSpec | null = null;
   #highlight: Highlighter | undefined = undefined;
   #labels: Partial<PlayerLabels> | undefined = undefined;
+  /** Object form of `videoExport`; the boolean form lives in the attribute. */
+  #videoExport: VideoExportConfig | undefined = undefined;
   /**
    * Where a remount resumes from. Only the FIRST mount honours
    * `initial-t`/`auto-play`; every later one reopens at the instant and play
@@ -220,6 +223,32 @@ export class DataFlowPlayerElement extends ElementBase {
     this.#writeBoolean('exportable', value);
   }
 
+  /**
+   * Adds the video export button. `true`/`false` round-trips through the
+   * `video-export` attribute; an OBJECT (`{ formats: ['mp4'] }`) is held here,
+   * like `labels`, since an object has no attribute spelling.
+   *
+   * Reading back returns whichever form was set — the object when there is one,
+   * the attribute's boolean otherwise.
+   */
+  get videoExport(): boolean | VideoExportConfig | undefined {
+    return (
+      this.#videoExport ??
+      parseBoolean('video-export', this.getAttribute('video-export'))
+    );
+  }
+  set videoExport(value: boolean | VideoExportConfig | undefined) {
+    if (value !== null && typeof value === 'object') {
+      this.#videoExport = value;
+      this.#schedule();
+      return;
+    }
+    // Setting a boolean clears any object previously assigned, so the two forms
+    // cannot silently disagree about what the button offers.
+    this.#videoExport = undefined;
+    this.#writeBoolean('video-export', value);
+  }
+
   get autoPlay(): boolean | undefined {
     return parseBoolean('auto-play', this.getAttribute('auto-play'));
   }
@@ -364,6 +393,7 @@ export class DataFlowPlayerElement extends ElementBase {
       ...readOptions(this),
       ...(this.#highlight ? { highlight: this.#highlight } : {}),
       ...(this.#labels ? { labels: this.#labels } : {}),
+      ...(this.#videoExport ? { videoExport: this.#videoExport } : {}),
       // Only the first mount honours the attributes; afterwards the previous
       // player's instant and play state win.
       ...(resume ? { initialT: resume.t, autoPlay: resume.playing } : {}),

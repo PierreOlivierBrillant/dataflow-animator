@@ -58,6 +58,7 @@ export function DataFlowPlayer({
   loop = false,
   controls = true,
   exportable = false,
+  videoExport = false,
   theme = 'default',
   mode = 'auto',
   density = 'comfortable',
@@ -104,6 +105,16 @@ export function DataFlowPlayer({
     () => (labels ? JSON.stringify(labels) : ''),
     [labels]
   );
+  /**
+   * Structural, for the same reason `specKey` is: `videoExport={{ formats:
+   * ['mp4'] }}` written inline is a new object on every render, and since every
+   * option in the dependency list remounts the player, keying on the object
+   * itself would remount it forever.
+   */
+  const videoExportKey = useMemo(
+    () => JSON.stringify(videoExport ?? false),
+    [videoExport]
+  );
 
   useEffect(() => {
     const host = hostRef.current;
@@ -123,6 +134,7 @@ export function DataFlowPlayer({
         density,
         controls,
         exportable,
+        videoExport,
         loop,
         speed,
         debug,
@@ -200,7 +212,8 @@ export function DataFlowPlayer({
     // `highlight` and `spec` are intentionally absent: they are read through
     // refs, keyed by `specKey`. An inline `highlight={(c, l) => …}` would
     // otherwise be a new value on every render, and since every option change
-    // remounts, the player would remount forever.
+    // remounts, the player would remount forever. `videoExport` is absent for
+    // the same reason and is keyed by `videoExportKey`.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     specKey,
@@ -213,6 +226,7 @@ export function DataFlowPlayer({
     loop,
     controls,
     exportable,
+    videoExportKey,
     theme,
     mode,
     density,

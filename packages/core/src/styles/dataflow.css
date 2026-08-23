@@ -1269,6 +1269,133 @@
   display: block;
 }
 
+/* ---------- Video export ----------
+   The menu is anchored to the button and opens UPWARDS: the control bar sits at
+   the bottom of the player, so a downward menu would be clipped by
+   `.rdfa-player`'s `overflow: hidden` — and in fullscreen it would fall off the
+   screen entirely. */
+
+.rdfa-export {
+  position: relative;
+  display: inline-flex;
+}
+
+.rdfa-export-menu {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  right: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 188px;
+  padding: 8px;
+  /* A player can be 200px tall, so the panel must scroll inside itself rather
+     than be clipped by `.rdfa-player`'s `overflow: hidden`. The ceiling is
+     written in pixels by `capHeight()` when the panel opens — the room above
+     the button is a property of the PLAYER, which no CSS unit can express. */
+  overflow-y: auto;
+  border: 1px solid var(--rdfa-border);
+  border-radius: 8px;
+  background: var(--rdfa-surface);
+  box-shadow: 0 8px 24px light-dark(rgb(15 23 42 / 18%), rgb(0 0 0 / 45%));
+}
+
+.rdfa-export-menu[hidden] {
+  display: none;
+}
+
+.rdfa-export-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.rdfa-export-label {
+  color: var(--rdfa-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.rdfa-export-select {
+  flex: 1;
+  min-width: 0;
+  max-width: 96px;
+  padding: 3px 4px;
+  border: 1px solid var(--rdfa-border);
+  border-radius: 5px;
+  background: var(--rdfa-bg);
+  color: var(--rdfa-text);
+  font: inherit;
+  font-size: 12px;
+}
+
+.rdfa-export-select:focus-visible {
+  outline: 2px solid var(--rdfa-accent);
+  outline-offset: -1px;
+}
+
+.rdfa-export-fixed {
+  color: var(--rdfa-text);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.rdfa-export-start {
+  padding: 5px 10px;
+  border: 1px solid var(--rdfa-accent);
+  border-radius: 6px;
+  background: var(--rdfa-accent);
+  /* Not `--rdfa-text`: the accent is a strong fill in every palette, so the
+     label has to contrast with IT rather than with the surface behind it. */
+  color: light-dark(#ffffff, #0b1120);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rdfa-export-start:hover {
+  filter: brightness(1.08);
+}
+
+.rdfa-export-start:focus-visible {
+  outline: 2px solid var(--rdfa-accent);
+  outline-offset: 2px;
+}
+
+.rdfa-export-status {
+  margin: 0;
+  padding: 2px 4px 4px;
+  color: var(--rdfa-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.rdfa-export-error {
+  color: light-dark(#b91c1c, #fca5a5);
+  /* An export failure is a sentence, not a word: it has to wrap. */
+  max-width: 220px;
+  white-space: normal;
+}
+
+.rdfa-export-progress {
+  height: 4px;
+  margin: 0 4px 6px;
+  border-radius: 2px;
+  background: var(--rdfa-border);
+  overflow: hidden;
+}
+
+.rdfa-export-progress-fill {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: var(--rdfa-accent);
+  transition: width 0.12s linear;
+}
+
 .rdfa-spacer {
   flex: 1;
 }

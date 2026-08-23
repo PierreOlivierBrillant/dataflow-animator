@@ -177,6 +177,7 @@ describe('readOptions', () => {
       'initial-t',
       'controls',
       'exportable',
+      'video-export',
       'auto-play',
       'loop',
       'debug',

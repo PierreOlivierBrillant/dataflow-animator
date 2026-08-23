@@ -23,7 +23,11 @@ import './styles/dataflow.css';
 // The whole player — stage, control bar, keyboard shortcuts, clock — in one
 // call. `PlayerHandle.destroy()` releases everything it took.
 export { mountPlayer } from './dom/player';
-export type { PlayerOptions, PlayerHandle } from './dom/player';
+export type {
+  PlayerOptions,
+  PlayerHandle,
+  VideoExportConfig,
+} from './dom/player';
 // The chrome's strings — what `PlayerOptions.labels` overrides, key by key. The
 // English defaults live in the core and are resolved there, so a wrapper passes
 // this through untouched instead of re-declaring defaults of its own.
@@ -133,6 +137,22 @@ export type { Density } from './engine/scale';
 // The canonical JSON form of a spec — the same bytes the player's export dialog
 // shows, so a caller can use it as a stable structural key.
 export { serializeSpec } from './export/json';
+
+// ─── Video export ───────────────────────────────────────────────────────────
+// Renders a spec to a WebM, MP4 or GIF file. Public because the control bar's
+// button is only one way to reach it: a caller with no player on screen (a
+// build script driving a headless browser, a "download all the diagrams"
+// action) needs the function itself.
+//
+// The muxers it uses are loaded through `import()`, so nothing of them is in
+// this module's chunk — a consumer who never calls this pays nothing for it.
+export { exportVideo, downloadExport } from './export/video/exportVideo';
+export type {
+  VideoExportFormat,
+  VideoExportOptions,
+  VideoExportProgress,
+  VideoExportResult,
+} from './export/video/types';
 
 // ─── Specification ──────────────────────────────────────────────────────────
 // Every type of the JSON specification: `DataFlowSpec` and everything it names.

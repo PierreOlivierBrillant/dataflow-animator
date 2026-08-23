@@ -46,7 +46,7 @@ describe('createControlsElement — accessibility surface', () => {
     ]);
   });
 
-  it('places the export slot between the readout and full screen', () => {
+  it('places the action slots between the readout and full screen', () => {
     const clock = createPlayerClock({ durationMs: 1000 });
     const slot = document.createElement('button');
     slot.setAttribute('aria-label', 'JSON specification');
@@ -55,12 +55,36 @@ describe('createControlsElement — accessibility surface', () => {
       timeline: timeline([]),
       labels: DEFAULT_PLAYER_LABELS,
       onToggleFullscreen: () => {},
-      exportSlot: slot,
+      actionSlots: [slot],
     });
     applyControlsElement(ctl, clock, false);
 
     const labels = buttons(ctl.el).map((b) => b.getAttribute('aria-label'));
     expect(labels.slice(-2)).toEqual(['JSON specification', 'Fullscreen']);
+  });
+
+  it('keeps several action slots in the order they were given', () => {
+    const clock = createPlayerClock({ durationMs: 1000 });
+    const make = (label: string): HTMLButtonElement => {
+      const btn = document.createElement('button');
+      btn.setAttribute('aria-label', label);
+      return btn;
+    };
+    const ctl = createControlsElement({
+      clock,
+      timeline: timeline([]),
+      labels: DEFAULT_PLAYER_LABELS,
+      onToggleFullscreen: () => {},
+      actionSlots: [make('JSON specification'), make('Export the animation')],
+    });
+    applyControlsElement(ctl, clock, false);
+
+    const labels = buttons(ctl.el).map((b) => b.getAttribute('aria-label'));
+    expect(labels.slice(-3)).toEqual([
+      'JSON specification',
+      'Export the animation',
+      'Fullscreen',
+    ]);
   });
 
   it('mirrors every aria-label into a title, as React does', () => {

@@ -32,8 +32,15 @@ export interface ControlsOptions {
   /** Fully resolved by the caller — see the module header. */
   labels: PlayerLabels;
   onToggleFullscreen(): void;
-  /** Optional slot for the JSON spec button, rendered before full screen. */
-  exportSlot?: HTMLElement;
+  /**
+   * Secondary actions, rendered in order between the time readout and the
+   * fullscreen toggle — the JSON spec button, the video export button.
+   *
+   * A list rather than the single slot this started as: the bar now hosts two
+   * independent optional actions, and each is switched on by its own player
+   * option, so any combination of them can be present.
+   */
+  actionSlots?: readonly HTMLElement[];
 }
 
 /** A retained control bar. */
@@ -122,7 +129,7 @@ function fmt(ms: number): string {
 export function createControlsElement(
   options: ControlsOptions
 ): ControlsElement {
-  const { clock, timeline, labels, onToggleFullscreen, exportSlot } = options;
+  const { clock, timeline, labels, onToggleFullscreen, actionSlots } = options;
 
   const restartBtn = button(labels.restart, [restartIcon()]);
   restartBtn.addEventListener('click', () => clock.restart());
@@ -206,9 +213,9 @@ export function createControlsElement(
     scrub,
     time,
   ]);
-  // The export slot sits between the readout and full screen — the focus order
+  // The action slots sit between the readout and full screen — the focus order
   // is the document order, so this position is behavioural, not cosmetic.
-  if (exportSlot) el.appendChild(exportSlot);
+  if (actionSlots) for (const slot of actionSlots) el.appendChild(slot);
   el.appendChild(fullscreenBtn);
 
   return {

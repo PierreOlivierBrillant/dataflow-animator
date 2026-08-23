@@ -15,6 +15,11 @@ import { h, s, setStyle } from './el';
 import { resolveLabels, type PlayerLabels } from './labels';
 import { createJsonDialog, type JsonDialogElement } from './jsonDialog';
 import {
+  createVideoExportButton,
+  type VideoExportButtonElement,
+} from './videoExportButton';
+import type { VideoExportFormat } from '../export/video/types';
+import {
   createTranscriptElement,
   type TranscriptElement,
 } from './transcriptElement';
@@ -35,6 +40,32 @@ import { mountStage, type StageHandle } from './mount';
  *
  * SSR-safe: nothing here touches `document` until `mountPlayer` is called.
  */
+
+/**
+ * How the export button behaves, when `PlayerOptions.videoExport` is an object.
+ *
+ * Every field is optional: `videoExport: true` and `videoExport: {}` mean the
+ * same thing. The output size defaults per format (video is larger than GIF),
+ * so a caller who only wants to restrict the format list writes nothing else.
+ */
+export interface VideoExportConfig {
+  /** Formats offered, in menu order. Default: all three. */
+  formats?: readonly VideoExportFormat[];
+  /**
+   * Output heights offered, in pixels — `720` reads `720p`, and the width
+   * follows from the player's aspect ratio. Default: `[360, 540, 720, 1080]`.
+   *
+   * A list with ONE entry hides the control and fixes the value, which is how a
+   * caller pins the output without also having to turn the panel off.
+   */
+  resolutions?: readonly number[];
+  /** Frame rates offered. Default: `[15, 20, 24, 30, 60]`. Same one-entry rule. */
+  frameRates?: readonly number[];
+  /** Video bitrate in bits per second. Default: 4_000_000. */
+  bitrate?: number;
+  /** Base name of the downloaded file, extension excluded. */
+  filename?: string;
+}
 
 export interface PlayerOptions {
   /** Height of the player. A number is taken as pixels. Default: 420. */
@@ -68,6 +99,18 @@ export interface PlayerOptions {
   controls?: boolean;
   /** Adds the JSON spec button and its dialog. */
   exportable?: boolean;
+  /**
+   * Adds the video export button to the control bar. Default: absent, i.e. no
+   * button — so no existing player changes appearance by being updated.
+   *
+   * `true` offers every format; an object narrows the list or fixes the output
+   * size. Needs `controls`, since the button lives in the bar.
+   *
+   * The export itself never disturbs this player: it mounts a second one off
+   * screen and walks THAT through virtual time, so playback here carries on at
+   * its own speed while a file is being written.
+   */
+  videoExport?: boolean | VideoExportConfig;
   theme?: PlayerTheme;
   mode?: 'auto' | 'light' | 'dark';
   density?: Density;
@@ -123,6 +166,42 @@ export interface PlayerHandle {
   destroy(): void;
 }
 
+/**
+ * Pins `'auto'` to what the player is showing AT THIS MOMENT.
+ *
+ * An exported file has no viewer to follow, so `auto` has to become a concrete
+ * choice — and it has to be the same one the stylesheet made, or the file comes
+ * out in a theme nobody was looking at.
+ *
+ * The stylesheet resolves `auto` from an ANCESTOR carrying
+ * `data-theme="light|dark"` (the Docusaurus convention) and falls back to the OS
+ * only when there is none. Reading `prefers-color-scheme` alone — which this
+ * did — exports a light file from a site the reader has switched to dark,
+ * whenever their OS disagrees with the site.
+ *
+ * Called per export rather than at mount, because a site's theme toggle moves
+ * under a player that is already on screen.
+ */
+function resolveExportMode(
+  mode: 'auto' | 'light' | 'dark',
+  root: HTMLElement
+): 'light' | 'dark' {
+  if (mode !== 'auto') return mode;
+  // The player's OWN `data-theme` is a palette name (`neon`, `pcb`…), never
+  // light/dark, so the search starts at its parent — same as the CSS, which
+  // matches `[data-theme='dark'] .rdfa-player`.
+  const host = root.parentElement?.closest(
+    '[data-theme="light"], [data-theme="dark"]'
+  );
+  if (host) {
+    return host.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  }
+  return typeof matchMedia === 'function' &&
+    matchMedia('(prefers-color-scheme: dark)').matches
+    ? 'dark'
+    : 'light';
+}
+
 /** The JSON spec button, ported from `DataFlowPlayer`'s `exportSlot`. */
 function jsonButton(label: string, onOpen: () => void): HTMLButtonElement {
   const svg = s('svg', {
@@ -162,6 +241,7 @@ export function mountPlayer(
     loop = false,
     controls = true,
     exportable = false,
+    videoExport = false,
     theme = 'default',
     mode = 'auto',
     density = 'comfortable',
@@ -230,6 +310,7 @@ export function mountPlayer(
 
   let bar: ControlsElement | undefined;
   let dialog: JsonDialogElement | undefined;
+  let videoExportButton: VideoExportButtonElement | undefined;
 
   const openDialog = (): void => {
     if (dialog) return;
@@ -259,14 +340,42 @@ export function mountPlayer(
   // size. The stage is moved back in front of the bar afterwards, which changes
   // the document order without changing either box.
   if (controls) {
+    const slots: HTMLElement[] = [];
+    if (exportable) slots.push(jsonButton(chrome.jsonSpec, openDialog));
+    if (videoExport) {
+      const config: VideoExportConfig = videoExport === true ? {} : videoExport;
+      videoExportButton = createVideoExportButton({
+        spec,
+        labels: chrome,
+        formats: config.formats ?? ['webm', 'mp4', 'gif'],
+        resolutions: config.resolutions ?? [360, 540, 720, 1080],
+        frameRates: config.frameRates ?? [15, 20, 24, 30, 60],
+        // The estimate needs a frame count, and the frame count needs the
+        // animation's length — already compiled here, so it is passed rather
+        // than compiled a second time inside the button.
+        durationMs: timeline.durationMs,
+        exportOptions: {
+          bitrate: config.bitrate,
+          filename: config.filename,
+          // The export mounts its own player, so it has to be told how this
+          // one looks.
+          theme,
+          density,
+          highlight,
+        },
+        // A FUNCTION, not a value: the host's theme toggle moves under a
+        // mounted player, and the export must follow it rather than whatever
+        // the theme happened to be when the bar was built.
+        resolveMode: () => resolveExportMode(mode, root),
+      });
+      slots.push(videoExportButton.el);
+    }
     bar = createControlsElement({
       clock,
       timeline,
       labels: chrome,
       onToggleFullscreen: toggleFullscreen,
-      exportSlot: exportable
-        ? jsonButton(chrome.jsonSpec, openDialog)
-        : undefined,
+      actionSlots: slots,
     });
     applyControlsElement(bar, clock, isFullscreen);
     root.appendChild(bar.el);
@@ -385,6 +494,9 @@ export function mountPlayer(
       document.removeEventListener('fullscreenchange', onFullscreenChange);
       root.removeEventListener('keydown', onKeyDown);
       closeDialog();
+      // Aborts a running export, so a destroyed player cannot leave one
+      // writing frames into a file nobody will receive.
+      videoExportButton?.destroy();
       script?.destroy();
       stage.destroy();
       root.remove();
