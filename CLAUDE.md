@@ -111,25 +111,41 @@ To cut a release:
    and run the per-commit sequence.
 3. Merge, then `git tag vX.Y.Z && git push origin vX.Y.Z`.
 
-The workflow needs an `NPM_TOKEN` secret and an `npm` GitHub environment — add a
-required reviewer on that environment if you want a human approval between the
-green gates and the irreversible publish. `publishConfig.access` is `public` in
-all four manifests; without it npm refuses a scoped package on a free account.
+**Authentication is TRUSTED PUBLISHING (OIDC): there is no npm token.** The
+workflow proves its identity with the GitHub OIDC token that `id-token: write`
+grants, and npm checks it against a trusted publisher configured **per package**
+on npmjs.com. All four need one, matching exactly:
 
-**The token must be a granular access token with `Bypass 2FA` enabled.** Classic
-"automation" tokens no longer exist (npm removed them in November 2025), and a
-granular token without that setting makes the publish step fail with `EOTP`,
-after the gates have run — the account's 2FA applies to a token that does not
-opt out of it.
+| Field                | Value                   |
+| -------------------- | ----------------------- |
+| Organization or user | `PierreOlivierBrillant` |
+| Repository           | `dataflow-animator`     |
+| Workflow filename    | `release.yml`           |
+| Environment name     | `npm`                   |
+| Allowed actions      | `npm publish`           |
 
-That is a stopgap with a deadline: npm removes direct publishing from
-bypass-2FA tokens in **January 2027**. The replacement is **trusted publishing**
-(OIDC), which needs no token at all and generates provenance on its own. It
-cannot bootstrap this repository, though: npm requires a package to EXIST before
-its trusted publisher can be configured, so the first version of a new package
-has to go out on a token. Once all four are on the registry, configure a trusted
-publisher per package on npmjs.com, then drop `NODE_AUTH_TOKEN` and
-`--provenance` from the workflow.
+The workflow filename is case-sensitive and is the BARE name, not a path. A
+publisher that is missing or mismatched fails only at publish time — after every
+gate has run. Renaming `release.yml`, or the `npm` environment, therefore breaks
+publishing silently until the four configurations are updated too.
+
+Provenance is automatic under trusted publishing: **never** add `--provenance`
+back, and never reintroduce `NODE_AUTH_TOKEN`. The `npm` GitHub environment
+carries a required reviewer, which is the human approval between the green gates
+and the irreversible publish. `publishConfig.access` is `public` in all four
+manifests; without it npm refuses a scoped package on a free account.
+
+Why it is not a token: a granular access token must have `Bypass 2FA` enabled to
+publish unattended — without it the step fails with `EOTP` after the gates have
+run, which is exactly how `v1.0.0` and the first `v1.1.0` attempt died. npm
+removes direct publishing from bypass-2FA tokens entirely in **January 2027**.
+Trusted publishing could not bootstrap this repository (npm requires a package to
+EXIST before its publisher can be configured), so 1.0.0 went out another way; the
+four packages are on the registry now, so nothing has to go back to a token.
+
+Because `gh run rerun` replays the workflow **as it was at the tagged commit**, a
+fix to `release.yml` does not reach a tag that already exists: move the tag onto
+the corrected commit (safe only while that version was never published).
 
 `packages/angular` publishes its **`dist/`**, not its source directory — that is
 where ng-packagr writes the Angular Package Format output. The other three

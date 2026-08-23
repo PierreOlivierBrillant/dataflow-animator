@@ -8,8 +8,9 @@ on:
 
 permissions:
   contents: read
-  # Required by `npm publish --provenance`: the OIDC token is what lets npm
-  # attest the tarball was built by this workflow, from this commit.
+  # Required by TRUSTED PUBLISHING: the OIDC token is what npm authenticates
+  # against — there is no npm token in this workflow at all — and it is also
+  # what lets npm attest the tarball was built here, from this commit.
   id-token: write
 
 jobs:
@@ -89,11 +90,21 @@ jobs:
 
       # Core first, always: the three bindings declare a dependency on a
       # version of it that has to exist by the time they are resolved.
+      # No token, and no `--provenance`. Authentication is TRUSTED PUBLISHING:
+      # npm verifies the workflow's OIDC identity against a trusted publisher
+      # configured per package on npmjs.com (this repository + `release.yml` +
+      # the `npm` environment), and generates the provenance attestation itself.
+      #
+      # The four packages each need their own trusted publisher — npm matches
+      # the publisher against the package being published, not against the repo.
+      # A missing one fails only at publish time, with an authentication error.
+      #
+      # This replaced an `NPM_TOKEN` that had to bypass 2FA to work at all: such
+      # a token fails with `EOTP` without that setting, and npm removes direct
+      # publishing from bypass-2FA tokens entirely in January 2027.
       - name: Publish
         run: |
-          npm publish -w @dataflow-animator/core --provenance
-          npm publish -w @dataflow-animator/react --provenance
-          npm publish -w @dataflow-animator/element --provenance
-          npm publish ./packages/angular/dist --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          npm publish -w @dataflow-animator/core
+          npm publish -w @dataflow-animator/react
+          npm publish -w @dataflow-animator/element
+          npm publish ./packages/angular/dist
