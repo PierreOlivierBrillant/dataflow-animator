@@ -383,6 +383,22 @@ The timeline compiles an array of ordered actions. See
 
 ## 6. Temporal lifecycle
 
+- **Derived reading time**: an action carrying something to read and declaring no
+  `duration` gets one worked out from its own content, rather than a per-type
+  constant. The estimate is `ACQUIRE_MS + length / speed`, clamped to
+  `[MIN_MS, MAX_MS]` and then scaled by `spec.pace` (default 1):
+  - `comment` — the length of `text`, read as prose;
+  - `set_content` — the length of the panel (`value`, plus a table's `columns`
+    and `rows_data`), read at a speed that depends on `content.type`: code
+    slowest, then tables, then text. An `image` has no length, so it gets a flat
+    beat instead.
+
+  An explicit `duration` always takes precedence, and `pace` never scales it — it
+  is a stated intent, not an estimate. An action with nothing to read (empty text,
+  empty panel) falls back to the per-type default. The estimate is deliberately
+  **local**: it reads one action's own content and never what happens beside it,
+  so an author can predict a duration from the action alone.
+
 - **`wait_for`**: the action starts at the **end** of the referenced action (by id).
   - _On a root action_ (directly in `timeline`): effective `startMs` =
     `max(ref.endMs, stepStart)`. `wait_for` can only **delay** the action,

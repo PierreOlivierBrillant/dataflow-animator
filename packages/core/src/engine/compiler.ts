@@ -6,6 +6,7 @@ import type {
   PathShape,
   TreeSpec,
 } from '../types';
+import { derivedDuration } from './readingTime';
 import type {
   ArrowClip,
   Clip,
@@ -211,6 +212,8 @@ interface Ctx {
    * mutates `state`, recomputes `layout`, and emits the before→after reflow.
    */
   tree?: { state: TreeSpec; nodeIds: string[]; layout: LayoutMap };
+  /** {@link DataFlowSpec.pace}, resolved once — scales every derived duration. */
+  pace: number;
 }
 
 function makeId(ctx: Ctx, action: Action): string {
@@ -290,7 +293,13 @@ function compileAction(
   // scattered push sites (single source, no per-site drift).
   const pendingStart = ctx.pending.length;
 
-  const duration = action.duration ?? DEFAULT_DURATION[action.type];
+  // An explicit `duration` always wins: it is the author's intent, and keeping
+  // it ahead of the estimate is what makes the derivation safe to switch on for
+  // specs that already exist.
+  const duration =
+    action.duration ??
+    derivedDuration(action, ctx.pace) ??
+    DEFAULT_DURATION[action.type];
   const isMove = action.type === 'move';
   // A `move` is held at origin (APPEAR_HOLD) then at destination (ARRIVE_HOLD),
   // which creates two rest instances: appearance and arrival.
@@ -701,6 +710,7 @@ export function compile(spec: DataFlowSpec): CompileResult {
         .map((n) => [n.id, n.rotation as number])
     ),
     tree: treeCtx,
+    pace: spec.pace ?? 1,
   };
 
   const steps: Step[] = [];

@@ -7,6 +7,31 @@ here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Changed
+
+- **An action that carries something to read now stays on screen long enough to
+  be read.** A `comment` or a `set_content` that declares no `duration` no longer
+  falls back to a flat 500 ms: the engine derives one from the content itself —
+  a fixed cost to notice what appeared, plus the length divided by a reading
+  speed. Code is given more time than prose, a table more than a label, and the
+  result is bounded so a two-word badge does not flash past and a long paragraph
+  does not hold the animation hostage.
+
+  **This changes the timing of existing specs** wherever such an action had no
+  `duration`, which is why it is a breaking change rather than an addition. An
+  explicit `duration` is untouched — it is a stated intent, not an estimate — so
+  a spec that times every action itself renders exactly as before. Nothing moves
+  in space: only *when* each step happens changes, never *what* is drawn.
+
+### Added
+
+- **`pace`** (spec level): scales every derived reading time in one place, for
+  when the default pace reads too fast or too slow for an audience. Above 1
+  leaves more time, below 1 moves faster. It deliberately does not touch a
+  `duration` written by hand.
+
 ## 1.1.0 — 2026-08-23
 
 ### Added

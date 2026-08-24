@@ -88,13 +88,58 @@ depart **simultaneously**.
 
 Each action accepts a `duration` (ms). The defaults are:
 
-| Action type                               | Default (ms) |
-| ----------------------------------------- | ------------ |
-| `move`, `arrow`, `set_content`, `comment` | 500          |
-| `loading`                                 | 1200         |
-| `highlight`                               | 600          |
-| `set_visible`                             | 300          |
-| `wait`                                    | 1000         |
+| Action type              | Default (ms)                         |
+| ------------------------ | ------------------------------------ |
+| `comment`, `set_content` | derived from the content — see below |
+| `move`, `arrow`          | 500                                  |
+| `loading`                | 1200                                 |
+| `highlight`              | 600                                  |
+| `set_visible`            | 300                                  |
+| `wait`                   | 1000                                 |
+
+### Reading time
+
+An action that carries something to read — a `comment`'s text, a `set_content`'s
+panel — needs to stay on screen long enough for that text to actually be read.
+Write no `duration` and the engine works one out from the content itself: a fixed
+cost to notice what appeared, plus the length divided by a reading speed. Code is
+given more time than prose, a table more than a label, and the result is bounded
+so a two-word badge does not flash past and a long paragraph does not hold the
+animation hostage.
+
+```ts
+// No duration: each bubble stays for as long as its own text needs.
+{ type: 'comment', object: 'lb', text: 'Request 1 → Backend 1' },
+{ type: 'comment', text: 'The load balancer distributes requests in turn, to balance the load.' },
+```
+
+The second bubble above is three times longer than the first, so it stays roughly
+three times as long — without anyone counting characters.
+
+**An explicit `duration` always wins.** It is a stated intent, not an estimate, so
+reach for it whenever the content's length is not what should decide the timing —
+a dramatic pause, a beat held for effect.
+
+If the derived pace reads too fast or too slow for your audience, adjust it in one
+place with `pace` on the spec rather than action by action:
+
+```ts
+const spec = {
+  pace: 1.25, // a quarter more reading time everywhere it was derived
+  nodes: [...],
+  packets: [...],
+  timeline: [...],
+};
+```
+
+`pace` scales only the durations the engine derived. A `duration` you wrote
+yourself is left exactly as written.
+
+:::tip
+Reaching for `wait` right after a `comment` is usually a sign that the comment
+needed more reading time. Remove both the `wait` and the comment's `duration`,
+and let the length decide.
+:::
 
 ## Visual persistence
 

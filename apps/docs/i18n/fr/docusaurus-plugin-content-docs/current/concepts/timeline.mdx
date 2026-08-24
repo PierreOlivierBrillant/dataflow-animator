@@ -88,13 +88,61 @@ partent **simultanément**.
 
 Chaque action accepte une `duration` (ms). Les défauts sont :
 
-| Type d'action                             | Défaut (ms) |
-| ----------------------------------------- | ----------- |
-| `move`, `arrow`, `set_content`, `comment` | 500         |
-| `loading`                                 | 1200        |
-| `highlight`                               | 600         |
-| `set_visible`                             | 300         |
-| `wait`                                    | 1000        |
+| Type d'action            | Défaut (ms)                         |
+| ------------------------ | ----------------------------------- |
+| `comment`, `set_content` | déduit du contenu — voir ci-dessous |
+| `move`, `arrow`          | 500                                 |
+| `loading`                | 1200                                |
+| `highlight`              | 600                                 |
+| `set_visible`            | 300                                 |
+| `wait`                   | 1000                                |
+
+### Temps de lecture
+
+Une action qui porte quelque chose à lire — le texte d'un `comment`, le panneau
+d'un `set_content` — doit rester à l'écran assez longtemps pour que ce texte soit
+effectivement lu. N'écrivez aucune `duration` et le moteur la déduit du contenu
+lui-même : un coût fixe pour repérer ce qui vient d'apparaître, plus la longueur
+divisée par une vitesse de lecture. Du code reçoit plus de temps que de la prose,
+un tableau plus qu'une étiquette, et le résultat est borné pour qu'une pastille de
+deux mots ne passe pas en un éclair et qu'un long paragraphe ne prenne pas
+l'animation en otage.
+
+```ts
+// Aucune duration : chaque bulle reste le temps que son propre texte demande.
+{ type: 'comment', object: 'lb', text: 'Requête 1 → Backend 1' },
+{ type: 'comment', text: 'Le répartiteur distribue les requêtes à tour de rôle, pour équilibrer la charge.' },
+```
+
+La seconde bulle ci-dessus est trois fois plus longue que la première : elle reste
+donc à peu près trois fois plus longtemps — sans que personne ait compté les
+caractères.
+
+**Une `duration` explicite l'emporte toujours.** C'est une intention affirmée, pas
+une estimation : utilisez-la dès que la longueur du contenu n'est pas ce qui doit
+décider du minutage — une pause dramatique, un temps tenu pour l'effet.
+
+Si le rythme déduit vous paraît trop rapide ou trop lent pour votre public,
+ajustez-le en un seul endroit avec `pace` sur la spec, plutôt qu'action par
+action :
+
+```ts
+const spec = {
+  pace: 1.25, // un quart de temps de lecture en plus, partout où il est déduit
+  nodes: [...],
+  packets: [...],
+  timeline: [...],
+};
+```
+
+`pace` ne met à l'échelle que les durées déduites par le moteur. Une `duration`
+que vous avez écrite vous-même reste exactement telle quelle.
+
+:::tip
+Ajouter un `wait` juste après un `comment` est en général le signe que ce
+commentaire manquait de temps de lecture. Retirez le `wait` **et** la `duration`
+du commentaire, et laissez la longueur décider.
+:::
 
 ## Persistance visuelle
 
