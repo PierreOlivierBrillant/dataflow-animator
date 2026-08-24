@@ -1,28 +1,47 @@
 import type { DataFlowSpec } from '@dataflow-animator/react';
 import type { Locale } from '../../i18n';
 
+// The two payloads the web server returns are source code, not prose: they stay
+// identical in both locales and are highlighted (`html`, `javascript`) so the
+// contrast with the API's `json` response is visible at a glance.
+const HTML_BODY = '<div id="root"></div>\n<script src="/app.js"></script>';
+const JS_BODY =
+  'fetch("/api/products")\n  .then(r => r.json())\n  .then(render);';
+
 const strings = {
   en: {
     browser: 'Browser',
     web: 'Web Server',
     db: 'DB',
-    apiresBody: '[ 12 products ]',
-    comment1: '1. Application loading',
-    spaLoaded: '✅ SPA loaded (React) — ready to call API',
-    comment2: '2. The SPA calls the Web API',
-    renderValue: '📦 12 products displayed',
-    comment3: '3. Data rendering',
+    rowsHeader: '3 rows',
+    colName: 'name',
+    products: ['Keyboard', 'Mouse', 'Monitor'],
+    jsonBody:
+      '[\n  { "id": 1, "name": "Keyboard" },\n  { "id": 2, "name": "Mouse" },\n  { "id": 3, "name": "Monitor" }\n]',
+    pageUrl: 'my.app/products',
+    shellLoaded: '📄 index.html rendered — <div id="root"> still empty',
+    waitingData: '⚛️ SPA running · ⏳ loading… ▭▭▭▭▭ ▭▭▭',
+    renderValue: '✅ 3 products: Keyboard · Mouse · Monitor',
+    comment1: '1. The browser asks the web server for the page',
+    comment2: '2. The shell is displayed but empty: the script calls the API',
+    comment3: '3. The JSON becomes DOM: the products are displayed',
   },
   fr: {
     browser: 'Navigateur',
     web: 'Serveur web',
     db: 'BD',
-    apiresBody: '[ 12 produits ]',
-    comment1: "1. Chargement de l'application",
-    spaLoaded: "✅ SPA chargée (React) — prête à appeler l'API",
-    comment2: '2. La SPA appelle le Web API',
-    renderValue: '📦 12 produits affichés',
-    comment3: '3. Rendu des données',
+    rowsHeader: '3 lignes',
+    colName: 'nom',
+    products: ['Clavier', 'Souris', 'Écran'],
+    jsonBody:
+      '[\n  { "id": 1, "name": "Clavier" },\n  { "id": 2, "name": "Souris" },\n  { "id": 3, "name": "Écran" }\n]',
+    pageUrl: 'mon.app/produits',
+    shellLoaded: '📄 index.html rendu — <div id="root"> encore vide',
+    waitingData: '⚛️ SPA démarrée · ⏳ chargement… ▭▭▭▭▭ ▭▭▭',
+    renderValue: '✅ 3 produits : Clavier · Souris · Écran',
+    comment1: '1. Le navigateur demande la page au serveur web',
+    comment2: "2. La coquille est affichée mais vide : le script appelle l'API",
+    comment3: '3. Le JSON devient du DOM : les produits sont affichés',
   },
 };
 
@@ -68,30 +87,56 @@ export const spa = (locale: Locale): DataFlowSpec => {
         packet_content: { header: 'GET /' },
       },
       {
-        id: 'bundle',
+        id: 'html',
         kind: 'http_packet',
         packet_content: {
-          header: '200 OK',
-          body: { type: 'text', value: 'index.html + app.js' },
+          header: '200 OK\nContent-Type: text/html',
+          body: { type: 'text', value: HTML_BODY, language: 'html' },
+        },
+      },
+      {
+        id: 'getjs',
+        kind: 'http_packet',
+        packet_content: { header: 'GET /app.js' },
+      },
+      {
+        id: 'js',
+        kind: 'http_packet',
+        packet_content: {
+          header: '200 OK\nContent-Type: application/javascript',
+          body: { type: 'text', value: JS_BODY, language: 'javascript' },
         },
       },
       {
         id: 'apireq',
         kind: 'http_packet',
-        packet_content: { header: 'GET /api/products' },
+        packet_content: {
+          header: 'GET /api/products\nAccept: application/json',
+        },
       },
       {
         id: 'sql',
         kind: 'sql_request',
-        request_content: 'SELECT * FROM products',
+        request_content: 'SELECT id, name FROM products',
       },
-      { id: 'rows', kind: 'sql_response', response_content: { rows: 12 } },
+      {
+        id: 'rows',
+        kind: 'sql_response',
+        response_content: {
+          header: s.rowsHeader,
+          body: {
+            type: 'table',
+            columns: ['id', s.colName],
+            rows_data: s.products.map((name, i) => [i + 1, name]),
+          },
+        },
+      },
       {
         id: 'apires',
         kind: 'http_packet',
         packet_content: {
-          header: '200 OK',
-          body: { type: 'text', value: s.apiresBody },
+          header: '200 OK\nContent-Type: application/json',
+          body: { type: 'text', value: s.jsonBody, language: 'json' },
         },
       },
     ],
@@ -107,31 +152,57 @@ export const spa = (locale: Locale): DataFlowSpec => {
         text: s.comment1,
       },
       {
+        type: 'parallel',
+        actions: [
+          { type: 'move', object: 'getindex', from: 'browser', to: 'web' },
+          { type: 'loading', object: 'browser', keep_until: 'shell' },
+        ],
+      },
+      {
         type: 'move',
-        object: 'getindex',
+        object: 'html',
+        from: 'web',
+        to: 'browser',
+      },
+      // The shell is rendered but inert: the page exists, the data does not.
+      {
+        type: 'set_content',
+        id: 'shell',
+        object: 'browser',
+        content: {
+          type: 'text',
+          url: s.pageUrl,
+          value: s.shellLoaded,
+        },
+        keep_until: 'waiting',
+      },
+      {
+        type: 'move',
+        object: 'getjs',
         from: 'browser',
         to: 'web',
       },
       {
         type: 'move',
-        object: 'bundle',
+        object: 'js',
         from: 'web',
         to: 'browser',
-      },
-      {
-        type: 'set_content',
-        object: 'browser',
-        content: {
-          type: 'text',
-          url: 'https://mon.app',
-          value: s.spaLoaded,
-        },
-        keep_until: 'render',
       },
       {
         type: 'comment',
         object: 'browser',
         text: s.comment2,
+      },
+      {
+        type: 'set_content',
+        id: 'waiting',
+        object: 'browser',
+        content: {
+          type: 'text',
+          url: s.pageUrl,
+          value: s.waitingData,
+        },
+        keep_until: 'render',
       },
       {
         type: 'move',
@@ -161,20 +232,28 @@ export const spa = (locale: Locale): DataFlowSpec => {
         to: 'browser',
       },
       {
-        type: 'set_content',
-        id: 'render',
-        object: 'browser',
-        content: {
-          type: 'text',
-          url: 'https://mon.app/produits',
-          value: s.renderValue,
-        },
+        type: 'parallel',
+        actions: [
+          {
+            type: 'set_content',
+            id: 'render',
+            object: 'browser',
+            keep_until_end: true,
+            content: {
+              type: 'text',
+              url: s.pageUrl,
+              value: s.renderValue,
+            },
+          },
+          {
+            type: 'comment',
+            object: 'browser',
+            text: s.comment3,
+            keep_until_end: true,
+          },
+        ],
       },
-      {
-        type: 'comment',
-        object: 'browser',
-        text: s.comment3,
-      },
+      { type: 'wait', delay_ms: 1000 },
     ],
   };
 };
