@@ -64,7 +64,7 @@ export const halfAdderNand = (locale: Locale): DataFlowSpec => {
     connections,
     packets: [],
     timeline: [
-      { type: 'comment', text: s.intro, duration: 4500 },
+      { type: 'comment', text: s.intro },
       step({ A: 0, B: 0 }, s.s00),
       step({ A: 0, B: 1 }, s.s01),
       step({ A: 1, B: 0 }, s.s10),

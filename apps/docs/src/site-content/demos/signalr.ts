@@ -98,7 +98,6 @@ export const signalr = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'client1',
         text: s.comment1,
-        duration: 1500,
       },
       {
         type: 'set_content',
@@ -202,7 +201,6 @@ export const signalr = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'client1',
         text: s.comment4,
-        duration: 500,
       },
       {
         type: 'move',
@@ -215,7 +213,6 @@ export const signalr = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'hub',
         text: s.comment5,
-        duration: 500,
       },
       {
         // SendAll : un même message part vers les trois clients simultanément.

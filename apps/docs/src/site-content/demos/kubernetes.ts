@@ -114,7 +114,6 @@ export const kubernetes = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'cli',
         text: s.comment1,
-        duration: 2400,
       },
       {
         type: 'set_content',
@@ -131,7 +130,6 @@ export const kubernetes = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'api',
         text: s.comment2,
-        duration: 2400,
       },
       {
         type: 'move',
@@ -144,7 +142,6 @@ export const kubernetes = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'sched',
         text: s.comment3,
-        duration: 2600,
       },
       {
         type: 'move',
@@ -167,7 +164,6 @@ export const kubernetes = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'kubelet',
         text: s.comment4,
-        duration: 2600,
       },
       {
         type: 'move',
@@ -195,9 +191,7 @@ export const kubernetes = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'pod',
         text: s.comment5,
-        duration: 2200,
       },
-      { type: 'wait', duration: 1200 },
     ],
   };
 };

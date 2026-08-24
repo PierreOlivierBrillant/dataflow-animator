@@ -128,7 +128,6 @@ export const graphql = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'client',
         text: s.comment1,
-        duration: 2600,
       },
       {
         type: 'move',
@@ -141,7 +140,6 @@ export const graphql = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'gw',
         text: s.comment2,
-        duration: 2800,
       },
       {
         type: 'parallel',
@@ -176,7 +174,6 @@ export const graphql = (locale: Locale): DataFlowSpec => {
       {
         type: 'comment',
         text: s.comment3,
-        duration: 2400,
       },
       {
         type: 'parallel',
@@ -204,7 +201,6 @@ export const graphql = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'gw',
         text: s.comment4,
-        duration: 2600,
         wait_for: 'stitch',
       },
       {
@@ -218,9 +214,7 @@ export const graphql = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'client',
         text: s.comment5,
-        duration: 2600,
       },
-      { type: 'wait', duration: 1200 },
     ],
   };
 };

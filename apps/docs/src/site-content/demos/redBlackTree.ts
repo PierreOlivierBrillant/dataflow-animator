@@ -87,8 +87,8 @@ export const redBlackTree = (locale: Locale): DataFlowSpec => {
     ],
     packets: [{ id: 'k', kind: 'subicon', icon: '5' }],
     timeline: [
-      { type: 'comment', text: s.intro, duration: 3400 },
-      { type: 'comment', object: '40', text: s.insert, duration: 2800 },
+      { type: 'comment', text: s.intro },
+      { type: 'comment', object: '40', text: s.insert },
       {
         type: 'parallel',
         actions: [
@@ -113,7 +113,7 @@ export const redBlackTree = (locale: Locale): DataFlowSpec => {
           },
         ],
       },
-      { type: 'comment', object: '10', text: s.cmp10, duration: 2600 },
+      { type: 'comment', object: '10', text: s.cmp10 },
       {
         type: 'parallel',
         actions: [
@@ -121,8 +121,8 @@ export const redBlackTree = (locale: Locale): DataFlowSpec => {
           { type: 'comment', object: '10', text: s.placed, duration: 1500 },
         ],
       },
-      { type: 'comment', object: '5', text: s.linked, duration: 2200 },
-      { type: 'comment', object: '5', text: s.violation, duration: 2800 },
+      { type: 'comment', object: '5', text: s.linked },
+      { type: 'comment', object: '5', text: s.violation },
       {
         type: 'parallel',
         actions: [
@@ -168,7 +168,6 @@ export const redBlackTree = (locale: Locale): DataFlowSpec => {
         ],
       },
       { type: 'comment', text: s.done, keep_until_end: true },
-      { type: 'wait', delay_ms: 1400 },
     ],
   };
 };

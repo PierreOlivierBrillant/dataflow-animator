@@ -101,7 +101,7 @@ export const circuitParallel = (locale: Locale): DataFlowSpec => {
     ],
     packets: [],
     timeline: [
-      { type: 'comment', text: s.intro, duration: 4000 },
+      { type: 'comment', text: s.intro },
       {
         type: 'parallel',
         actions: [

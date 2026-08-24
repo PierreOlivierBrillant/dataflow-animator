@@ -170,7 +170,7 @@ export const logicGates = (locale: Locale): DataFlowSpec => {
     connections,
     packets: [],
     timeline: [
-      { type: 'comment', text: s.intro, duration: 4500 },
+      { type: 'comment', text: s.intro },
       step(0, 0, s.s00),
       step(0, 1, s.s01),
       step(1, 0, s.s10),

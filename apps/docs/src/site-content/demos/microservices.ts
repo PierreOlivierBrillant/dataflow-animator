@@ -131,7 +131,6 @@ export const microservices = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'client',
         text: s.comment1,
-        duration: 500,
       },
       {
         type: 'move',
@@ -187,7 +186,6 @@ export const microservices = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'client',
         text: s.comment2,
-        duration: 500,
       },
       {
         type: 'move',
@@ -243,7 +241,6 @@ export const microservices = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'client',
         text: s.comment3,
-        duration: 400,
       },
     ],
   };

@@ -118,7 +118,6 @@ export const cdn = (locale: Locale): DataFlowSpec => {
       {
         type: 'comment',
         text: s.comment1,
-        duration: 2600,
       },
       {
         type: 'move',
@@ -137,7 +136,6 @@ export const cdn = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'edge',
         text: s.commentMiss,
-        duration: 2400,
       },
       {
         type: 'move',
@@ -166,7 +164,6 @@ export const cdn = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'edge',
         text: s.commentStore,
-        duration: 2400,
       },
       {
         type: 'move',
@@ -179,7 +176,6 @@ export const cdn = (locale: Locale): DataFlowSpec => {
       {
         type: 'comment',
         text: s.comment2,
-        duration: 2600,
       },
       {
         type: 'move',
@@ -192,7 +188,6 @@ export const cdn = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'edge',
         text: s.commentHit,
-        duration: 2600,
       },
       {
         type: 'move',
@@ -205,9 +200,7 @@ export const cdn = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'user',
         text: s.commentEnd,
-        duration: 2200,
       },
-      { type: 'wait', duration: 1200 },
     ],
   };
 };

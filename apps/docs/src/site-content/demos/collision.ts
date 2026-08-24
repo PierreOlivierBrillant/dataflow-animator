@@ -81,7 +81,6 @@ export const collision = (locale: Locale): DataFlowSpec => {
       {
         type: 'comment',
         text: s.comment1,
-        duration: 2800,
       },
       {
         type: 'parallel',
@@ -94,7 +93,6 @@ export const collision = (locale: Locale): DataFlowSpec => {
       {
         type: 'comment',
         text: s.comment2,
-        duration: 2800,
       },
       {
         type: 'parallel',
@@ -107,7 +105,6 @@ export const collision = (locale: Locale): DataFlowSpec => {
       {
         type: 'comment',
         text: s.comment3,
-        duration: 2800,
       },
       {
         type: 'parallel',

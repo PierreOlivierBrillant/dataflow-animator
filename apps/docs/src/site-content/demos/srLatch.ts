@@ -114,7 +114,7 @@ export const srLatch = (locale: Locale): DataFlowSpec => {
     ],
     packets: [],
     timeline: [
-      { type: 'comment', text: s.intro, duration: 5000 },
+      { type: 'comment', text: s.intro },
       step(0, 1, 1, 0, s.set),
       step(1, 1, 1, 0, s.hold1),
       step(1, 0, 0, 1, s.reset),

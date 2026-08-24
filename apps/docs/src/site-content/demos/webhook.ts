@@ -98,7 +98,6 @@ export const webhook = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'provider',
         text: s.comment1,
-        duration: 2400,
       },
       {
         type: 'comment',
@@ -130,9 +129,7 @@ export const webhook = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'provider',
         text: s.comment3,
-        duration: 2600,
       },
-      { type: 'wait', duration: 1600 },
       {
         type: 'comment',
         object: 'provider',
@@ -157,9 +154,7 @@ export const webhook = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'provider',
         text: s.comment5,
-        duration: 2400,
       },
-      { type: 'wait', duration: 1800 },
       {
         type: 'set_content',
         id: 'recover',
@@ -171,7 +166,6 @@ export const webhook = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'provider',
         text: s.comment6,
-        duration: 2600,
       },
       {
         type: 'move',
@@ -193,9 +187,7 @@ export const webhook = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'provider',
         text: s.comment7,
-        duration: 2400,
       },
-      { type: 'wait', duration: 1200 },
     ],
   };
 };

@@ -98,7 +98,7 @@ export const halfAdder = (locale: Locale): DataFlowSpec => {
     ],
     packets: [],
     timeline: [
-      { type: 'comment', text: s.intro, duration: 4000 },
+      { type: 'comment', text: s.intro },
       step(0, 0, 0, 0, s.s00),
       step(0, 1, 1, 0, s.s01),
       step(1, 0, 1, 0, s.s10),

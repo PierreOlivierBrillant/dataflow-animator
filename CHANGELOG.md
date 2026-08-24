@@ -23,7 +23,7 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   `duration`, which is why it is a breaking change rather than an addition. An
   explicit `duration` is untouched — it is a stated intent, not an estimate — so
   a spec that times every action itself renders exactly as before. Nothing moves
-  in space: only *when* each step happens changes, never *what* is drawn.
+  in space: only _when_ each step happens changes, never _what_ is drawn.
 
 ### Added
 

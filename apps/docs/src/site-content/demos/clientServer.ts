@@ -107,7 +107,6 @@ export const clientServer = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'browser',
         text: s.openComment,
-        duration: 1500,
       },
       {
         type: 'parallel',

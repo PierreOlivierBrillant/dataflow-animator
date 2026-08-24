@@ -116,7 +116,6 @@ export const cicd = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'dev',
         text: s.comment1,
-        duration: 2000,
       },
       {
         type: 'set_content',
@@ -133,7 +132,6 @@ export const cicd = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'repo',
         text: s.comment2,
-        duration: 2200,
       },
       {
         type: 'move',
@@ -147,7 +145,6 @@ export const cicd = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'ci',
         text: s.comment3,
-        duration: 2400,
       },
       { type: 'loading', object: 'ci', duration: 1400 },
       {
@@ -164,7 +161,6 @@ export const cicd = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'ci',
         text: s.comment4,
-        duration: 2400,
       },
       {
         type: 'move',
@@ -177,7 +173,6 @@ export const cicd = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'registry',
         text: s.comment5,
-        duration: 2200,
       },
       {
         type: 'move',
@@ -195,7 +190,6 @@ export const cicd = (locale: Locale): DataFlowSpec => {
         duration: 2200,
         wait_for: 'rollout',
       },
-      { type: 'wait', duration: 1200 },
     ],
   };
 };

@@ -119,7 +119,6 @@ export const payment = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'buyer',
         text: s.comment1,
-        duration: 2000,
       },
       {
         type: 'move',
@@ -132,7 +131,6 @@ export const payment = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'shop',
         text: s.comment2,
-        duration: 2400,
       },
       {
         type: 'move',
@@ -145,14 +143,12 @@ export const payment = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'psp',
         text: s.comment3,
-        duration: 2400,
       },
       { type: 'move', object: 'auth', from: 'psp', to: 'bank', duration: 1300 },
       {
         type: 'comment',
         object: 'bank',
         text: s.comment4,
-        duration: 2600,
       },
       {
         type: 'move',
@@ -166,7 +162,6 @@ export const payment = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'buyer',
         text: s.comment5,
-        duration: 2200,
         wait_for: 'sca',
       },
       {
@@ -180,7 +175,6 @@ export const payment = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'psp',
         text: s.comment6,
-        duration: 2800,
       },
       {
         type: 'move',
@@ -202,7 +196,6 @@ export const payment = (locale: Locale): DataFlowSpec => {
         text: s.receiptHeader,
         duration: 2000,
       },
-      { type: 'wait', duration: 1200 },
     ],
   };
 };

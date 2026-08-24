@@ -137,7 +137,6 @@ export const dns = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'client',
         text: s.comment1,
-        duration: 2200,
       },
       {
         type: 'move',
@@ -150,7 +149,6 @@ export const dns = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'resolver',
         text: s.comment2,
-        duration: 2400,
       },
       {
         type: 'move',
@@ -170,7 +168,6 @@ export const dns = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'resolver',
         text: s.comment3,
-        duration: 2200,
       },
       {
         type: 'move',
@@ -190,7 +187,6 @@ export const dns = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'resolver',
         text: s.comment4,
-        duration: 2200,
       },
       {
         type: 'move',
@@ -212,7 +208,6 @@ export const dns = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'resolver',
         text: s.comment5,
-        duration: 2400,
       },
       {
         type: 'move',
@@ -225,9 +220,7 @@ export const dns = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'client',
         text: s.comment6,
-        duration: 2000,
       },
-      { type: 'wait', duration: 1200 },
     ],
   };
 };

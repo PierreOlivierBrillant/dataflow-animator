@@ -111,7 +111,6 @@ export const dos = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'user',
         text: s.normalComment,
-        duration: 2400,
       },
       {
         type: 'move',
@@ -140,7 +139,6 @@ export const dos = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'attacker',
         text: s.floodComment,
-        duration: 2800,
       },
       {
         type: 'parallel',
@@ -153,7 +151,6 @@ export const dos = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'server',
         text: s.saturatedComment,
-        duration: 2800,
       },
       {
         id: 'down',
@@ -167,7 +164,6 @@ export const dos = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'user',
         text: s.deniedComment,
-        duration: 2600,
       },
       {
         type: 'move',
@@ -192,9 +188,7 @@ export const dos = (locale: Locale): DataFlowSpec => {
       {
         type: 'comment',
         text: s.endComment,
-        duration: 3200,
       },
-      { type: 'wait', duration: 1200 },
     ],
   };
 };

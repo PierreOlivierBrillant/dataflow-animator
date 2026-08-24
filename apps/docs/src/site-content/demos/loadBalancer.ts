@@ -66,7 +66,6 @@ export const loadBalancer = (locale: Locale): DataFlowSpec => {
       {
         type: 'comment',
         text: s.comment1,
-        duration: 2600,
       },
       {
         type: 'comment',
@@ -122,9 +121,7 @@ export const loadBalancer = (locale: Locale): DataFlowSpec => {
       {
         type: 'comment',
         text: s.comment5,
-        duration: 2600,
       },
-      { type: 'wait', duration: 1200 },
     ],
   };
 };

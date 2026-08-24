@@ -114,7 +114,7 @@ export const ohmsLaw = (locale: Locale): DataFlowSpec => {
     ],
     packets: [],
     timeline: [
-      { type: 'comment', text: s.intro, duration: 4000 },
+      { type: 'comment', text: s.intro },
       {
         type: 'flow',
         route: LOOP,

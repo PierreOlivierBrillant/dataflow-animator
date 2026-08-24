@@ -105,7 +105,6 @@ export const blockchain = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'wallet',
         text: s.c1,
-        duration: 2400,
       },
       {
         type: 'move',
@@ -124,7 +123,6 @@ export const blockchain = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'mempool',
         text: s.c2,
-        duration: 2600,
       },
       {
         type: 'parallel',
@@ -138,7 +136,6 @@ export const blockchain = (locale: Locale): DataFlowSpec => {
       {
         type: 'comment',
         text: s.c3,
-        duration: 2800,
       },
       {
         type: 'parallel',
@@ -153,7 +150,6 @@ export const blockchain = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'm2',
         text: s.c4,
-        duration: 2600,
       },
       {
         type: 'move',
@@ -173,7 +169,6 @@ export const blockchain = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'chain',
         text: s.c5,
-        duration: 2600,
       },
       {
         type: 'parallel',
@@ -192,9 +187,7 @@ export const blockchain = (locale: Locale): DataFlowSpec => {
       {
         type: 'comment',
         text: s.cEnd,
-        duration: 2600,
       },
-      { type: 'wait', duration: 1400 },
     ],
   };
 };

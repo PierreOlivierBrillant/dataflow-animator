@@ -138,13 +138,11 @@ export const scrubbing = (locale: Locale): DataFlowSpec => {
       {
         type: 'comment',
         text: s.introComment,
-        duration: 3400,
       },
       // 1. Flood + one legitimate request converge on the scrubber.
       {
         type: 'comment',
         text: s.floodComment,
-        duration: 2800,
       },
       {
         type: 'parallel',
@@ -168,7 +166,6 @@ export const scrubbing = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'scrub',
         text: s.filterComment,
-        duration: 3000,
       },
       {
         id: 'filtering',
@@ -182,7 +179,6 @@ export const scrubbing = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'origin',
         text: s.forwardComment,
-        duration: 2600,
       },
       {
         id: 'forward',
@@ -219,14 +215,11 @@ export const scrubbing = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'user',
         text: s.healthyComment,
-        duration: 2800,
       },
       {
         type: 'comment',
         text: s.endComment,
-        duration: 3600,
       },
-      { type: 'wait', duration: 1200 },
     ],
   };
 };

@@ -120,13 +120,11 @@ export const circular = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'orch',
         text: s.comment1,
-        duration: 2800,
       },
       {
         type: 'comment',
         object: 'orch',
         text: s.comment2,
-        duration: 2200,
       },
       {
         type: 'parallel',
@@ -159,7 +157,6 @@ export const circular = (locale: Locale): DataFlowSpec => {
       {
         type: 'comment',
         text: s.comment3,
-        duration: 2600,
       },
       {
         type: 'parallel',
@@ -199,9 +196,7 @@ export const circular = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'orch',
         text: s.comment4,
-        duration: 2400,
       },
-      { type: 'wait', duration: 1400 },
     ],
   };
 };

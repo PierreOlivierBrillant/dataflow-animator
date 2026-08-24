@@ -105,7 +105,6 @@ export const spa = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'browser',
         text: s.comment1,
-        duration: 500,
       },
       {
         type: 'move',
@@ -135,7 +134,6 @@ export const spa = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'browser',
         text: s.comment2,
-        duration: 500,
       },
       {
         type: 'move',
@@ -182,7 +180,6 @@ export const spa = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'browser',
         text: s.comment3,
-        duration: 400,
       },
     ],
   };

@@ -135,7 +135,6 @@ export const oauth = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'user',
         text: s.comment1,
-        duration: 2000,
       },
       {
         type: 'move',
@@ -148,7 +147,6 @@ export const oauth = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'app',
         text: s.comment2,
-        duration: 2200,
       },
       {
         type: 'move',
@@ -161,7 +159,6 @@ export const oauth = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'idp',
         text: s.comment3,
-        duration: 2400,
       },
       {
         type: 'move',
@@ -174,14 +171,12 @@ export const oauth = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'idp',
         text: s.comment4,
-        duration: 2200,
       },
       { type: 'move', object: 'code', from: 'idp', to: 'app', duration: 1300 },
       {
         type: 'comment',
         object: 'app',
         text: s.comment5,
-        duration: 2600,
       },
       {
         type: 'move',
@@ -203,7 +198,6 @@ export const oauth = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'app',
         text: s.comment6,
-        duration: 2400,
       },
       { type: 'move', object: 'call', from: 'app', to: 'api', duration: 1300 },
       { type: 'loading', id: 'check', object: 'api', duration: 900 },
@@ -219,9 +213,7 @@ export const oauth = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'app',
         text: s.comment7,
-        duration: 2000,
       },
-      { type: 'wait', duration: 1200 },
     ],
   };
 };

@@ -135,7 +135,7 @@ export const astar = (locale: Locale): DataFlowSpec => {
     connections,
     packets: [],
     timeline: [
-      { type: 'comment', text: s.intro, duration: 4400 },
+      { type: 'comment', text: s.intro },
       {
         type: 'parallel',
         actions: [

@@ -57,8 +57,8 @@ export const bstSearch = (locale: Locale): DataFlowSpec => {
     nodes: ['8', '4', '12', '2', '6', '10', '14', '7'].map(node),
     packets: [{ id: 'q', kind: 'subicon', icon: '7' }],
     timeline: [
-      { type: 'comment', text: s.intro, duration: 3600 },
-      { type: 'comment', object: '8', text: s.start, duration: 2400 },
+      { type: 'comment', text: s.intro },
+      { type: 'comment', object: '8', text: s.start },
       {
         type: 'parallel',
         actions: [

@@ -123,7 +123,7 @@ export const dijkstra = (locale: Locale): DataFlowSpec => {
     ],
     packets: [],
     timeline: [
-      { type: 'comment', text: s.intro, duration: 4000 },
+      { type: 'comment', text: s.intro },
       {
         type: 'parallel',
         actions: [dist('A', '0'), settle('A'), say('A', s.settleA)],
