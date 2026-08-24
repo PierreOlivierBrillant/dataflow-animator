@@ -63,11 +63,11 @@ describe('derivedMoveDuration', () => {
 
   it('keeps a short hop from being a blink and a long one from dragging', () => {
     expect(derivedMoveDuration(1, 1)).toBe(380);
-    expect(derivedMoveDuration(100000, 1)).toBe(1800);
+    expect(derivedMoveDuration(100000, 1)).toBe(2000);
   });
 
   it('scales by pace after the bounds', () => {
-    expect(derivedMoveDuration(100000, 2)).toBe(3600);
+    expect(derivedMoveDuration(100000, 2)).toBe(4000);
     expect(derivedMoveDuration(1, 2)).toBe(760);
   });
 
@@ -103,16 +103,19 @@ describe('appearHold / arriveHold', () => {
  * construction — nothing else would catch this coming undone.
  */
 describe('compile — one speed across a scene', () => {
+  // Four lanes, so one hop and a two-lane hop both stay inside the bounds —
+  // the range where a constant speed is a promise. Past the ceiling a long trip
+  // is deliberately faster, which is what a bound is FOR.
   const spec: DataFlowSpec = {
     direction: 'left-to-right',
     nodes: [
       { id: 'a', type: 'server', lane: 1 },
       { id: 'b', type: 'server', lane: 2 },
       { id: 'c', type: 'server', lane: 3 },
+      { id: 'd', type: 'server', lane: 4 },
     ],
     packets: [{ id: 'p', kind: 'http_packet' }],
     timeline: [
-      // One short hop, then one spanning the whole scene.
       { type: 'move', id: 'short', object: 'p', from: 'a', to: 'b' },
       { type: 'move', id: 'long', object: 'p', from: 'a', to: 'c' },
     ],
@@ -135,6 +138,13 @@ describe('compile — one speed across a scene', () => {
       const clip = timeline.clips.find((c) => c.id === id) as MoveClip;
       return moveDistance(placed, from, to)! / (clip.endMs - clip.animStartMs);
     };
+    // Guard the premise: neither trip may sit on a bound, or this proves nothing.
+    const ms = (id: string) => {
+      const clip = timeline.clips.find((c) => c.id === id) as MoveClip;
+      return clip.endMs - clip.animStartMs;
+    };
+    expect(ms('long')).toBeLessThan(2000);
+    expect(ms('short')).toBeGreaterThan(380);
     // A constant duration would put this ratio at 2; a constant speed at 1.
     expect(speed('long', 'a', 'c') / speed('short', 'a', 'b')).toBeCloseTo(
       1,

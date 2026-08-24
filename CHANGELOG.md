@@ -39,6 +39,12 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   measured on `microservices`' SQL packet: opaque at 250 ms, then legible for the
   remaining 1350 ms.
 
+- **Movements are slower.** The derived travel speed was 300 px/s in the
+  reference frame, calibrated against the median speed authors had been writing
+  by hand across the corpus (284 px/s). An earlier pass shipped 430, a number
+  that matched no measurement and read as visibly hurried. Only moves that
+  declare no `duration` of their own are affected.
+
 - **A packet now waits at its origin long enough to be read.** Its origin hold
   was a fraction of the trip — 120 ms for a 600 ms hop — which does not cover
   `SELECT * FROM users WHERE email=…`, text the reader meets while the packet is
