@@ -88,14 +88,15 @@ depart **simultaneously**.
 
 Each action accepts a `duration` (ms). The defaults are:
 
-| Action type              | Default (ms)                         |
-| ------------------------ | ------------------------------------ |
-| `comment`, `set_content` | derived from the content — see below |
-| `move`, `arrow`          | 500                                  |
-| `loading`                | 1200                                 |
-| `highlight`              | 600                                  |
-| `set_visible`            | 300                                  |
-| `wait`                   | 1000                                 |
+| Action type              | Default (ms)                          |
+| ------------------------ | ------------------------------------- |
+| `comment`, `set_content` | derived from the content — see below  |
+| `move`                   | derived from the distance — see below |
+| `arrow`                  | 500                                   |
+| `loading`                | 1200                                  |
+| `highlight`              | 600                                   |
+| `set_visible`            | 300                                   |
+| `wait`                   | 1000                                  |
 
 ### Reading time
 
@@ -140,6 +141,27 @@ Reaching for `wait` right after a `comment` is usually a sign that the comment
 needed more reading time. Remove both the `wait` and the comment's `duration`,
 and let the length decide.
 :::
+
+### Travel time
+
+The same idea applied to space: a `move` with no `duration` derives one from the
+**length of its trip**, so two hops of different lengths are covered at the same
+apparent speed instead of in the same time. The eye reads a speed, not a
+duration — and a speed that changes for no reason reads as a mistake.
+
+```ts
+// No duration on either: the long hop simply takes longer.
+{ type: 'move', object: 'rq', from: 'client', to: 'lb' },
+{ type: 'move', object: 'rs', from: 'backend', to: 'client' },
+```
+
+Distances are measured in a **fixed reference frame**, never in the player's real
+pixels. That is what keeps one animation to one chronology: resize the player and
+the total duration, the step boundaries and the exported video all stay put.
+
+Here too, an explicit `duration` wins. Reach for it when the pace of a movement
+carries meaning the distance cannot — a deliberately slow hand-off, a burst meant
+to feel abrupt.
 
 ## Visual persistence
 

@@ -7,6 +7,14 @@ import type {
   TreeSpec,
 } from '../types';
 import { derivedDuration } from './readingTime';
+import {
+  appearHold,
+  arriveHold,
+  derivedMoveDuration,
+  moveDistance,
+  REFERENCE_ASPECT,
+} from './motionTime';
+import { refNode } from './pins';
 import type {
   ArrowClip,
   Clip,
@@ -25,7 +33,7 @@ import type {
   Timeline,
   ToggleClip,
 } from './timeline';
-import { treeEdges, treeLayout, type LayoutMap } from './layout';
+import { computeLayout, treeEdges, treeLayout, type LayoutMap } from './layout';
 
 /**
  * Compiler: `spec.timeline` -> `Timeline` (deterministic IR).
@@ -43,11 +51,6 @@ export interface CompileResult {
 
 /** Pause (ms) inserted between two root steps, for clear stops in navigation. */
 export const STEP_GAP = 250;
-
-/** Time (ms) during which a `move` stays at the origin before leaving. */
-export const APPEAR_HOLD = 300;
-/** Time (ms) during which a `move` stays at destination before disappearing. */
-export const ARRIVE_HOLD = 300;
 
 const DEFAULT_DURATION: Record<ActionType, number> = {
   move: 500,
@@ -214,6 +217,15 @@ interface Ctx {
   tree?: { state: TreeSpec; nodeIds: string[]; layout: LayoutMap };
   /** {@link DataFlowSpec.pace}, resolved once — scales every derived duration. */
   pace: number;
+  /**
+   * Node placements in the reference frame, for deriving a move's duration from
+   * its length. LAZY: a `graph` layout runs a 400-iteration force-directed pass,
+   * and the mount computes its own layout anyway — so a spec whose moves all
+   * declare a `duration` must not pay for a second one. `null` = not yet asked.
+   */
+  referenceLayout: LayoutMap | null;
+  /** Resolves {@link Ctx.referenceLayout} on first use. */
+  layoutOf: () => LayoutMap;
 }
 
 function makeId(ctx: Ctx, action: Action): string {
@@ -296,16 +308,32 @@ function compileAction(
   // An explicit `duration` always wins: it is the author's intent, and keeping
   // it ahead of the estimate is what makes the derivation safe to switch on for
   // specs that already exist.
+  const isMove = action.type === 'move';
+  // `from` / `to` are required by the type, but the compiler deliberately
+  // tolerates an incomplete action (it warns and moves on), so they can be
+  // missing here — reading them unguarded would turn a warning into a crash.
+  const travelMs =
+    isMove && action.duration == null && action.from && action.to
+      ? derivedMoveDuration(
+          moveDistance(
+            ctx.layoutOf(),
+            refNode(action.from),
+            refNode(action.to)
+          ) ?? 0,
+          ctx.pace
+        )
+      : undefined;
   const duration =
     action.duration ??
+    travelMs ??
     derivedDuration(action, ctx.pace) ??
     DEFAULT_DURATION[action.type];
-  const isMove = action.type === 'move';
-  // A `move` is held at origin (APPEAR_HOLD) then at destination (ARRIVE_HOLD),
-  // which creates two rest instances: appearance and arrival.
-  const animStartMs = startMs + (isMove ? APPEAR_HOLD : 0);
+  // A move is held at its origin before leaving and at its destination before
+  // fading, which creates two rest instances: appearance and arrival. Both are
+  // fractions of the trip they frame — see `motionTime.ts`.
+  const animStartMs = startMs + (isMove ? appearHold(duration) : 0);
   const endMs = animStartMs + duration; // animation end (arrival)
-  const occupiedEndMs = endMs + (isMove ? ARRIVE_HOLD : 0);
+  const occupiedEndMs = endMs + (isMove ? arriveHold(duration) : 0);
   const id = makeId(ctx, action);
   const keepNext =
     action.keep_until_next ?? DEFAULT_KEEP_NEXT[action.type] ?? false;
@@ -711,6 +739,14 @@ export function compile(spec: DataFlowSpec): CompileResult {
     ),
     tree: treeCtx,
     pace: spec.pace ?? 1,
+    referenceLayout: null,
+    layoutOf: () => {
+      // In `tree` mode the topology is restructured as the timeline plays, so
+      // the layout the compiler already keeps is the one to measure against.
+      ctx.referenceLayout ??=
+        treeCtx?.layout ?? computeLayout(spec, { aspect: REFERENCE_ASPECT });
+      return ctx.referenceLayout;
+    },
   };
 
   const steps: Step[] = [];

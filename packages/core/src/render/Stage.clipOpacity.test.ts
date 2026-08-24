@@ -1,27 +1,30 @@
 import { describe, expect, it } from 'vitest';
 import { clipOpacity, contentCrossfade, FADE_MS } from './clipOpacity';
-import { APPEAR_HOLD } from '../engine/compiler';
+
+/** A move's origin hold, for a 1500 ms move — any value works, it is only
+ *  the fade-in window these cases are built around. */
+const ORIGIN_HOLD = 300;
 
 // Minimal clip visible for a very long time (no exit constraint).
 const farEnd = 99_999;
 
 describe('clipOpacity — fade-in with hold (inDur > 0)', () => {
-  const clip = { startMs: 0, animStartMs: APPEAR_HOLD, visibleUntilMs: farEnd };
+  const clip = { startMs: 0, animStartMs: ORIGIN_HOLD, visibleUntilMs: farEnd };
 
   it('opacity 0 at the first instant', () => {
     expect(clipOpacity(clip, 0)).toBe(0);
   });
 
   it('opacity ~0.5 mid-hold', () => {
-    expect(clipOpacity(clip, APPEAR_HOLD / 2)).toBeCloseTo(0.5);
+    expect(clipOpacity(clip, ORIGIN_HOLD / 2)).toBeCloseTo(0.5);
   });
 
   it('opacity 1 at the end of the hold', () => {
-    expect(clipOpacity(clip, APPEAR_HOLD)).toBe(1);
+    expect(clipOpacity(clip, ORIGIN_HOLD)).toBe(1);
   });
 
   it('stays at 1 long after the hold', () => {
-    expect(clipOpacity(clip, APPEAR_HOLD + 1000)).toBe(1);
+    expect(clipOpacity(clip, ORIGIN_HOLD + 1000)).toBe(1);
   });
 });
 
@@ -105,10 +108,10 @@ describe('clipOpacity — custom fadeInMs', () => {
   });
 
   it('fade_in_ms also overrides the starting hold (move)', () => {
-    // For a move, inDur = APPEAR_HOLD = 300; fadeInMs = 100 takes precedence.
+    // For a move, inDur = the origin hold; fadeInMs = 100 takes precedence.
     const clip = {
       startMs: 0,
-      animStartMs: APPEAR_HOLD,
+      animStartMs: ORIGIN_HOLD,
       visibleUntilMs: 99_999,
       fadeInMs: 100,
     };

@@ -399,6 +399,20 @@ The timeline compiles an array of ordered actions. See
   **local**: it reads one action's own content and never what happens beside it,
   so an author can predict a duration from the action alone.
 
+- **Derived travel time**: a `move` with no `duration` derives one from the
+  LENGTH of its trip, so a scene holds one apparent speed instead of one
+  duration. Distances are measured in a **fixed reference frame** (16:9), never
+  in the player's real pixels: `compile()` has no geometry, and feeding it the
+  live aspect would recompile the timeline on every resize — total duration and
+  navigation stops would shift mid-playback. Same fixed-frame reasoning as the
+  circuit router's letterbox.
+- **Proportioned holds**: the pauses framing a `move` (at its origin before
+  leaving, at its destination before fading) are fractions of that move's own
+  duration rather than flat constants, bounded at both ends, with the arrival
+  given slightly more than the departure. `STEP_GAP` is deliberately NOT
+  proportioned: it separates navigation stops, which is a functional role, not a
+  decorative one.
+
 - **`wait_for`**: the action starts at the **end** of the referenced action (by id).
   - _On a root action_ (directly in `timeline`): effective `startMs` =
     `max(ref.endMs, stepStart)`. `wait_for` can only **delay** the action,

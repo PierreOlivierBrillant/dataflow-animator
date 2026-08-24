@@ -88,14 +88,15 @@ partent **simultanément**.
 
 Chaque action accepte une `duration` (ms). Les défauts sont :
 
-| Type d'action            | Défaut (ms)                         |
-| ------------------------ | ----------------------------------- |
-| `comment`, `set_content` | déduit du contenu — voir ci-dessous |
-| `move`, `arrow`          | 500                                 |
-| `loading`                | 1200                                |
-| `highlight`              | 600                                 |
-| `set_visible`            | 300                                 |
-| `wait`                   | 1000                                |
+| Type d'action            | Défaut (ms)                           |
+| ------------------------ | ------------------------------------- |
+| `comment`, `set_content` | déduit du contenu — voir ci-dessous   |
+| `move`                   | déduit de la distance — voir plus bas |
+| `arrow`                  | 500                                   |
+| `loading`                | 1200                                  |
+| `highlight`              | 600                                   |
+| `set_visible`            | 300                                   |
+| `wait`                   | 1000                                  |
 
 ### Temps de lecture
 
@@ -143,6 +144,29 @@ Ajouter un `wait` juste après un `comment` est en général le signe que ce
 commentaire manquait de temps de lecture. Retirez le `wait` **et** la `duration`
 du commentaire, et laissez la longueur décider.
 :::
+
+### Temps de trajet
+
+La même idée appliquée à l'espace : un `move` sans `duration` la déduit de la
+**longueur de son trajet**, si bien que deux sauts de longueurs différentes sont
+parcourus à la même vitesse apparente, plutôt que dans le même temps. L'œil lit
+une vitesse, pas une durée — et une vitesse qui change sans raison se lit comme
+une erreur.
+
+```ts
+// Aucune duration sur l'un ni sur l'autre : le trajet long prend simplement plus de temps.
+{ type: 'move', object: 'rq', from: 'client', to: 'lb' },
+{ type: 'move', object: 'rs', from: 'backend', to: 'client' },
+```
+
+Les distances sont mesurées dans un **repère de référence fixe**, jamais dans les
+pixels réels du lecteur. C'est ce qui garantit une seule chronologie par
+animation : redimensionnez le lecteur et la durée totale, les frontières
+d'étapes et la vidéo exportée restent identiques.
+
+Ici encore, une `duration` explicite l'emporte. Utilisez-la quand le rythme d'un
+mouvement porte un sens que la distance ne peut pas exprimer — un passage de
+relais volontairement lent, une salve censée paraître brutale.
 
 ## Persistance visuelle
 

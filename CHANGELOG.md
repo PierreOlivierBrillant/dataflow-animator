@@ -25,12 +25,34 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   a spec that times every action itself renders exactly as before. Nothing moves
   in space: only _when_ each step happens changes, never _what_ is drawn.
 
+- **A movement's duration now follows the distance it covers.** A `move` with no
+  `duration` no longer takes a flat 500 ms whatever the length of its trip: it is
+  derived from that length, so a scene holds one apparent SPEED instead of one
+  duration. Measured across the demos, the speed authors were imposing varied by
+  a factor of 8.1 between the slowest and the fastest hop; the eye reads a speed,
+  and one that changes for no reason reads as a mistake.
+
+  Distances are measured in a **fixed 16:9 reference frame**, never in the
+  player's real pixels — `compile()` has no geometry, and feeding it the live
+  aspect would recompile the timeline on every resize, shifting total duration
+  and navigation stops mid-playback. Same reasoning as the circuit router's
+  letterbox.
+
+- **The pauses framing a movement are now proportioned to it.** A packet was held
+  300 ms at its origin and 300 ms at its destination whatever it was doing —
+  which on a busy demo added up to 9.2 s of waiting against 9.9 s of actual
+  movement. They are bounded fractions of the move's own duration instead: a
+  long, slow trip earns a beat to settle, a quick hop chains straight on. The
+  arrival gets slightly more than the departure, being the part that carries the
+  information. `STEP_GAP` is deliberately unchanged — it separates navigation
+  stops, a functional role rather than a decorative one.
+
 ### Added
 
-- **`pace`** (spec level): scales every derived reading time in one place, for
-  when the default pace reads too fast or too slow for an audience. Above 1
-  leaves more time, below 1 moves faster. It deliberately does not touch a
-  `duration` written by hand.
+- **`pace`** (spec level): scales every derived duration in one place — reading
+  time and travel time alike — for when the default pace reads too fast or too
+  slow for an audience. Above 1 leaves more time, below 1 moves faster. It
+  deliberately does not touch a `duration` written by hand.
 
 ## 1.1.0 — 2026-08-23
 
