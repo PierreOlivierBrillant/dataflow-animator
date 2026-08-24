@@ -58,12 +58,20 @@ function cubicBezier(
 }
 
 /**
- * How a packet covers ground: a decided departure, then a long settle.
+ * How a packet covers ground: a decided departure, then an arrival that lands.
  *
- * Asymmetric on purpose. A symmetric curve treats leaving and arriving as the
- * same event, which is true of the arithmetic and false of the perception —
- * arriving is what carries the information, and giving it the longer half is
- * what makes the packet read as an object with mass rather than a value being
- * interpolated. Preferred over the symmetric cubic in a blind A/B.
+ * Asymmetric on purpose — a symmetric curve treats leaving and arriving as the
+ * same event, which is true of the arithmetic and false of the perception.
+ *
+ * But the settle must not TRAIL. The first version of this curve ended on
+ * `(0, 1)`, a horizontal final tangent, and the cost of that is easy to miss
+ * from the control points alone: it spent **52% of the time covering the last
+ * 5% of the distance**. Halfway through the clip the packet was already 95%
+ * there, creeping the rest of the way — which reads as mush, the more so now
+ * that trips last longer.
+ *
+ * The measure worth keeping is that one: how much of the time goes into the
+ * final 5% of the distance. Around 15% lands; past 20% it trails, below 7% it
+ * arrives dead-flat like a linear tween.
  */
-export const easeTravel = cubicBezier(0.32, 0.72, 0, 1);
+export const easeTravel = cubicBezier(0.2, 0.45, 0.6, 0.9);

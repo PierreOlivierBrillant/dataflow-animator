@@ -35,16 +35,19 @@ const REFERENCE_HEIGHT = REFERENCE_WIDTH / REFERENCE_ASPECT;
 /**
  * Pixels per second a packet travels at.
  *
- * Calibrated against the speeds authors were writing by hand across the demo
- * corpus, whose median sits at 284 px/s — rounded up slightly, since the point
- * of deriving the duration is to stop the speed from drifting between one hop
- * and the next, not to change the pace people had settled on.
+ * NOT calibrated on the demo corpus. Two earlier passes tried that — 430 px/s,
+ * then its measured median of 284 — and both still read as hurried. The corpus
+ * turned out to be the wrong yardstick here for the same reason it was for
+ * reading time: it records what was written by hand, and what was written by
+ * hand was too fast.
  *
- * (An earlier pass used 430, a number that matched no measurement and read as
- * visibly hurried. The lesson is worth keeping: calibrate against the corpus,
- * then check the claim, because a plausible constant is not a measured one.)
+ * So this is set from what a reader can comfortably FOLLOW: a packet carries
+ * text, and an object crossing a third of the stage wants somewhere north of a
+ * second to be tracked without effort. Lower it and hops start to feel snapped
+ * away; there is no measurement that fixes the number, which is exactly why
+ * `pace` exists.
  */
-const TRAVEL_SPEED = 300;
+const TRAVEL_SPEED = 180;
 
 /**
  * Bounds. The floor keeps a hop between two adjacent nodes from being a blink;
@@ -53,8 +56,8 @@ const TRAVEL_SPEED = 300;
  * linear range, which defeats the point — a bound should catch the extremes,
  * not govern the common case. At 1800 exactly one trip reaches it.
  */
-const MIN_MS = 380;
-const MAX_MS = 2000;
+const MIN_MS = 500;
+const MAX_MS = 3000;
 
 /** Distance between two nodes, in the reference frame. `undefined` if unknown. */
 export function moveDistance(

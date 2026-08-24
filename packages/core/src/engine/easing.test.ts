@@ -38,11 +38,28 @@ describe('easeTravel', () => {
     expect(symmetry(easeTravel, 0.25)).not.toBeCloseTo(1, 2);
   });
 
-  it('spends the back half settling, so the packet arrives rather than stops', () => {
-    // Past the midpoint it is already most of the way there, leaving the rest
-    // of the time to close the last stretch slowly.
+  it('is ahead of a symmetric curve at the midpoint — it leaves, then settles', () => {
     expect(easeTravel(0.5)).toBeGreaterThan(easeInOutCubic(0.5));
-    expect(easeTravel(0.8)).toBeGreaterThan(0.95);
+  });
+
+  it('LANDS instead of trailing: the last 5% of the way is not half the time', () => {
+    // The measure that matters, and the one the first version of this curve
+    // failed: it ended on a horizontal tangent and spent 52% of the clip
+    // creeping through the final 5% of the distance. Under ~20% it lands;
+    // under ~7% it would arrive dead-flat, like a linear tween.
+    const timeToReach = (p: number) => {
+      let lo = 0;
+      let hi = 1;
+      for (let i = 0; i < 40; i++) {
+        const mid = (lo + hi) / 2;
+        if (easeTravel(mid) < p) lo = mid;
+        else hi = mid;
+      }
+      return (lo + hi) / 2;
+    };
+    const tail = 1 - timeToReach(0.95);
+    expect(tail).toBeLessThan(0.2);
+    expect(tail).toBeGreaterThan(0.07);
   });
 
   it('leaves at a decided pace rather than creeping off', () => {

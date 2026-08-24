@@ -62,13 +62,13 @@ describe('derivedMoveDuration', () => {
   });
 
   it('keeps a short hop from being a blink and a long one from dragging', () => {
-    expect(derivedMoveDuration(1, 1)).toBe(380);
-    expect(derivedMoveDuration(100000, 1)).toBe(2000);
+    expect(derivedMoveDuration(1, 1)).toBe(500);
+    expect(derivedMoveDuration(100000, 1)).toBe(3000);
   });
 
   it('scales by pace after the bounds', () => {
-    expect(derivedMoveDuration(100000, 2)).toBe(4000);
-    expect(derivedMoveDuration(1, 2)).toBe(760);
+    expect(derivedMoveDuration(100000, 2)).toBe(6000);
+    expect(derivedMoveDuration(1, 2)).toBe(1000);
   });
 
   it('has nothing to say about a zero-length move', () => {
@@ -143,8 +143,8 @@ describe('compile — one speed across a scene', () => {
       const clip = timeline.clips.find((c) => c.id === id) as MoveClip;
       return clip.endMs - clip.animStartMs;
     };
-    expect(ms('long')).toBeLessThan(2000);
-    expect(ms('short')).toBeGreaterThan(380);
+    expect(ms('long')).toBeLessThan(3000);
+    expect(ms('short')).toBeGreaterThan(500);
     // A constant duration would put this ratio at 2; a constant speed at 1.
     expect(speed('long', 'a', 'c') / speed('short', 'a', 'b')).toBeCloseTo(
       1,
