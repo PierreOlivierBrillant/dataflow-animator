@@ -7,6 +7,7 @@ import type {
   TreeSpec,
 } from '../types';
 import { derivedDuration } from './readingTime';
+import { FADE_MS } from './timeline';
 import {
   appearHold,
   arriveHold,
@@ -331,7 +332,18 @@ function compileAction(
   // A move is held at its origin before leaving and at its destination before
   // fading, which creates two rest instances: appearance and arrival. Both are
   // fractions of the trip they frame — see `motionTime.ts`.
-  const animStartMs = startMs + (isMove ? appearHold(duration) : 0);
+  //
+  // A comment gets an appearance phase of its own, for the same reason the move
+  // does: `duration` must be the time the bubble is FULLY THERE, not a window
+  // the fade eats into. Without it a long reading time produced a long fade —
+  // the text arriving only as it was due to be read.
+  const isComment = action.type === 'comment';
+  const appearMs = isMove
+    ? appearHold(duration)
+    : isComment
+      ? (action.fade_in_ms ?? FADE_MS)
+      : 0;
+  const animStartMs = startMs + appearMs;
   const endMs = animStartMs + duration; // animation end (arrival)
   const occupiedEndMs = endMs + (isMove ? arriveHold(duration) : 0);
   const id = makeId(ctx, action);

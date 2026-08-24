@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Action, DataFlowSpec } from '../types';
 import { compile, STEP_GAP } from './compiler';
 import { appearHold, arriveHold } from './motionTime';
+import { FADE_MS } from './timeline';
 import { evaluate } from './timeline';
 
 const nodes: DataFlowSpec['nodes'] = [
@@ -118,7 +119,8 @@ describe('compile — scheduling', () => {
     const step2 = timeline.steps[2];
     // A.endMs=1000 < step2.startMs → wait_for clamped: C starts at step2.startMs.
     expect(c.startMs).toBe(step2.startMs);
-    expect(c.endMs).toBe(step2.startMs + 100);
+    // A comment's `duration` is its FULLY-PRESENT time: the fade-in comes first.
+    expect(c.endMs).toBe(step2.startMs + FADE_MS + 100);
   });
 });
 
@@ -314,7 +316,8 @@ describe('compile — wait_for on root action: clamped to step start', () => {
     const c = timeline.clips.find((cl) => cl.id === 'C')!;
     const step2 = timeline.steps[2];
     expect(c.startMs).toBe(step2.startMs);
-    expect(c.endMs).toBe(step2.startMs + 100);
+    // The comment fades in first, then stays for its `duration`.
+    expect(c.endMs).toBe(step2.startMs + FADE_MS + 100);
     // The step has a positive duration (endMs > startMs).
     expect(step2.endMs).toBeGreaterThan(step2.startMs);
   });

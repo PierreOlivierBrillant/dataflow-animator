@@ -397,6 +397,12 @@ The timeline compiles an array of ordered actions. See
     slowest, then tables, then text. An `image` has no length, so it gets a flat
     beat instead.
 
+  For a `comment`, that time is the **fully-present** stretch: the bubble is
+  given an appearance phase first (its `fade_in_ms`, or `FADE_MS` by default),
+  and `duration` starts once it is fully opaque. Otherwise a long reading time
+  produced a long fade — the text becoming legible only at the moment it was due
+  to have been read.
+
   An explicit `duration` always takes precedence, and `pace` never scales it — it
   is a stated intent, not an estimate. An action with nothing to read (empty text,
   empty panel) falls back to the per-type default. The estimate is deliberately

@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { derivedDuration } from './readingTime';
 import { compile } from './compiler';
 import type { Action, DataFlowSpec } from '../types';
+import { FADE_MS } from './timeline';
+import { clipOpacity } from '../render/clipOpacity';
 
 const comment = (text: string, extra: Partial<Action> = {}): Action =>
   ({ type: 'comment', text, ...extra }) as Action;
@@ -176,6 +178,32 @@ describe('compile — reading time', () => {
     expect(soleClipMs(specWith([comment(text, { duration: 800 })], 1.5))).toBe(
       800
     );
+  });
+
+  it('gives a comment a fade-in BEFORE its reading time, not inside it', () => {
+    // The regression this guards: the bubble used to fade over its whole clip,
+    // so a long reading time produced a long fade — the text only becoming
+    // readable at the moment it was due to have been read.
+    const text = 'x'.repeat(120);
+    const { timeline } = compile(specWith([comment(text)]));
+    const clip = timeline.clips[0];
+    const reading = derivedDuration(comment(text), 1)!;
+
+    expect(clip.animStartMs - clip.startMs).toBe(FADE_MS);
+    // The reading time is the FULLY-PRESENT stretch, past the fade.
+    expect(clip.endMs - clip.animStartMs).toBe(reading);
+    // …and the bubble is opaque for all of it.
+    expect(clipOpacity(clip, clip.animStartMs)).toBe(1);
+    expect(clipOpacity(clip, clip.startMs + FADE_MS / 2)).toBeCloseTo(0.5, 5);
+  });
+
+  it("lets an author's own fade_in_ms set that appearance phase", () => {
+    const { timeline } = compile(
+      specWith([comment('x'.repeat(120), { fade_in_ms: 0 })])
+    );
+    const clip = timeline.clips[0];
+    expect(clip.animStartMs).toBe(clip.startMs);
+    expect(clipOpacity(clip, clip.startMs)).toBe(1);
   });
 
   it('lengthens the whole timeline rather than only the first step', () => {

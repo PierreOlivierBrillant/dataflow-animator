@@ -1,7 +1,4 @@
-import { clamp, easeInOutCubic } from '../engine/timeline';
-
-/** Default fade in/out duration (ms) (packets, contents). */
-export const FADE_MS = 250;
+import { clamp, easeInOutCubic, FADE_MS } from '../engine/timeline';
 
 /**
  * Opacity of a clip with fade: fade in during the appear hold (or over

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { clipOpacity, contentCrossfade, FADE_MS } from './clipOpacity';
+import { clipOpacity, contentCrossfade } from './clipOpacity';
+import { FADE_MS } from '../engine/timeline';
 
 /** A move's origin hold, for a 1500 ms move — any value works, it is only
  *  the fade-in window these cases are built around. */

@@ -119,6 +119,11 @@ La seconde bulle ci-dessus est trois fois plus longue que la première : elle re
 donc à peu près trois fois plus longtemps — sans que personne ait compté les
 caractères.
 
+Le temps d'un commentaire est compté **une fois la bulle entièrement apparue** :
+elle fait d'abord son fondu (sur `fade_in_ms`, ou 250 ms par défaut), et le temps
+de lecture ne commence qu'ensuite. `duration: 3000` signifie donc trois secondes
+de texte lisible, et non trois secondes incluant son arrivée.
+
 **Une `duration` explicite l'emporte toujours.** C'est une intention affirmée, pas
 une estimation : utilisez-la dès que la longueur du contenu n'est pas ce qui doit
 décider du minutage — une pause dramatique, un temps tenu pour l'effet.

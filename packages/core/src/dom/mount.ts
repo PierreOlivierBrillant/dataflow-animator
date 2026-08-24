@@ -999,8 +999,12 @@ export function mountStage(
         data: {
           node: anchor,
           text: clip.text,
-          // Bubbles fade on the clip's own PROGRESS, not `clipOpacity`.
-          opacity: a.progress,
+          // Bubbles fade like everything else. They used to ride the clip's
+          // own PROGRESS, which spread the fade over the WHOLE clip: a bubble
+          // meant to stay 4 s took 4 s to become readable. The fade belongs to
+          // the appearance phase the compiler now schedules, not to the time
+          // the reader was given.
+          opacity: clipOpacity(clip, currentT),
           stageW: metrics.width,
           stageH: metrics.height,
         },

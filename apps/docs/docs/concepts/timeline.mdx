@@ -117,6 +117,11 @@ animation hostage.
 The second bubble above is three times longer than the first, so it stays roughly
 three times as long — without anyone counting characters.
 
+A comment's time is counted **once the bubble is fully there**: it fades in
+first (over `fade_in_ms`, or 250 ms by default), and only then does the reading
+time start. So `duration: 3000` means three seconds of readable text, not three
+seconds that include its own arrival.
+
 **An explicit `duration` always wins.** It is a stated intent, not an estimate, so
 reach for it whenever the content's length is not what should decide the timing —
 a dramatic pause, a beat held for effect.

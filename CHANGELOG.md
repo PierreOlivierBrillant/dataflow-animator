@@ -19,6 +19,12 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   result is bounded so a two-word badge does not flash past and a long paragraph
   does not hold the animation hostage.
 
+  A comment's time is counted once the bubble is FULLY THERE: it fades in first,
+  and the reading time starts from there. The bubble's opacity used to ride the
+  clip's own progress, spreading the fade across the entire clip — so a comment
+  meant to stay four seconds took four seconds to become legible, which the
+  derived reading times above would have made glaring.
+
   **This changes the timing of existing specs** wherever such an action had no
   `duration`, which is why it is a breaking change rather than an addition. An
   explicit `duration` is untouched — it is a stated intent, not an estimate — so

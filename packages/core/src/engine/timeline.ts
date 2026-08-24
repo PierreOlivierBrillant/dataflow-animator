@@ -226,6 +226,13 @@ export function clamp(value: number, min: number, max: number): number {
   return value < min ? min : value > max ? max : value;
 }
 
+/**
+ * Default fade in/out duration (ms). Lives here rather than beside the renderer
+ * because the COMPILER needs it too: an element's appearance phase is part of
+ * its schedule, not just of how it is painted.
+ */
+export const FADE_MS = 250;
+
 /** Cubic "ease-in-out" easing, for less mechanical movements. */
 export function easeInOutCubic(t: number): number {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
