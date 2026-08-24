@@ -38,6 +38,26 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   and navigation stops mid-playback. Same reasoning as the circuit router's
   letterbox.
 
+- **Linear layouts now use one spacing step for both axes.** Nodes were
+  distributed over the whole stage, each axis independently, which made the gap
+  between neighbours a function of how many there were — 0.6 of the stage at two
+  nodes, 0.14 at six — and, because the same ratio is a different number of
+  pixels on each axis, made the vertical gap **1.84x** the horizontal one on a
+  16:9 stage. Two nodes "equally spaced" simply were not.
+
+  One step in pixels now governs both directions, the largest that fits, with the
+  grid centred on the stage. Adding a lane makes the diagram grow within the
+  stage instead of redistributing everything across it. Only the linear
+  directions change: `graph` stays aspect-independent by design, and the circuit
+  layouts are untouched.
+
+- **A packet's motion has its own easing curve.** `easeInOutCubic` governed five
+  unrelated things — position, opacity, tree edges, rotations, content
+  cross-fades — so it was not a choice, it was the absence of one. Position now
+  follows a dedicated asymmetric curve: a decided departure, then a long settle,
+  because arriving is the part that carries the information. The other four keep
+  the cubic until each is given a role of its own.
+
 - **The pauses framing a movement are now proportioned to it.** A packet was held
   300 ms at its origin and 300 ms at its destination whatever it was doing —
   which on a busy demo added up to 9.2 s of waiting against 9.9 s of actual

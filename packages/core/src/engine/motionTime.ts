@@ -42,10 +42,13 @@ const TRAVEL_SPEED = 430;
 
 /**
  * Bounds. The floor keeps a hop between two adjacent nodes from being a blink;
- * the ceiling keeps a corner-to-corner trip from dragging.
+ * the ceiling keeps a corner-to-corner trip from dragging. Calibrated against
+ * the corpus: at a 1400 ms ceiling a quarter of all trips fell outside the
+ * linear range, which defeats the point — a bound should catch the extremes,
+ * not govern the common case. At 1800 exactly one trip reaches it.
  */
 const MIN_MS = 380;
-const MAX_MS = 1400;
+const MAX_MS = 1800;
 
 /** Distance between two nodes, in the reference frame. `undefined` if unknown. */
 export function moveDistance(

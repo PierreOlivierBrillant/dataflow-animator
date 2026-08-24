@@ -8,7 +8,6 @@ import type {
 import { compile } from '../engine/compiler';
 import {
   clamp,
-  easeInOutCubic,
   evaluate,
   type ActiveClip,
   type ArrowClip,
@@ -18,6 +17,7 @@ import {
   type SetContentClip,
 } from '../engine/timeline';
 import { computeLayout, treeEdgeStyle, type LayoutMap } from '../engine/layout';
+import { easeTravel } from '../engine/easing';
 import type { Density } from '../engine/scale';
 import {
   collectArrowConnections,
@@ -952,7 +952,7 @@ export function mountStage(
         ctx.contourFor(clip.fromId),
         ctx.contourFor(clip.toId)
       );
-      const pt = pathTip(conn, easeInOutCubic(a.progress));
+      const pt = pathTip(conn, easeTravel(a.progress));
       const opacity = clipOpacity(clip, currentT);
       packetDesired.push({
         key: `packet:${clip.id}`,

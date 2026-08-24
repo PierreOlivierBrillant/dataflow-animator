@@ -69,7 +69,49 @@ function spread(index: number, count: number): number {
   return m + (1 - 2 * m) * (index / (count - 1));
 }
 
-function linearLayout(nodes: Node[], direction: Direction): LayoutMap {
+/**
+ * Fraction of an axis kept clear at each end, so the outermost nodes are not
+ * glued to the edge. Relative to that axis, so a short axis (a wide, flat
+ * player) keeps a proportionate margin instead of being eaten by a fixed one.
+ */
+const GRID_MARGIN = 0.1;
+
+/**
+ * The one step that governs BOTH axes of a linear layout, in units of the
+ * stage's width — the largest that still fits the nodes on each axis.
+ *
+ * This replaces distributing each axis independently over the whole stage.
+ * Doing that made the gap between neighbours a function of how many nodes there
+ * were (0.6 of the stage at two nodes, 0.14 at six), and — because the same
+ * ratio meant different pixel counts on each axis — made the vertical gap
+ * 1.84x the horizontal one on a 16:9 stage. Two nodes "equally spaced" simply
+ * were not. A single step in PIXELS is what makes the result read as a grid
+ * rather than as something stretched to fill.
+ */
+function gridStep(
+  countMain: number,
+  countCross: number,
+  spanMain: number,
+  spanCross: number
+): number {
+  const fit = (count: number, span: number): number =>
+    count > 1 ? (span * (1 - 2 * GRID_MARGIN)) / (count - 1) : Infinity;
+  const step = Math.min(fit(countMain, spanMain), fit(countCross, spanCross));
+  // A single row and a single column: nothing constrains the step, and nothing
+  // needs it — every node lands on the centre anyway.
+  return Number.isFinite(step) ? step : 0;
+}
+
+/** Position of `index` among `count`, centred on 0.5, `step` apart. */
+function centred(index: number, count: number, step: number): number {
+  return 0.5 + (index - (count - 1) / 2) * step;
+}
+
+function linearLayout(
+  nodes: Node[],
+  direction: Direction,
+  aspect: number
+): LayoutMap {
   // Grouping by lane (default: 1), lanes sorted in ascending order.
   const byLane = new Map<number, Node[]>();
   for (const node of nodes) {
@@ -84,16 +126,37 @@ function linearLayout(nodes: Node[], direction: Direction): LayoutMap {
   // and silently breaks the layout. `Array.from` is immune.
   const lanes = Array.from(byLane.keys()).sort((a, b) => a - b);
 
+  const horizontal =
+    direction === 'left-to-right' || direction === 'right-to-left';
+  // The stage is one unit WIDE; its height follows from the aspect. Working in
+  // these units is what lets one step mean the same distance on both axes.
+  const height = aspect > 0 ? 1 / aspect : 1;
+  const spanMain = horizontal ? 1 : height;
+  const spanCross = horizontal ? height : 1;
+  const widest = Math.max(
+    1,
+    ...lanes.map(
+      (lane) => byLane.get(lane)!.filter((n) => !n.align_with).length
+    )
+  );
+  const step = gridStep(lanes.length, widest, spanMain, spanCross);
+  // A step is a length along the stage's WIDTH; turning it into a ratio of the
+  // height is what keeps the two axes measuring the same thing.
+  const asMain = (u: number) => (horizontal ? u : u / height);
+  const asCross = (u: number) => (horizontal ? u / height : u);
+
   const map: LayoutMap = {};
   lanes.forEach((lane, laneOrder) => {
-    const main = spread(laneOrder, lanes.length);
+    const main = centred(laneOrder, lanes.length, asMain(step));
     const members = byLane.get(lane)!;
     // Nodes with align_with will have their transverse position overwritten by
     // applyAlignment: we exclude them from distribution to avoid collisions.
     const free = members.filter((n) => !n.align_with);
     let freeIdx = 0;
     members.forEach((node) => {
-      const cross = node.align_with ? 0.5 : spread(freeIdx++, free.length);
+      const cross = node.align_with
+        ? 0.5
+        : centred(freeIdx++, free.length, asCross(step));
       let cx: number;
       let cy: number;
       switch (direction) {
@@ -1374,7 +1437,7 @@ export function computeLayout(
   if (direction === 'circular') {
     return circularLayout(nodes, options.aspect ?? 1.6);
   }
-  const map = linearLayout(nodes, direction);
+  const map = linearLayout(nodes, direction, options.aspect ?? 1.6);
   applyAlignment(map, nodes, direction);
   resolveCollisions(map, nodes, direction);
   return map;

@@ -84,7 +84,11 @@ the container (pure CSS placement). See [`packages/core/src/engine/layout.ts`](.
 
 - **Linear grids** (`left-to-right`, `right-to-left`, `top-to-bottom`,
   `bottom-to-top`): `lane` = position along the flow; nodes of the same lane
-  are distributed and centered on the transverse axis. Spacing proportional to the container.
+  are stacked on the transverse axis. Both axes share ONE step, measured in
+  pixels rather than in ratios, and the grid is centred on the stage — so the
+  gap between two neighbours is the same horizontally and vertically, and does
+  not depend on how many nodes there are. The step is the largest that fits both
+  axes, margins included.
 - **Circular** (`circular`): the `is_main` node is placed at the center; the others are
   equidistant on a circle (trigonometry), ratio corrected to remain round.
 - **Graph** (`graph`): free 2D layout for an **arbitrary graph** (Dijkstra, A\*,
@@ -406,6 +410,12 @@ The timeline compiles an array of ordered actions. See
   live aspect would recompile the timeline on every resize — total duration and
   navigation stops would shift mid-playback. Same fixed-frame reasoning as the
   circuit router's letterbox.
+- **Easing has roles, not one curve.** A packet's position follows a dedicated
+  asymmetric curve (`easeTravel`): a decided departure, then a long settle,
+  because arriving is the part that carries the information. Everything not yet
+  given a role — opacity fades, tree edges, rotations, content cross-fades —
+  still uses `easeInOutCubic`. Roles are added by writing a new curve and
+  applying it at ONE call site, never by editing a shared one.
 - **Proportioned holds**: the pauses framing a `move` (at its origin before
   leaving, at its destination before fading) are fractions of that move's own
   duration rather than flat constants, bounded at both ends, with the arrival

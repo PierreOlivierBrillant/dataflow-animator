@@ -63,11 +63,11 @@ describe('derivedMoveDuration', () => {
 
   it('keeps a short hop from being a blink and a long one from dragging', () => {
     expect(derivedMoveDuration(1, 1)).toBe(380);
-    expect(derivedMoveDuration(100000, 1)).toBe(1400);
+    expect(derivedMoveDuration(100000, 1)).toBe(1800);
   });
 
   it('scales by pace after the bounds', () => {
-    expect(derivedMoveDuration(100000, 2)).toBe(2800);
+    expect(derivedMoveDuration(100000, 2)).toBe(3600);
     expect(derivedMoveDuration(1, 2)).toBe(760);
   });
 

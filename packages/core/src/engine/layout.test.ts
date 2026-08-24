@@ -42,7 +42,7 @@ describe('computeLayout — linear', () => {
     expect(layout.a.cy).not.toBeCloseTo(layout.b.cy);
   });
 
-  it('few nodes: spaced out (margin 0.2), not stuck to edges', () => {
+  it('centres a lane pair on the stage rather than pushing it to the edges', () => {
     const spec: DataFlowSpec = {
       direction: 'left-to-right',
       nodes: [
@@ -53,12 +53,16 @@ describe('computeLayout — linear', () => {
       timeline: [],
     };
     const layout = computeLayout(spec);
-    // spacing margin capped at 0.2 → ends at 0.2 and 0.8.
-    expect(layout.a.cx).toBeCloseTo(0.2, 5);
-    expect(layout.b.cx).toBeCloseTo(0.8, 5);
+    // One step governs both axes; two lanes sit symmetrically around the centre
+    // rather than being stretched to fill the stage.
+    expect(layout.a.cx + layout.b.cx).toBeCloseTo(1, 5);
+    expect(layout.a.cx).toBeGreaterThan(0);
+    expect(layout.b.cx).toBeLessThan(1);
+    expect(layout.a.cy).toBeCloseTo(0.5, 5);
+    expect(layout.b.cy).toBeCloseTo(0.5, 5);
   });
 
-  it('many nodes: tightened margin to preserve minimal distance', () => {
+  it('keeps one constant step whatever the number of lanes', () => {
     const spec: DataFlowSpec = {
       direction: 'left-to-right',
       nodes: Array.from({ length: 6 }, (_, i) => ({
@@ -70,9 +74,16 @@ describe('computeLayout — linear', () => {
       timeline: [],
     };
     const layout = computeLayout(spec);
-    // 6 lanes → m = 1/7 ≈ 0.143 < 0.2: the ends are closer to the edges.
-    expect(layout.n0.cx).toBeCloseTo(1 / 7, 5);
-    expect(layout.n5.cx).toBeCloseTo(6 / 7, 5);
+    // The gap between neighbours is the same everywhere — the property the old
+    // per-axis distribution could not hold, since its step shrank with the
+    // count. Six lanes: five identical gaps.
+    const gaps = Array.from(
+      { length: 5 },
+      (_, i) => layout[`n${i + 1}`].cx - layout[`n${i}`].cx
+    );
+    for (const gap of gaps) expect(gap).toBeCloseTo(gaps[0], 5);
+    // …and the row stays centred.
+    expect(layout.n0.cx + layout.n5.cx).toBeCloseTo(1, 5);
   });
 
   it('align_with: the aligned node does not collide with free nodes in its lane', () => {
