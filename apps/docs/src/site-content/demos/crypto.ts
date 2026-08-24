@@ -137,11 +137,9 @@ export const crypto = (locale: Locale): DataFlowSpec => {
         object: 'pubA',
         from: 'alice',
         to: 'bob',
-        duration: 1400,
       },
       {
         type: 'parallel',
-        duration: 2200,
         actions: [
           { type: 'highlight', object: 'eve' },
           {
@@ -172,11 +170,9 @@ export const crypto = (locale: Locale): DataFlowSpec => {
         object: 'pubB',
         from: 'bob',
         to: 'alice',
-        duration: 1400,
       },
       {
         type: 'parallel',
-        duration: 2400,
         actions: [
           { type: 'highlight', object: 'eve' },
           {
@@ -192,7 +188,6 @@ export const crypto = (locale: Locale): DataFlowSpec => {
       },
       {
         type: 'parallel',
-        duration: 1800,
         actions: [
           {
             type: 'set_content',
@@ -228,11 +223,9 @@ export const crypto = (locale: Locale): DataFlowSpec => {
         object: 'cipher',
         from: 'alice',
         to: 'bob',
-        duration: 1400,
       },
       {
         type: 'parallel',
-        duration: 2600,
         actions: [
           { type: 'highlight', object: 'eve' },
           {

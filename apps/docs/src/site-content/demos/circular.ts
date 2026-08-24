@@ -128,7 +128,6 @@ export const circular = (locale: Locale): DataFlowSpec => {
       },
       {
         type: 'parallel',
-        duration: 1800,
         actions: [
           { type: 'move', object: 'cmdInv', from: 'orch', to: 'inv' },
           {
@@ -160,7 +159,6 @@ export const circular = (locale: Locale): DataFlowSpec => {
       },
       {
         type: 'parallel',
-        duration: 1800,
         actions: [
           { type: 'move', object: 'okInv', from: 'inv', to: 'orch' },
           {

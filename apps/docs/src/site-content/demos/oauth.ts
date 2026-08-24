@@ -141,7 +141,6 @@ export const oauth = (locale: Locale): DataFlowSpec => {
         object: 'login',
         from: 'user',
         to: 'app',
-        duration: 1200,
       },
       {
         type: 'comment',
@@ -153,7 +152,6 @@ export const oauth = (locale: Locale): DataFlowSpec => {
         object: 'redirect',
         from: 'app',
         to: 'idp',
-        duration: 1300,
       },
       {
         type: 'comment',
@@ -165,7 +163,6 @@ export const oauth = (locale: Locale): DataFlowSpec => {
         object: 'consent',
         from: 'user',
         to: 'idp',
-        duration: 1300,
       },
       {
         type: 'comment',
@@ -183,7 +180,6 @@ export const oauth = (locale: Locale): DataFlowSpec => {
         object: 'exchange',
         from: 'app',
         to: 'idp',
-        duration: 1300,
       },
       { type: 'loading', id: 'mint', object: 'idp', duration: 1000 },
       {
@@ -191,7 +187,6 @@ export const oauth = (locale: Locale): DataFlowSpec => {
         object: 'token',
         from: 'idp',
         to: 'app',
-        duration: 1300,
         wait_for: 'mint',
       },
       {
@@ -206,7 +201,6 @@ export const oauth = (locale: Locale): DataFlowSpec => {
         object: 'profile',
         from: 'api',
         to: 'app',
-        duration: 1300,
         wait_for: 'check',
       },
       {

@@ -84,7 +84,6 @@ export const collision = (locale: Locale): DataFlowSpec => {
       },
       {
         type: 'parallel',
-        duration: 1800,
         actions: [
           { type: 'move', object: 'write', from: 'app', to: 'db' },
           { type: 'move', object: 'read', from: 'db', to: 'app' },
@@ -96,7 +95,6 @@ export const collision = (locale: Locale): DataFlowSpec => {
       },
       {
         type: 'parallel',
-        duration: 1800,
         actions: [
           { type: 'move', object: 'ack', from: 'db', to: 'app' },
           { type: 'move', object: 'rows', from: 'app', to: 'db' },
@@ -108,7 +106,6 @@ export const collision = (locale: Locale): DataFlowSpec => {
       },
       {
         type: 'parallel',
-        duration: 1400,
         actions: [
           {
             type: 'arrow',

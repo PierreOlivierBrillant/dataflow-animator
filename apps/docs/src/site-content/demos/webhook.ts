@@ -103,14 +103,12 @@ export const webhook = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'provider',
         text: s.comment2,
-        duration: 1600,
       },
       {
         type: 'move',
         object: 'evt1',
         from: 'provider',
         to: 'app',
-        duration: 1300,
       },
       {
         type: 'set_content',
@@ -123,7 +121,6 @@ export const webhook = (locale: Locale): DataFlowSpec => {
         object: 'err1',
         from: 'app',
         to: 'provider',
-        duration: 1300,
       },
       {
         type: 'comment',
@@ -134,21 +131,18 @@ export const webhook = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'provider',
         text: s.comment4,
-        duration: 1800,
       },
       {
         type: 'move',
         object: 'evt2',
         from: 'provider',
         to: 'app',
-        duration: 1300,
       },
       {
         type: 'move',
         object: 'err2',
         from: 'app',
         to: 'provider',
-        duration: 1300,
       },
       {
         type: 'comment',
@@ -172,7 +166,6 @@ export const webhook = (locale: Locale): DataFlowSpec => {
         object: 'evt3',
         from: 'provider',
         to: 'app',
-        duration: 1300,
       },
       { type: 'loading', id: 'process', object: 'app', duration: 900 },
       {
@@ -180,7 +173,6 @@ export const webhook = (locale: Locale): DataFlowSpec => {
         object: 'ok',
         from: 'app',
         to: 'provider',
-        duration: 1300,
         wait_for: 'process',
       },
       {

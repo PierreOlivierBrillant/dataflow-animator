@@ -137,14 +137,12 @@ export const microservices = (locale: Locale): DataFlowSpec => {
         object: 'login',
         from: 'client',
         to: 'nginx',
-        duration: 600,
       },
       {
         type: 'move',
         object: 'login',
         from: 'nginx',
         to: 'auth',
-        duration: 600,
       },
       { type: 'loading', object: 'auth', duration: 500 },
       {
@@ -152,20 +150,17 @@ export const microservices = (locale: Locale): DataFlowSpec => {
         object: 'authq',
         from: 'auth',
         to: 'authdb',
-        duration: 600,
       },
       {
         type: 'loading',
         id: 'authdbwork',
         object: 'authdb',
-        duration: 600,
       },
       {
         type: 'move',
         object: 'authr',
         from: 'authdb',
         to: 'auth',
-        duration: 600,
         wait_for: 'authdbwork',
       },
       {
@@ -173,14 +168,12 @@ export const microservices = (locale: Locale): DataFlowSpec => {
         object: 'token',
         from: 'auth',
         to: 'nginx',
-        duration: 600,
       },
       {
         type: 'move',
         object: 'token',
         from: 'nginx',
         to: 'client',
-        duration: 600,
       },
       {
         type: 'comment',
@@ -192,14 +185,12 @@ export const microservices = (locale: Locale): DataFlowSpec => {
         object: 'get',
         from: 'client',
         to: 'nginx',
-        duration: 600,
       },
       {
         type: 'move',
         object: 'get',
         from: 'nginx',
         to: 'data',
-        duration: 600,
       },
       { type: 'loading', object: 'data', duration: 500 },
       {
@@ -207,20 +198,17 @@ export const microservices = (locale: Locale): DataFlowSpec => {
         object: 'dataq',
         from: 'data',
         to: 'datadb',
-        duration: 600,
       },
       {
         type: 'loading',
         id: 'datadbwork',
         object: 'datadb',
-        duration: 600,
       },
       {
         type: 'move',
         object: 'datar',
         from: 'datadb',
         to: 'data',
-        duration: 600,
         wait_for: 'datadbwork',
       },
       {
@@ -228,14 +216,12 @@ export const microservices = (locale: Locale): DataFlowSpec => {
         object: 'json',
         from: 'data',
         to: 'nginx',
-        duration: 600,
       },
       {
         type: 'move',
         object: 'json',
         from: 'nginx',
         to: 'client',
-        duration: 600,
       },
       {
         type: 'comment',

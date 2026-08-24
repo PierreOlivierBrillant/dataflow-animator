@@ -222,7 +222,6 @@ export const pushNotifications = (locale: Locale): DataFlowSpec => {
         object: 'register_token',
         from: 'alice_device',
         to: 'app_server',
-        duration: 1400,
       },
       {
         type: 'comment',
@@ -234,12 +233,10 @@ export const pushNotifications = (locale: Locale): DataFlowSpec => {
         object: 'store_token',
         from: 'app_server',
         to: 'token_db',
-        duration: 1200,
       },
       {
         type: 'loading',
         object: 'token_db',
-        duration: 900,
       },
       {
         type: 'comment',
@@ -255,7 +252,6 @@ export const pushNotifications = (locale: Locale): DataFlowSpec => {
         object: 'send_message',
         from: 'bob_device',
         to: 'app_server',
-        duration: 1400,
       },
       {
         type: 'comment',
@@ -267,19 +263,16 @@ export const pushNotifications = (locale: Locale): DataFlowSpec => {
         object: 'lookup_token',
         from: 'app_server',
         to: 'token_db',
-        duration: 1200,
       },
       {
         type: 'loading',
         object: 'token_db',
-        duration: 800,
       },
       {
         type: 'move',
         object: 'token_result',
         from: 'token_db',
         to: 'app_server',
-        duration: 1200,
       },
       {
         type: 'comment',
@@ -295,12 +288,10 @@ export const pushNotifications = (locale: Locale): DataFlowSpec => {
         object: 'fcm_request',
         from: 'app_server',
         to: 'fcm',
-        duration: 1400,
       },
       {
         type: 'loading',
         object: 'fcm',
-        duration: 900,
       },
       {
         type: 'comment',
@@ -312,7 +303,6 @@ export const pushNotifications = (locale: Locale): DataFlowSpec => {
         object: 'push_notification',
         from: 'fcm',
         to: 'alice_device',
-        duration: 1600,
       },
       {
         type: 'comment',

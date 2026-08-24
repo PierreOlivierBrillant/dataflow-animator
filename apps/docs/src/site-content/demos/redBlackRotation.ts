@@ -146,7 +146,6 @@ export const redBlackRotation = (locale: Locale): DataFlowSpec => {
             type: 'rotate_subtree',
             object: '20',
             rotation: 'right',
-            duration: 1700,
           },
           { type: 'comment', text: s.glide, keep_until_next: true },
         ],

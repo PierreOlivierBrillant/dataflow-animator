@@ -111,14 +111,12 @@ export const spa = (locale: Locale): DataFlowSpec => {
         object: 'getindex',
         from: 'browser',
         to: 'web',
-        duration: 700,
       },
       {
         type: 'move',
         object: 'bundle',
         from: 'web',
         to: 'browser',
-        duration: 700,
       },
       {
         type: 'set_content',
@@ -140,7 +138,6 @@ export const spa = (locale: Locale): DataFlowSpec => {
         object: 'apireq',
         from: 'browser',
         to: 'api',
-        duration: 800,
       },
       { type: 'loading', object: 'api', duration: 400 },
       {
@@ -148,7 +145,6 @@ export const spa = (locale: Locale): DataFlowSpec => {
         object: 'sql',
         from: 'api',
         to: 'db',
-        duration: 600,
       },
       { type: 'loading', id: 'dbwork', object: 'db', duration: 600 },
       {
@@ -156,7 +152,6 @@ export const spa = (locale: Locale): DataFlowSpec => {
         object: 'rows',
         from: 'db',
         to: 'api',
-        duration: 600,
         wait_for: 'dbwork',
       },
       {
@@ -164,7 +159,6 @@ export const spa = (locale: Locale): DataFlowSpec => {
         object: 'apires',
         from: 'api',
         to: 'browser',
-        duration: 800,
       },
       {
         type: 'set_content',

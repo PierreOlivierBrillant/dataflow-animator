@@ -124,7 +124,6 @@ export const cdn = (locale: Locale): DataFlowSpec => {
         object: 'req1',
         from: 'user',
         to: 'edge',
-        duration: 1300,
       },
       {
         type: 'set_content',
@@ -142,7 +141,6 @@ export const cdn = (locale: Locale): DataFlowSpec => {
         object: 'pull',
         from: 'edge',
         to: 'origin',
-        duration: 1300,
       },
       { type: 'loading', id: 'gen', object: 'origin', duration: 1100 },
       {
@@ -150,7 +148,6 @@ export const cdn = (locale: Locale): DataFlowSpec => {
         object: 'fromOrigin',
         from: 'origin',
         to: 'edge',
-        duration: 1300,
         wait_for: 'gen',
       },
       {
@@ -170,7 +167,6 @@ export const cdn = (locale: Locale): DataFlowSpec => {
         object: 'res1',
         from: 'edge',
         to: 'user',
-        duration: 1300,
       },
       { type: 'wait', duration: 1400 },
       {
@@ -182,7 +178,6 @@ export const cdn = (locale: Locale): DataFlowSpec => {
         object: 'req2',
         from: 'user',
         to: 'edge',
-        duration: 1300,
       },
       {
         type: 'comment',
@@ -194,7 +189,6 @@ export const cdn = (locale: Locale): DataFlowSpec => {
         object: 'res2',
         from: 'edge',
         to: 'user',
-        duration: 1100,
       },
       {
         type: 'comment',

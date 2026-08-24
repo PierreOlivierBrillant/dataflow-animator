@@ -134,7 +134,6 @@ export const graphql = (locale: Locale): DataFlowSpec => {
         object: 'query',
         from: 'client',
         to: 'gw',
-        duration: 1300,
       },
       {
         type: 'comment',
@@ -143,7 +142,6 @@ export const graphql = (locale: Locale): DataFlowSpec => {
       },
       {
         type: 'parallel',
-        duration: 1400,
         actions: [
           { type: 'move', object: 'qU', from: 'gw', to: 'users' },
           {
@@ -164,7 +162,6 @@ export const graphql = (locale: Locale): DataFlowSpec => {
       },
       {
         type: 'parallel',
-        duration: 1200,
         actions: [
           { type: 'loading', object: 'users' },
           { type: 'loading', object: 'orders' },
@@ -177,7 +174,6 @@ export const graphql = (locale: Locale): DataFlowSpec => {
       },
       {
         type: 'parallel',
-        duration: 1500,
         actions: [
           { type: 'move', object: 'rU', from: 'users', to: 'gw' },
           {
@@ -208,7 +204,6 @@ export const graphql = (locale: Locale): DataFlowSpec => {
         object: 'merged',
         from: 'gw',
         to: 'client',
-        duration: 1300,
       },
       {
         type: 'comment',

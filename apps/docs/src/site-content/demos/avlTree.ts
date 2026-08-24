@@ -169,7 +169,6 @@ export const avlTree = (locale: Locale): DataFlowSpec => {
             type: 'rotate_subtree',
             object: '50',
             rotation: 'right',
-            duration: 1700,
           },
           { type: 'comment', text: s.glide, keep_until_next: true },
         ],

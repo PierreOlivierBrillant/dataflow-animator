@@ -121,7 +121,6 @@ export const messageQueue = (locale: Locale): DataFlowSpec => {
         object: 'pub',
         from: 'producer',
         to: 'broker',
-        duration: 1300,
       },
       {
         type: 'set_content',
@@ -143,7 +142,6 @@ export const messageQueue = (locale: Locale): DataFlowSpec => {
       {
         type: 'parallel',
         id: 'fanout',
-        duration: 1600,
         actions: [
           { type: 'move', object: 'd1', from: 'broker', to: 'c1' },
           {
@@ -168,7 +166,6 @@ export const messageQueue = (locale: Locale): DataFlowSpec => {
       },
       {
         type: 'parallel',
-        duration: 1600,
         actions: [
           { type: 'move', object: 'ack1', from: 'c1', to: 'broker' },
           {

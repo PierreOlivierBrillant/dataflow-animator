@@ -70,7 +70,6 @@ export const dos = (locale: Locale): DataFlowSpec => {
     object: p.id,
     from: 'attacker',
     to: 'server',
-    duration: 650,
     delay_ms: i * 45,
     fade_in_ms: 0,
     fade_out_ms: 120,
@@ -117,7 +116,6 @@ export const dos = (locale: Locale): DataFlowSpec => {
         object: 'legit',
         from: 'user',
         to: 'server',
-        duration: 800,
       },
       { type: 'loading', id: 'work', object: 'server', duration: 700 },
       {
@@ -125,14 +123,12 @@ export const dos = (locale: Locale): DataFlowSpec => {
         object: 'resp',
         from: 'server',
         to: 'user',
-        duration: 800,
         wait_for: 'work',
       },
       {
         type: 'comment',
         object: 'user',
         text: s.served,
-        duration: 1400,
       },
       // 2. The attack: a flood from a single machine, server struggling in parallel.
       {
@@ -170,11 +166,9 @@ export const dos = (locale: Locale): DataFlowSpec => {
         object: 'legit2',
         from: 'user',
         to: 'server',
-        duration: 800,
       },
       {
         type: 'parallel',
-        duration: 2000,
         actions: [
           { type: 'loading', object: 'user' },
           {

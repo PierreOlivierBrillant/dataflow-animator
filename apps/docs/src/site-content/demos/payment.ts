@@ -125,7 +125,6 @@ export const payment = (locale: Locale): DataFlowSpec => {
         object: 'pay',
         from: 'buyer',
         to: 'shop',
-        duration: 1200,
       },
       {
         type: 'comment',
@@ -137,7 +136,6 @@ export const payment = (locale: Locale): DataFlowSpec => {
         object: 'intent',
         from: 'shop',
         to: 'psp',
-        duration: 1300,
       },
       {
         type: 'comment',
@@ -155,7 +153,6 @@ export const payment = (locale: Locale): DataFlowSpec => {
         object: 'challenge',
         from: 'bank',
         to: 'buyer',
-        duration: 1400,
       },
       { type: 'loading', id: 'sca', object: 'buyer', duration: 1200 },
       {
@@ -169,7 +166,6 @@ export const payment = (locale: Locale): DataFlowSpec => {
         object: 'approved',
         from: 'bank',
         to: 'psp',
-        duration: 1300,
       },
       {
         type: 'comment',
@@ -181,20 +177,17 @@ export const payment = (locale: Locale): DataFlowSpec => {
         object: 'webhook',
         from: 'psp',
         to: 'shop',
-        duration: 1300,
       },
       {
         type: 'move',
         object: 'receipt',
         from: 'shop',
         to: 'buyer',
-        duration: 1300,
       },
       {
         type: 'comment',
         object: 'buyer',
         text: s.receiptHeader,
-        duration: 2000,
       },
     ],
   };

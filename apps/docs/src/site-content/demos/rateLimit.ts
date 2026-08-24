@@ -81,7 +81,6 @@ export const rateLimit = (locale: Locale): DataFlowSpec => {
     object: p.id,
     from: 'attacker',
     to: 'proxy',
-    duration: 650,
     delay_ms: i * 45,
     fade_in_ms: 0,
     fade_out_ms: 120,
@@ -98,7 +97,6 @@ export const rateLimit = (locale: Locale): DataFlowSpec => {
     object: p.id,
     from: 'proxy',
     to: 'attacker',
-    duration: 650,
     delay_ms: i * 120,
     fade_out_ms: 120,
   }));
@@ -184,7 +182,6 @@ export const rateLimit = (locale: Locale): DataFlowSpec => {
         object: 'legit',
         from: 'user',
         to: 'proxy',
-        duration: 700,
       },
       { type: 'move', object: 'fwd', from: 'proxy', to: 'app', duration: 700 },
       { type: 'loading', id: 'appwork', object: 'app', duration: 600 },
@@ -193,7 +190,6 @@ export const rateLimit = (locale: Locale): DataFlowSpec => {
         object: 'resp',
         from: 'app',
         to: 'proxy',
-        duration: 700,
         wait_for: 'appwork',
       },
       {
@@ -202,7 +198,6 @@ export const rateLimit = (locale: Locale): DataFlowSpec => {
         object: 'resp2',
         from: 'proxy',
         to: 'user',
-        duration: 700,
       },
       {
         type: 'comment',

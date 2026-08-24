@@ -112,7 +112,6 @@ export const smtp = (locale: Locale): DataFlowSpec => {
         object: 'submit',
         from: 'alice',
         to: 'out',
-        duration: 1300,
       },
       {
         type: 'comment',
@@ -151,13 +150,11 @@ export const smtp = (locale: Locale): DataFlowSpec => {
         object: 'mail',
         from: 'in',
         to: 'bob',
-        duration: 1300,
       },
       {
         type: 'comment',
         object: 'bob',
         text: s.received,
-        duration: 2000,
       },
     ],
   };

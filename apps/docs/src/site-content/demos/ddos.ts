@@ -73,7 +73,6 @@ export const ddos = (locale: Locale): DataFlowSpec => {
     object: `cmd-${id}`,
     from: 'cnc',
     to: id,
-    duration: 900,
     delay_ms: b * 70,
   }));
 
@@ -96,7 +95,6 @@ export const ddos = (locale: Locale): DataFlowSpec => {
         object: `${id}-g${i}`,
         from: id,
         to: 'server',
-        duration: 850,
         delay_ms: b * 60 + i * 110,
         fade_in_ms: 0,
         fade_out_ms: 120,
@@ -182,11 +180,9 @@ export const ddos = (locale: Locale): DataFlowSpec => {
         object: 'legit',
         from: 'user',
         to: 'server',
-        duration: 900,
       },
       {
         type: 'parallel',
-        duration: 2000,
         actions: [
           { type: 'loading', object: 'user' },
           {

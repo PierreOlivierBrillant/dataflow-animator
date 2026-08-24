@@ -119,7 +119,6 @@ export const ohmsLaw = (locale: Locale): DataFlowSpec => {
         type: 'flow',
         route: LOOP,
         color: AMBER,
-        duration: 5000,
         count: 8,
         keep_until_end: true,
       },

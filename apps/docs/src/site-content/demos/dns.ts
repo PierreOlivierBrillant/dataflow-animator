@@ -143,7 +143,6 @@ export const dns = (locale: Locale): DataFlowSpec => {
         object: 'q',
         from: 'client',
         to: 'resolver',
-        duration: 1300,
       },
       {
         type: 'comment',
@@ -155,14 +154,12 @@ export const dns = (locale: Locale): DataFlowSpec => {
         object: 'qroot',
         from: 'resolver',
         to: 'root',
-        duration: 1300,
       },
       {
         type: 'move',
         object: 'rroot',
         from: 'root',
         to: 'resolver',
-        duration: 1300,
       },
       {
         type: 'comment',
@@ -174,14 +171,12 @@ export const dns = (locale: Locale): DataFlowSpec => {
         object: 'qtld',
         from: 'resolver',
         to: 'tld',
-        duration: 1300,
       },
       {
         type: 'move',
         object: 'rtld',
         from: 'tld',
         to: 'resolver',
-        duration: 1300,
       },
       {
         type: 'comment',
@@ -193,7 +188,6 @@ export const dns = (locale: Locale): DataFlowSpec => {
         object: 'qauth',
         from: 'resolver',
         to: 'auth',
-        duration: 1300,
       },
       { type: 'loading', id: 'lookup', object: 'auth', duration: 800 },
       {
@@ -201,7 +195,6 @@ export const dns = (locale: Locale): DataFlowSpec => {
         object: 'rauth',
         from: 'auth',
         to: 'resolver',
-        duration: 1300,
         wait_for: 'lookup',
       },
       {
@@ -214,7 +207,6 @@ export const dns = (locale: Locale): DataFlowSpec => {
         object: 'answer',
         from: 'resolver',
         to: 'client',
-        duration: 1300,
       },
       {
         type: 'comment',

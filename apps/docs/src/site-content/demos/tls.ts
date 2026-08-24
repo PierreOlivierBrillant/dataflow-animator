@@ -113,7 +113,6 @@ export const tls = (locale: Locale): DataFlowSpec => {
         object: 'hello',
         from: 'client',
         to: 'server',
-        duration: 1300,
       },
       { type: 'loading', object: 'server', duration: 1000 },
       {
@@ -126,7 +125,6 @@ export const tls = (locale: Locale): DataFlowSpec => {
         object: 'shello',
         from: 'server',
         to: 'client',
-        duration: 1300,
       },
       {
         type: 'comment',
@@ -139,7 +137,6 @@ export const tls = (locale: Locale): DataFlowSpec => {
         object: 'finished',
         from: 'client',
         to: 'server',
-        duration: 1300,
       },
       {
         type: 'arrow',
@@ -149,7 +146,6 @@ export const tls = (locale: Locale): DataFlowSpec => {
         style: 'solid',
         arrow_head: 'both',
         keep_until_end: true,
-        duration: 1200,
       },
       {
         type: 'comment',
@@ -160,7 +156,6 @@ export const tls = (locale: Locale): DataFlowSpec => {
         object: 'get',
         from: 'client',
         to: 'server',
-        duration: 1300,
       },
       { type: 'loading', id: 'render', object: 'server', duration: 900 },
       {
@@ -168,7 +163,6 @@ export const tls = (locale: Locale): DataFlowSpec => {
         object: 'page',
         from: 'server',
         to: 'client',
-        duration: 1300,
         wait_for: 'render',
       },
       {

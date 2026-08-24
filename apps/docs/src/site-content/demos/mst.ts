@@ -67,7 +67,6 @@ const reject = (
     ...cyclePath.map((id) => ({
       type: 'highlight' as const,
       object: id,
-      duration: 1700,
     })),
     { type: 'comment', object: near, text, keep_until_next: true },
   ],
