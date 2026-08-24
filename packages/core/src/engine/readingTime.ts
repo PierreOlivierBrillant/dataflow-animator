@@ -1,4 +1,4 @@
-import type { Action, ObjectContent } from '../types';
+import type { Action, ObjectContent, Packet } from '../types';
 
 /**
  * How long an action needs to stay on screen for its content to be READ,
@@ -96,4 +96,86 @@ export function derivedDuration(
 
   if (ms === undefined) return undefined;
   return Math.round(Math.min(Math.max(ms, MIN_MS), MAX_MS) * pace);
+}
+
+/**
+ * ── What a packet asks to be read ────────────────────────────────────────
+ *
+ * A packet is not a dot: it carries a header, a query, a row count — text the
+ * reader is meant to take in. It appears at its origin, waits, then travels,
+ * and that wait was a fraction of the trip (120 ms for a 600 ms hop), which is
+ * not enough to read `SELECT * FROM users WHERE email=…` before it moves off.
+ *
+ * So the origin hold is at least the time the packet's own content needs. The
+ * caller pays this on a packet's FIRST appearance only: a packet hopping on to
+ * its next node has not changed, and charging the reader twice for the same
+ * text would only pad the animation.
+ */
+
+/** Characters carried by a packet, across every field its kind may use. */
+function packetLength(packet: Packet): { length: number; code: boolean } {
+  const parts: string[] = [];
+  let code = false;
+
+  if (packet.request_content) {
+    parts.push(packet.request_content);
+    code = true;
+  }
+  if (packet.packet_content) {
+    if (packet.packet_content.header) parts.push(packet.packet_content.header);
+    const body = packet.packet_content.body;
+    if (body?.type !== 'image' && body?.value) parts.push(body.value);
+    if (body?.language) code = true;
+  }
+  if (packet.response_content) {
+    const response = packet.response_content;
+    if (response.header) parts.push(response.header);
+    if (response.rows !== undefined) parts.push(String(response.rows));
+    const body = response.body;
+    if (body?.value) parts.push(body.value);
+    if (body?.columns) parts.push(...body.columns);
+    if (body?.rows_data) {
+      for (const row of body.rows_data) parts.push(...row.map(String));
+    }
+  }
+  if (packet.header) parts.push(packet.header);
+  if (packet.body) parts.push(packet.body);
+  // `icon` is a badge, not prose — it is recognised, not read.
+
+  if (packet.language) code = true;
+  return {
+    length: parts.reduce((total, part) => total + part.length, 0),
+    code,
+  };
+}
+
+/**
+ * Longest a packet's appearance may be held for its content to be read.
+ * Deliberately tighter than a comment's ceiling: a packet stays legible while
+ * it travels, so the hold only has to cover the first pass.
+ */
+const PACKET_MAX_MS = 1600;
+
+/**
+ * Noticing a packet costs less than noticing a bubble: it appears on the node
+ * the reader is already watching, where one is expected.
+ */
+const PACKET_ACQUIRE_MS = 220;
+
+/**
+ * Time the packet's own content needs, or `undefined` when it carries none.
+ *
+ * No floor here, unlike a comment's: the caller takes the greater of this and
+ * the proportional origin hold, so the hold IS the floor. Giving `{ rows: 1 }`
+ * the 700 ms a two-word label needs would pad every acknowledgement in a route.
+ */
+export function packetReadingTime(
+  packet: Packet,
+  pace: number
+): number | undefined {
+  const { length, code } = packetLength(packet);
+  if (length === 0) return undefined;
+  const cps = code ? CPS_BY_CONTENT.code : PROSE_CPS;
+  const ms = PACKET_ACQUIRE_MS + (length / cps) * 1000;
+  return Math.round(Math.min(ms, PACKET_MAX_MS) * pace);
 }

@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { derivedDuration } from './readingTime';
+import { derivedDuration, packetReadingTime } from './readingTime';
 import { compile } from './compiler';
-import type { Action, DataFlowSpec } from '../types';
+import type { Action, DataFlowSpec, Packet } from '../types';
 import { FADE_MS } from './timeline';
+import { appearHold } from './motionTime';
 import { clipOpacity } from '../render/clipOpacity';
 
 const comment = (text: string, extra: Partial<Action> = {}): Action =>
@@ -212,5 +213,213 @@ describe('compile — reading time', () => {
       specWith([comment('x'.repeat(200)), comment('x'.repeat(200))])
     );
     expect(long.timeline.durationMs).toBeGreaterThan(short.timeline.durationMs);
+  });
+});
+
+describe('packetReadingTime', () => {
+  const http = (header: string, body?: string): Packet => ({
+    id: 'p',
+    kind: 'http_packet',
+    packet_content: {
+      header,
+      ...(body ? { body: { type: 'text', value: body } } : {}),
+    },
+  });
+
+  it('grows with what the packet carries', () => {
+    expect(
+      packetReadingTime(http('200 OK', 'a-much-longer-body-here'), 1)!
+    ).toBeGreaterThan(packetReadingTime(http('200 OK'), 1)!);
+  });
+
+  it('reads a SQL query slower than an HTTP header of the same length', () => {
+    const query = 'SELECT id FROM t';
+    const sql = packetReadingTime(
+      { id: 'p', kind: 'sql_request', request_content: query },
+      1
+    )!;
+    const header = packetReadingTime(http(query), 1)!;
+    expect(sql).toBeGreaterThan(header);
+  });
+
+  it('counts a SQL response’s rows and table cells', () => {
+    const bare = packetReadingTime(
+      { id: 'p', kind: 'sql_response', response_content: { rows: 1 } },
+      1
+    )!;
+    const full = packetReadingTime(
+      {
+        id: 'p',
+        kind: 'sql_response',
+        response_content: {
+          rows: 2,
+          body: {
+            type: 'table',
+            columns: ['id', 'email'],
+            rows_data: [[1, 'alice@corp.io']],
+          },
+        },
+      },
+      1
+    )!;
+    expect(full).toBeGreaterThan(bare);
+  });
+
+  it("has NO floor of its own — the caller's hold is the floor", () => {
+    // A bare acknowledgement must not be given the 700 ms a two-word label needs.
+    expect(
+      packetReadingTime(
+        { id: 'p', kind: 'sql_response', response_content: { rows: 1 } },
+        1
+      )!
+    ).toBeLessThan(400);
+  });
+
+  it('caps a long payload, since the packet stays legible while it travels', () => {
+    expect(packetReadingTime(http('x'.repeat(5000)), 1)).toBe(1600);
+  });
+
+  it('ignores a badge, which is recognised rather than read', () => {
+    expect(
+      packetReadingTime({ id: 'p', kind: 'subicon', icon: 'postgres' }, 1)
+    ).toBeUndefined();
+  });
+
+  it('reads a travelling panel’s own header and body', () => {
+    // `complex_node` / `simple_node` packets carry their text directly.
+    const panel = packetReadingTime(
+      {
+        id: 'p',
+        kind: 'complex_node',
+        header: 'POST /login',
+        body: '{ "user": 1 }',
+      },
+      1
+    )!;
+    const bare = packetReadingTime(
+      { id: 'p', kind: 'simple_node', body: 'x' },
+      1
+    )!;
+    expect(panel).toBeGreaterThan(bare);
+  });
+
+  it('treats a highlighted panel as code', () => {
+    const plain = packetReadingTime(
+      { id: 'p', kind: 'simple_node', body: 'x'.repeat(15) },
+      1
+    )!;
+    const coloured = packetReadingTime(
+      { id: 'p', kind: 'simple_node', body: 'x'.repeat(15), language: 'sql' },
+      1
+    )!;
+    expect(coloured).toBeGreaterThan(plain);
+  });
+
+  it('reads a SQL response’s header, and skips an image body', () => {
+    const withHeader = packetReadingTime(
+      {
+        id: 'p',
+        kind: 'sql_response',
+        response_content: { header: 'rows returned', rows: 3 },
+      },
+      1
+    )!;
+    expect(withHeader).toBeGreaterThan(
+      packetReadingTime(
+        { id: 'p', kind: 'sql_response', response_content: { rows: 3 } },
+        1
+      )!
+    );
+    // An image carries no text to read.
+    expect(
+      packetReadingTime(
+        {
+          id: 'p',
+          kind: 'http_packet',
+          packet_content: { body: { type: 'image', value: 'a.png' } },
+        },
+        1
+      )
+    ).toBeUndefined();
+  });
+
+  it('treats a highlighted HTTP body as code', () => {
+    const plain = packetReadingTime(
+      {
+        id: 'p',
+        kind: 'http_packet',
+        packet_content: { body: { type: 'text', value: 'x'.repeat(15) } },
+      },
+      1
+    )!;
+    const coloured = packetReadingTime(
+      {
+        id: 'p',
+        kind: 'http_packet',
+        packet_content: {
+          body: { type: 'text', value: 'x'.repeat(40), language: 'json' },
+        },
+      },
+      1
+    )!;
+    expect(coloured).toBeGreaterThan(plain);
+  });
+
+  it('scales by pace', () => {
+    expect(packetReadingTime(http('x'.repeat(5000)), 2)).toBe(3200);
+  });
+});
+
+describe('compile — a packet is held long enough to be read', () => {
+  const spec = (): DataFlowSpec => ({
+    direction: 'left-to-right',
+    nodes: [
+      { id: 'a', type: 'server', lane: 1 },
+      { id: 'b', type: 'server', lane: 2 },
+      { id: 'c', type: 'server', lane: 3 },
+    ],
+    packets: [
+      {
+        id: 'q',
+        kind: 'sql_request',
+        request_content: 'SELECT * FROM users WHERE email = ?',
+      },
+    ],
+    timeline: [
+      {
+        type: 'move',
+        id: 'first',
+        object: 'q',
+        from: 'a',
+        to: 'b',
+        duration: 600,
+      },
+      {
+        type: 'move',
+        id: 'second',
+        object: 'q',
+        from: 'b',
+        to: 'c',
+        duration: 600,
+      },
+    ],
+  });
+
+  const hold = (id: string) => {
+    const clip = compile(spec()).timeline.clips.find((c) => c.id === id)!;
+    return clip.animStartMs - clip.startMs;
+  };
+
+  it('holds the first appearance for as long as its content needs', () => {
+    const packet = spec().packets[0];
+    expect(hold('first')).toBe(packetReadingTime(packet, 1));
+    // …which is far more than the fraction of the trip it used to get.
+    expect(hold('first')).toBeGreaterThan(500);
+  });
+
+  it('does NOT charge the reader again on the next leg', () => {
+    // Same packet, same text: re-paying would only pad the animation.
+    expect(hold('second')).toBeLessThan(hold('first'));
+    expect(hold('second')).toBe(appearHold(600));
   });
 });

@@ -160,6 +160,11 @@ duration — and a speed that changes for no reason reads as a mistake.
 { type: 'move', object: 'rs', from: 'backend', to: 'client' },
 ```
 
+A packet also **waits at its origin long enough to be read**. It carries text — a
+header, a query, a row count — and it meets the reader while still standing
+still, so that pause is at least as long as its content needs. It is counted once
+per packet: the next leg of the same route shows the same text.
+
 Distances are measured in a **fixed reference frame**, never in the player's real
 pixels. That is what keeps one animation to one chronology: resize the player and
 the total duration, the step boundaries and the exported video all stay put.

@@ -164,6 +164,12 @@ une erreur.
 { type: 'move', object: 'rs', from: 'backend', to: 'client' },
 ```
 
+Un paquet **patiente aussi à son origine le temps d'être lu**. Il porte du texte —
+un en-tête, une requête, un nombre de lignes — et le lecteur le découvre pendant
+qu'il est encore immobile : cette pause dure donc au moins ce que son contenu
+demande. Elle n'est comptée qu'une fois par paquet, le saut suivant du même
+trajet montrant le même texte.
+
 Les distances sont mesurées dans un **repère de référence fixe**, jamais dans les
 pixels réels du lecteur. C'est ce qui garantit une seule chronologie par
 animation : redimensionnez le lecteur et la durée totale, les frontières

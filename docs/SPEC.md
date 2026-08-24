@@ -409,6 +409,12 @@ The timeline compiles an array of ordered actions. See
   **local**: it reads one action's own content and never what happens beside it,
   so an author can predict a duration from the action alone.
 
+- **Packet reading time**: a `move`'s ORIGIN hold is at least as long as the
+  packet's own content needs — a header, a query, a row count are text the reader
+  meets while the packet is still standing still. Charged on a packet's FIRST
+  appearance only: a later leg shows the same text, and charging twice would pad
+  the animation. Capped tighter than a comment's (the packet stays legible while
+  it travels), and with no floor of its own — the proportional hold is the floor.
 - **Derived travel time**: a `move` with no `duration` derives one from the
   LENGTH of its trip, so a scene holds one apparent speed instead of one
   duration. Distances are measured in a **fixed reference frame** (16:9), never

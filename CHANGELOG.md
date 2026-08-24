@@ -31,6 +31,12 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   a spec that times every action itself renders exactly as before. Nothing moves
   in space: only _when_ each step happens changes, never _what_ is drawn.
 
+- **A packet now waits at its origin long enough to be read.** Its origin hold
+  was a fraction of the trip — 120 ms for a 600 ms hop — which does not cover
+  `SELECT * FROM users WHERE email=…`, text the reader meets while the packet is
+  still standing still. The hold is now at least the time that content needs,
+  charged once per packet: a later leg of the same route shows the same text.
+
 - **A movement's duration now follows the distance it covers.** A `move` with no
   `duration` no longer takes a flat 500 ms whatever the length of its trip: it is
   derived from that length, so a scene holds one apparent SPEED instead of one

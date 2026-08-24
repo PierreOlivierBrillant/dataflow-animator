@@ -2,11 +2,12 @@ import type {
   Action,
   ActionType,
   DataFlowSpec,
+  Packet,
   LineStyle,
   PathShape,
   TreeSpec,
 } from '../types';
-import { derivedDuration } from './readingTime';
+import { derivedDuration, packetReadingTime } from './readingTime';
 import { FADE_MS } from './timeline';
 import {
   appearHold,
@@ -227,6 +228,15 @@ interface Ctx {
   referenceLayout: LayoutMap | null;
   /** Resolves {@link Ctx.referenceLayout} on first use. */
   layoutOf: () => LayoutMap;
+  /** Packets by id, to read what a moving element carries. */
+  packetById: Map<string, Packet>;
+  /**
+   * Packets whose content has already been held on screen to be read. A packet
+   * hopping on to its next node has not changed, so the reader is charged for
+   * its text ONCE — otherwise every leg of a route would pay for the same
+   * header again and the animation would just be padded.
+   */
+  packetsRead: Set<string>;
 }
 
 function makeId(ctx: Ctx, action: Action): string {
@@ -338,8 +348,21 @@ function compileAction(
   // the fade eats into. Without it a long reading time produced a long fade —
   // the text arriving only as it was due to be read.
   const isComment = action.type === 'comment';
+  // A packet carries text — a header, a query, a row count — and the reader
+  // meets it here, standing still at its origin. A fraction of the trip
+  // (120 ms for a 600 ms hop) does not cover `SELECT * FROM users WHERE email=…`,
+  // so the hold is at least as long as its content needs. Charged once per
+  // packet: the next leg shows the same text.
+  let readMs = 0;
+  if (isMove && !ctx.packetsRead.has(action.object)) {
+    const packet = ctx.packetById.get(action.object);
+    if (packet) {
+      readMs = packetReadingTime(packet, ctx.pace) ?? 0;
+      if (readMs > 0) ctx.packetsRead.add(action.object);
+    }
+  }
   const appearMs = isMove
-    ? appearHold(duration)
+    ? Math.max(appearHold(duration), readMs)
     : isComment
       ? (action.fade_in_ms ?? FADE_MS)
       : 0;
@@ -751,6 +774,8 @@ export function compile(spec: DataFlowSpec): CompileResult {
     ),
     tree: treeCtx,
     pace: spec.pace ?? 1,
+    packetById: new Map(spec.packets.map((packet) => [packet.id, packet])),
+    packetsRead: new Set<string>(),
     referenceLayout: null,
     layoutOf: () => {
       // In `tree` mode the topology is restructured as the timeline plays, so
