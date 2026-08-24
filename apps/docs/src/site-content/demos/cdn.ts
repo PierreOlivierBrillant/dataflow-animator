@@ -118,14 +118,12 @@ export const cdn = (locale: Locale): DataFlowSpec => {
       {
         type: 'comment',
         text: s.comment1,
-        duration: 2600,
       },
       {
         type: 'move',
         object: 'req1',
         from: 'user',
         to: 'edge',
-        duration: 1300,
       },
       {
         type: 'set_content',
@@ -137,14 +135,12 @@ export const cdn = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'edge',
         text: s.commentMiss,
-        duration: 2400,
       },
       {
         type: 'move',
         object: 'pull',
         from: 'edge',
         to: 'origin',
-        duration: 1300,
       },
       { type: 'loading', id: 'gen', object: 'origin', duration: 1100 },
       {
@@ -152,7 +148,6 @@ export const cdn = (locale: Locale): DataFlowSpec => {
         object: 'fromOrigin',
         from: 'origin',
         to: 'edge',
-        duration: 1300,
         wait_for: 'gen',
       },
       {
@@ -166,48 +161,40 @@ export const cdn = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'edge',
         text: s.commentStore,
-        duration: 2400,
       },
       {
         type: 'move',
         object: 'res1',
         from: 'edge',
         to: 'user',
-        duration: 1300,
       },
       { type: 'wait', duration: 1400 },
       {
         type: 'comment',
         text: s.comment2,
-        duration: 2600,
       },
       {
         type: 'move',
         object: 'req2',
         from: 'user',
         to: 'edge',
-        duration: 1300,
       },
       {
         type: 'comment',
         object: 'edge',
         text: s.commentHit,
-        duration: 2600,
       },
       {
         type: 'move',
         object: 'res2',
         from: 'edge',
         to: 'user',
-        duration: 1100,
       },
       {
         type: 'comment',
         object: 'user',
         text: s.commentEnd,
-        duration: 2200,
       },
-      { type: 'wait', duration: 1200 },
     ],
   };
 };

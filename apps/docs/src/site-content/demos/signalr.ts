@@ -98,7 +98,6 @@ export const signalr = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'client1',
         text: s.comment1,
-        duration: 1500,
       },
       {
         type: 'set_content',
@@ -117,11 +116,9 @@ export const signalr = (locale: Locale): DataFlowSpec => {
         object: 'handshake',
         from: 'client1',
         to: 'hub',
-        duration: 1500,
       },
       {
         type: 'parallel',
-        duration: 1500,
         actions: [
           {
             type: 'comment',
@@ -160,7 +157,6 @@ export const signalr = (locale: Locale): DataFlowSpec => {
         // On dévoile les deux autres clients : ils sont déjà connectés au hub
         // (connexions tracées d'emblée), prêts à recevoir la diffusion.
         type: 'parallel',
-        duration: 1800,
         actions: [
           {
             type: 'comment',
@@ -202,26 +198,22 @@ export const signalr = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'client1',
         text: s.comment4,
-        duration: 500,
       },
       {
         type: 'move',
         object: 'send',
         from: 'client1',
         to: 'hub',
-        duration: 800,
       },
       {
         type: 'comment',
         object: 'hub',
         text: s.comment5,
-        duration: 500,
       },
       {
         // SendAll : un même message part vers les trois clients simultanément.
         type: 'parallel',
         id: 'end',
-        duration: 800,
         actions: [
           { type: 'move', object: 'recv1', from: 'hub', to: 'client1' },
           { type: 'move', object: 'recv2', from: 'hub', to: 'client2' },

@@ -133,17 +133,14 @@ export const raft = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'cand',
         text: s.comment1,
-        duration: 2800,
       },
       {
         type: 'comment',
         object: 'cand',
         text: s.comment2,
-        duration: 2200,
       },
       {
         type: 'parallel',
-        duration: 1400,
         actions: [
           { type: 'move', object: 'rv1', from: 'cand', to: 'f1' },
           { type: 'move', object: 'rv2', from: 'cand', to: 'f2' },
@@ -155,11 +152,9 @@ export const raft = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'cand',
         text: s.comment3,
-        duration: 2600,
       },
       {
         type: 'parallel',
-        duration: 1400,
         actions: [
           { type: 'move', object: 'ack1', from: 'f1', to: 'cand' },
           { type: 'move', object: 'ack2', from: 'f2', to: 'cand' },
@@ -176,7 +171,6 @@ export const raft = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'cand',
         text: s.comment4,
-        duration: 2600,
       },
       {
         type: 'set_content',
@@ -188,11 +182,9 @@ export const raft = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'cand',
         text: s.comment5,
-        duration: 2400,
       },
       {
         type: 'parallel',
-        duration: 1400,
         actions: [
           { type: 'move', object: 'hb1', from: 'cand', to: 'f1' },
           { type: 'move', object: 'hb2', from: 'cand', to: 'f2' },
@@ -203,9 +195,7 @@ export const raft = (locale: Locale): DataFlowSpec => {
       {
         type: 'comment',
         text: s.comment6,
-        duration: 2800,
       },
-      { type: 'wait', duration: 1400 },
     ],
   };
 };

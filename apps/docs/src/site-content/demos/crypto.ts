@@ -115,13 +115,11 @@ export const crypto = (locale: Locale): DataFlowSpec => {
       {
         type: 'comment',
         text: s.comment1,
-        duration: 2600,
       },
       {
         type: 'comment',
         object: 'alice',
         text: s.comment2,
-        duration: 2200,
       },
       {
         type: 'set_content',
@@ -139,11 +137,9 @@ export const crypto = (locale: Locale): DataFlowSpec => {
         object: 'pubA',
         from: 'alice',
         to: 'bob',
-        duration: 1400,
       },
       {
         type: 'parallel',
-        duration: 2200,
         actions: [
           { type: 'highlight', object: 'eve' },
           {
@@ -157,7 +153,6 @@ export const crypto = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'bob',
         text: s.comment4,
-        duration: 2200,
       },
       {
         type: 'set_content',
@@ -175,11 +170,9 @@ export const crypto = (locale: Locale): DataFlowSpec => {
         object: 'pubB',
         from: 'bob',
         to: 'alice',
-        duration: 1400,
       },
       {
         type: 'parallel',
-        duration: 2400,
         actions: [
           { type: 'highlight', object: 'eve' },
           {
@@ -192,11 +185,9 @@ export const crypto = (locale: Locale): DataFlowSpec => {
       {
         type: 'comment',
         text: s.comment6,
-        duration: 2800,
       },
       {
         type: 'parallel',
-        duration: 1800,
         actions: [
           {
             type: 'set_content',
@@ -226,18 +217,15 @@ export const crypto = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'alice',
         text: s.comment7,
-        duration: 2000,
       },
       {
         type: 'move',
         object: 'cipher',
         from: 'alice',
         to: 'bob',
-        duration: 1400,
       },
       {
         type: 'parallel',
-        duration: 2600,
         actions: [
           { type: 'highlight', object: 'eve' },
           {
@@ -262,14 +250,11 @@ export const crypto = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'bob',
         text: s.comment9,
-        duration: 2200,
       },
       {
         type: 'comment',
         text: s.comment10,
-        duration: 3000,
       },
-      { type: 'wait', duration: 1400 },
     ],
   };
 };

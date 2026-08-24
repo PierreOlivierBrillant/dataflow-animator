@@ -85,7 +85,6 @@ export const scrubbing = (locale: Locale): DataFlowSpec => {
         object: `${id}-g${i}`,
         from: id,
         to: 'scrub',
-        duration: 850,
         delay_ms: b * 60 + i * 110,
         fade_in_ms: 0,
         fade_out_ms: 120,
@@ -138,13 +137,11 @@ export const scrubbing = (locale: Locale): DataFlowSpec => {
       {
         type: 'comment',
         text: s.introComment,
-        duration: 3400,
       },
       // 1. Flood + one legitimate request converge on the scrubber.
       {
         type: 'comment',
         text: s.floodComment,
-        duration: 2800,
       },
       {
         type: 'parallel',
@@ -155,7 +152,6 @@ export const scrubbing = (locale: Locale): DataFlowSpec => {
             object: 'legit',
             from: 'user',
             to: 'scrub',
-            duration: 900,
             delay_ms: 700,
             fade_out_ms: 0,
             keep_until: 'forward',
@@ -168,7 +164,6 @@ export const scrubbing = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'scrub',
         text: s.filterComment,
-        duration: 3000,
       },
       {
         id: 'filtering',
@@ -182,7 +177,6 @@ export const scrubbing = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'origin',
         text: s.forwardComment,
-        duration: 2600,
       },
       {
         id: 'forward',
@@ -190,7 +184,6 @@ export const scrubbing = (locale: Locale): DataFlowSpec => {
         object: 'fwd',
         from: 'scrub',
         to: 'origin',
-        duration: 800,
       },
       { type: 'loading', id: 'originwork', object: 'origin', duration: 600 },
       {
@@ -205,7 +198,6 @@ export const scrubbing = (locale: Locale): DataFlowSpec => {
         object: 'resp',
         from: 'origin',
         to: 'scrub',
-        duration: 800,
         wait_for: 'originwork',
       },
       {
@@ -213,20 +205,16 @@ export const scrubbing = (locale: Locale): DataFlowSpec => {
         object: 'resp2',
         from: 'scrub',
         to: 'user',
-        duration: 800,
       },
       {
         type: 'comment',
         object: 'user',
         text: s.healthyComment,
-        duration: 2800,
       },
       {
         type: 'comment',
         text: s.endComment,
-        duration: 3600,
       },
-      { type: 'wait', duration: 1200 },
     ],
   };
 };

@@ -116,7 +116,6 @@ export const cicd = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'dev',
         text: s.comment1,
-        duration: 2000,
       },
       {
         type: 'set_content',
@@ -133,7 +132,6 @@ export const cicd = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'repo',
         text: s.comment2,
-        duration: 2200,
       },
       {
         type: 'move',
@@ -141,13 +139,11 @@ export const cicd = (locale: Locale): DataFlowSpec => {
         object: 'hook',
         from: 'repo',
         to: 'ci',
-        duration: 1300,
       },
       {
         type: 'comment',
         object: 'ci',
         text: s.comment3,
-        duration: 2400,
       },
       { type: 'loading', object: 'ci', duration: 1400 },
       {
@@ -164,20 +160,17 @@ export const cicd = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'ci',
         text: s.comment4,
-        duration: 2400,
       },
       {
         type: 'move',
         object: 'image',
         from: 'ci',
         to: 'registry',
-        duration: 1300,
       },
       {
         type: 'comment',
         object: 'registry',
         text: s.comment5,
-        duration: 2200,
       },
       {
         type: 'move',
@@ -185,17 +178,14 @@ export const cicd = (locale: Locale): DataFlowSpec => {
         object: 'deploy',
         from: 'registry',
         to: 'prod',
-        duration: 1400,
       },
       { type: 'loading', id: 'rollout', object: 'prod', duration: 1200 },
       {
         type: 'comment',
         object: 'prod',
         text: s.comment6,
-        duration: 2200,
         wait_for: 'rollout',
       },
-      { type: 'wait', duration: 1200 },
     ],
   };
 };

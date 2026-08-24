@@ -124,8 +124,11 @@ la même `lane` sont **empilés** sur l'axe transverse.
 }
 ```
 
-Quand peu de lanes sont définies (2-3), les nœuds s'étalent vers les bords
-du canevas ; au-delà, ils se resserrent vers le centre.
+Les deux axes partagent **un même pas d'espacement**, mesuré en pixels, et la
+grille est centrée sur la scène. Deux voisins sont donc à la même distance l'un
+de l'autre qu'ils soient côte à côte ou l'un au-dessus de l'autre — et cette
+distance ne change pas avec le nombre de nœuds. Ajoutez une lane et le schéma
+grandit dans la scène, au lieu de se redistribuer sur toute sa largeur.
 
 ## Alignement transverse (`align_with`)
 

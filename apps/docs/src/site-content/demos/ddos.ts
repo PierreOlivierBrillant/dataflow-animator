@@ -73,7 +73,6 @@ export const ddos = (locale: Locale): DataFlowSpec => {
     object: `cmd-${id}`,
     from: 'cnc',
     to: id,
-    duration: 900,
     delay_ms: b * 70,
   }));
 
@@ -96,7 +95,6 @@ export const ddos = (locale: Locale): DataFlowSpec => {
         object: `${id}-g${i}`,
         from: id,
         to: 'server',
-        duration: 850,
         delay_ms: b * 60 + i * 110,
         fade_in_ms: 0,
         fade_out_ms: 120,
@@ -145,14 +143,12 @@ export const ddos = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'cnc',
         text: s.commandComment,
-        duration: 3000,
       },
       { type: 'parallel', duration: 1100, actions: commandMoves },
       // 2. The flood: every bot hits the target at once, server struggling.
       {
         type: 'comment',
         text: s.floodComment,
-        duration: 3000,
       },
       {
         type: 'parallel',
@@ -165,7 +161,6 @@ export const ddos = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'server',
         text: s.saturatedComment,
-        duration: 2800,
       },
       {
         id: 'down',
@@ -179,18 +174,15 @@ export const ddos = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'user',
         text: s.deniedComment,
-        duration: 2800,
       },
       {
         type: 'move',
         object: 'legit',
         from: 'user',
         to: 'server',
-        duration: 900,
       },
       {
         type: 'parallel',
-        duration: 2000,
         actions: [
           { type: 'loading', object: 'user' },
           {
@@ -204,9 +196,7 @@ export const ddos = (locale: Locale): DataFlowSpec => {
       {
         type: 'comment',
         text: s.endComment,
-        duration: 3400,
       },
-      { type: 'wait', duration: 1200 },
     ],
   };
 };

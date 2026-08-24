@@ -7,6 +7,99 @@ here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 2.0.0 — 2026-08-24
+
+### Changed
+
+- **An action that carries something to read now stays on screen long enough to
+  be read.** A `comment` or a `set_content` that declares no `duration` no longer
+  falls back to a flat 500 ms: the engine derives one from the content itself —
+  a fixed cost to notice what appeared, plus the length divided by a reading
+  speed. Code is given more time than prose, a table more than a label, and the
+  result is bounded so a two-word badge does not flash past and a long paragraph
+  does not hold the animation hostage.
+
+  A comment's time is counted once the bubble is FULLY THERE: it fades in first,
+  and the reading time starts from there. The bubble's opacity used to ride the
+  clip's own progress, spreading the fade across the entire clip — so a comment
+  meant to stay four seconds took four seconds to become legible, which the
+  derived reading times above would have made glaring.
+
+  **This changes the timing of existing specs** wherever such an action had no
+  `duration`, which is why it is a breaking change rather than an addition. An
+  explicit `duration` is untouched — it is a stated intent, not an estimate — so
+  a spec that times every action itself renders exactly as before. Nothing moves
+  in space: only _when_ each step happens changes, never _what_ is drawn.
+
+- **A fade-in no longer fills the pause it belongs to.** It used to last the
+  whole appearance hold, which was harmless while that hold was a flat 300 ms
+  and wrong as soon as it became a reading pause: a packet held 1600 ms to let
+  its query be read took 1600 ms to become legible. The fade is capped at 250 ms
+  (or the hold, when shorter), and the rest of the hold is fully opaque —
+  measured on `microservices`' SQL packet: opaque at 250 ms, then legible for the
+  remaining 1350 ms.
+
+- **Movements are slower.** The derived travel speed was 300 px/s in the
+  reference frame, calibrated against the median speed authors had been writing
+  by hand across the corpus (284 px/s). An earlier pass shipped 430, a number
+  that matched no measurement and read as visibly hurried. Only moves that
+  declare no `duration` of their own are affected.
+
+- **A packet now waits at its origin long enough to be read.** Its origin hold
+  was a fraction of the trip — 120 ms for a 600 ms hop — which does not cover
+  `SELECT * FROM users WHERE email=…`, text the reader meets while the packet is
+  still standing still. The hold is now at least the time that content needs,
+  charged once per packet: a later leg of the same route shows the same text.
+
+- **A movement's duration now follows the distance it covers.** A `move` with no
+  `duration` no longer takes a flat 500 ms whatever the length of its trip: it is
+  derived from that length, so a scene holds one apparent SPEED instead of one
+  duration. Measured across the demos, the speed authors were imposing varied by
+  a factor of 8.1 between the slowest and the fastest hop; the eye reads a speed,
+  and one that changes for no reason reads as a mistake.
+
+  Distances are measured in a **fixed 16:9 reference frame**, never in the
+  player's real pixels — `compile()` has no geometry, and feeding it the live
+  aspect would recompile the timeline on every resize, shifting total duration
+  and navigation stops mid-playback. Same reasoning as the circuit router's
+  letterbox.
+
+- **Linear layouts now use one spacing step for both axes.** Nodes were
+  distributed over the whole stage, each axis independently, which made the gap
+  between neighbours a function of how many there were — 0.6 of the stage at two
+  nodes, 0.14 at six — and, because the same ratio is a different number of
+  pixels on each axis, made the vertical gap **1.84x** the horizontal one on a
+  16:9 stage. Two nodes "equally spaced" simply were not.
+
+  One step in pixels now governs both directions, the largest that fits, with the
+  grid centred on the stage. Adding a lane makes the diagram grow within the
+  stage instead of redistributing everything across it. Only the linear
+  directions change: `graph` stays aspect-independent by design, and the circuit
+  layouts are untouched.
+
+- **A packet's motion has its own easing curve.** `easeInOutCubic` governed five
+  unrelated things — position, opacity, tree edges, rotations, content
+  cross-fades — so it was not a choice, it was the absence of one. Position now
+  follows a dedicated asymmetric curve: a decided departure, then a long settle,
+  because arriving is the part that carries the information. The other four keep
+  the cubic until each is given a role of its own.
+
+- **The pauses framing a movement are now proportioned to it.** A packet was held
+  300 ms at its origin and 300 ms at its destination whatever it was doing —
+  which on a busy demo added up to 9.2 s of waiting against 9.9 s of actual
+  movement. They are bounded fractions of the move's own duration instead: a
+  long, slow trip earns a beat to settle, a quick hop chains straight on. The
+  arrival gets slightly more than the departure, being the part that carries the
+  information. `STEP_GAP` is deliberately unchanged — it separates navigation
+  stops, a functional role rather than a decorative one.
+
+### Added
+
+- **`pace`** (spec level): scales every derived duration in one place — reading
+  time and travel time alike — for when the default pace reads too fast or too
+  slow for an audience. Above 1 leaves more time, below 1 moves faster. It
+  deliberately does not touch a `duration` written by hand.
+
 ## 1.1.0 — 2026-08-23
 
 ### Added

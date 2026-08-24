@@ -67,7 +67,6 @@ const reject = (
     ...cyclePath.map((id) => ({
       type: 'highlight' as const,
       object: id,
-      duration: 1700,
     })),
     { type: 'comment', object: near, text, keep_until_next: true },
   ],
@@ -121,7 +120,7 @@ export const mst = (locale: Locale): DataFlowSpec => {
     ],
     packets: [],
     timeline: [
-      { type: 'comment', text: s.intro, duration: 4000 },
+      { type: 'comment', text: s.intro },
       accept('ab', ['A', 'B'], 'A', s.ab),
       accept('bc', ['C'], 'C', s.bc),
       reject('ac', ['ab', 'bc'], 'A', s.ac),
@@ -131,7 +130,6 @@ export const mst = (locale: Locale): DataFlowSpec => {
       accept('ef', ['F'], 'F', s.ef),
       reject('cf', ['cd', 'de', 'ef'], 'F', s.cf),
       { type: 'comment', text: s.done, keep_until_end: true },
-      { type: 'wait', duration: 1600 },
     ],
   };
 };

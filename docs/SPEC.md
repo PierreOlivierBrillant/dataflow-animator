@@ -84,7 +84,11 @@ the container (pure CSS placement). See [`packages/core/src/engine/layout.ts`](.
 
 - **Linear grids** (`left-to-right`, `right-to-left`, `top-to-bottom`,
   `bottom-to-top`): `lane` = position along the flow; nodes of the same lane
-  are distributed and centered on the transverse axis. Spacing proportional to the container.
+  are stacked on the transverse axis. Both axes share ONE step, measured in
+  pixels rather than in ratios, and the grid is centred on the stage — so the
+  gap between two neighbours is the same horizontally and vertically, and does
+  not depend on how many nodes there are. The step is the largest that fits both
+  axes, margins included.
 - **Circular** (`circular`): the `is_main` node is placed at the center; the others are
   equidistant on a circle (trigonometry), ratio corrected to remain round.
 - **Graph** (`graph`): free 2D layout for an **arbitrary graph** (Dijkstra, A\*,
@@ -382,6 +386,58 @@ The timeline compiles an array of ordered actions. See
     the end of the chronology (or a contrary `toggle`) and is scrubbable both ways.
 
 ## 6. Temporal lifecycle
+
+- **Derived reading time**: an action carrying something to read and declaring no
+  `duration` gets one worked out from its own content, rather than a per-type
+  constant. The estimate is `ACQUIRE_MS + length / speed`, clamped to
+  `[MIN_MS, MAX_MS]` and then scaled by `spec.pace` (default 1):
+  - `comment` — the length of `text`, read as prose;
+  - `set_content` — the length of the panel (`value`, plus a table's `columns`
+    and `rows_data`), read at a speed that depends on `content.type`: code
+    slowest, then tables, then text. An `image` has no length, so it gets a flat
+    beat instead.
+
+  For a `comment`, that time is the **fully-present** stretch: the bubble is
+  given an appearance phase first (its `fade_in_ms`, or `FADE_MS` by default),
+  and `duration` starts once it is fully opaque. Otherwise a long reading time
+  produced a long fade — the text becoming legible only at the moment it was due
+  to have been read.
+
+  An explicit `duration` always takes precedence, and `pace` never scales it — it
+  is a stated intent, not an estimate. An action with nothing to read (empty text,
+  empty panel) falls back to the per-type default. The estimate is deliberately
+  **local**: it reads one action's own content and never what happens beside it,
+  so an author can predict a duration from the action alone.
+
+- **A fade never fills an appearance pause.** The fade-in lasts `FADE_MS` (or
+  the pause itself, when that is shorter) — it is not stretched across the whole
+  hold. The hold is the time an element is FULLY THERE; a fade spread over it
+  would make a packet legible only once it was due to have been read.
+- **Packet reading time**: a `move`'s ORIGIN hold is at least as long as the
+  packet's own content needs — a header, a query, a row count are text the reader
+  meets while the packet is still standing still. Charged on a packet's FIRST
+  appearance only: a later leg shows the same text, and charging twice would pad
+  the animation. Capped tighter than a comment's (the packet stays legible while
+  it travels), and with no floor of its own — the proportional hold is the floor.
+- **Derived travel time**: a `move` with no `duration` derives one from the
+  LENGTH of its trip, so a scene holds one apparent speed instead of one
+  duration. Distances are measured in a **fixed reference frame** (16:9), never
+  in the player's real pixels: `compile()` has no geometry, and feeding it the
+  live aspect would recompile the timeline on every resize — total duration and
+  navigation stops would shift mid-playback. Same fixed-frame reasoning as the
+  circuit router's letterbox.
+- **Easing has roles, not one curve.** A packet's position follows a dedicated
+  asymmetric curve (`easeTravel`): a decided departure, then a long settle,
+  because arriving is the part that carries the information. Everything not yet
+  given a role — opacity fades, tree edges, rotations, content cross-fades —
+  still uses `easeInOutCubic`. Roles are added by writing a new curve and
+  applying it at ONE call site, never by editing a shared one.
+- **Proportioned holds**: the pauses framing a `move` (at its origin before
+  leaving, at its destination before fading) are fractions of that move's own
+  duration rather than flat constants, bounded at both ends, with the arrival
+  given slightly more than the departure. `STEP_GAP` is deliberately NOT
+  proportioned: it separates navigation stops, which is a functional role, not a
+  decorative one.
 
 - **`wait_for`**: the action starts at the **end** of the referenced action (by id).
   - _On a root action_ (directly in `timeline`): effective `startMs` =

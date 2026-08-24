@@ -128,24 +128,20 @@ export const graphql = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'client',
         text: s.comment1,
-        duration: 2600,
       },
       {
         type: 'move',
         object: 'query',
         from: 'client',
         to: 'gw',
-        duration: 1300,
       },
       {
         type: 'comment',
         object: 'gw',
         text: s.comment2,
-        duration: 2800,
       },
       {
         type: 'parallel',
-        duration: 1400,
         actions: [
           { type: 'move', object: 'qU', from: 'gw', to: 'users' },
           {
@@ -166,7 +162,6 @@ export const graphql = (locale: Locale): DataFlowSpec => {
       },
       {
         type: 'parallel',
-        duration: 1200,
         actions: [
           { type: 'loading', object: 'users' },
           { type: 'loading', object: 'orders' },
@@ -176,11 +171,9 @@ export const graphql = (locale: Locale): DataFlowSpec => {
       {
         type: 'comment',
         text: s.comment3,
-        duration: 2400,
       },
       {
         type: 'parallel',
-        duration: 1500,
         actions: [
           { type: 'move', object: 'rU', from: 'users', to: 'gw' },
           {
@@ -204,7 +197,6 @@ export const graphql = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'gw',
         text: s.comment4,
-        duration: 2600,
         wait_for: 'stitch',
       },
       {
@@ -212,15 +204,12 @@ export const graphql = (locale: Locale): DataFlowSpec => {
         object: 'merged',
         from: 'gw',
         to: 'client',
-        duration: 1300,
       },
       {
         type: 'comment',
         object: 'client',
         text: s.comment5,
-        duration: 2600,
       },
-      { type: 'wait', duration: 1200 },
     ],
   };
 };

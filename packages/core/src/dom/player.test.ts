@@ -1,6 +1,12 @@
 /** @vitest-environment jsdom */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { DataFlowSpec } from '../types';
+import { appearHold, arriveHold } from '../engine/motionTime';
+
+/** The single move of `spec` below, and the holds the compiler frames it with. */
+const MOVE_MS = 1000;
+const FIRST_STOP = appearHold(MOVE_MS);
+const TOTAL_MS = FIRST_STOP + MOVE_MS + arriveHold(MOVE_MS);
 
 /**
  * The exporter is mocked so the OPTIONS the export button hands it can be
@@ -191,13 +197,16 @@ describe('mountPlayer — the clock drives the stage', () => {
   });
 
   it('keeps the control bar in step with the clock', () => {
-    // The compiled timeline runs 1600ms (a move carries an appearance phase),
-    // and the readout rounds to whole seconds.
+    // A move is framed by an appearance and an arrival hold, so the compiled
+    // timeline is longer than the move itself; the readout rounds to seconds.
     const { player } = mount();
+    const seconds = (ms: number) => `${Math.round(ms / 1000)}s`;
 
-    player.clock.seek(800);
+    player.clock.seek(TOTAL_MS / 2);
 
-    expect(player.el.querySelector('.rdfa-time')!.textContent).toBe('1s / 2s');
+    expect(player.el.querySelector('.rdfa-time')!.textContent).toBe(
+      `${seconds(TOTAL_MS / 2)} / ${seconds(TOTAL_MS)}`
+    );
     expect(
       (player.el.querySelector('.rdfa-timeline-thumb') as HTMLElement).style
         .left
@@ -247,10 +256,10 @@ describe('mountPlayer — keyboard', () => {
     const pause = vi.spyOn(player.clock, 'pause');
     const seek = vi.spyOn(player.clock, 'seek');
 
-    // Compiled stops are [300, 1300].
-    // ArrowRight mirrors the "next" button: it PLAYS to the next stop.
+    // The first compiled stop is the move's appearance, at the end of its
+    // origin hold. ArrowRight mirrors the "next" button: it PLAYS to it.
     press(player.el, 'ArrowRight');
-    expect(playTo).toHaveBeenCalledWith(300);
+    expect(playTo).toHaveBeenCalledWith(FIRST_STOP);
 
     // ArrowLeft mirrors "prev": pause, then jump back.
     press(player.el, 'ArrowLeft');
@@ -291,7 +300,7 @@ describe('mountPlayer — keyboard', () => {
 
     press(next, 'ArrowRight', true);
 
-    expect(playTo).toHaveBeenCalledWith(300);
+    expect(playTo).toHaveBeenCalledWith(FIRST_STOP);
   });
 
   it('fires no shortcut from inside the JSON dialog', () => {
@@ -525,12 +534,15 @@ describe('mountPlayer — initialT', () => {
   it('opens at the instant asked for, stage and control bar together', () => {
     const container = document.createElement('div');
     document.body.appendChild(container);
-    const player = mountPlayer(container, spec, { initialT: 800 });
+    const player = mountPlayer(container, spec, { initialT: TOTAL_MS / 2 });
+    const seconds = (ms: number) => `${Math.round(ms / 1000)}s`;
 
-    expect(player.clock.t).toBe(800);
+    expect(player.clock.t).toBe(TOTAL_MS / 2);
     // The bar is written from the clock exactly once at construction, before
     // anything is subscribed — so a clock seeded late would leave it at 0.
-    expect(player.el.querySelector('.rdfa-time')!.textContent).toBe('1s / 2s');
+    expect(player.el.querySelector('.rdfa-time')!.textContent).toBe(
+      `${seconds(TOTAL_MS / 2)} / ${seconds(TOTAL_MS)}`
+    );
     expect(
       (player.el.querySelector('.rdfa-timeline-thumb') as HTMLElement).style
         .left

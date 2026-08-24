@@ -666,8 +666,10 @@ interface ActionBase {
    */
   delay_ms?: number;
   /**
-   * Fade-in duration in ms. Default: initial hold period
-   * for `move` (300 ms), 250 ms for other actions. 0 = instant appearance.
+   * Fade-in duration in ms. Default: 250 ms — or the element's appearance
+   * pause when that pause is shorter. The fade never fills the whole pause:
+   * a packet held at its origin to be read appears first, then stays legible
+   * for the rest of it. 0 = instant appearance.
    * @minimum 0
    * @multipleOf 1
    */
@@ -1041,6 +1043,21 @@ export interface DataFlowSpec {
    * @example "How a page load reaches the database and comes back"
    */
   description?: string;
+  /**
+   * Scales the reading time the engine DERIVES for actions that carry something
+   * to read — a `comment`'s text, a `set_content`'s panel — when they declare no
+   * `duration` of their own. Above 1 leaves more time (1.25 = a quarter longer),
+   * below 1 moves faster. Default: 1.
+   *
+   * It is the single knob for the whole animation's pace: derive everything,
+   * then nudge it in one place if the result reads too fast or too slow for your
+   * audience. It deliberately does NOT touch a `duration` you wrote yourself —
+   * that is an explicit intent, not an estimate to be scaled.
+   * @minimum 0.1
+   * @maximum 10
+   * @example 1.25
+   */
+  pace?: number;
 }
 
 /** Syntax highlighting function: source code -> HTML. */

@@ -105,14 +105,12 @@ export const blockchain = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'wallet',
         text: s.c1,
-        duration: 2400,
       },
       {
         type: 'move',
         object: 'tx',
         from: 'wallet',
         to: 'mempool',
-        duration: 1300,
       },
       {
         type: 'set_content',
@@ -124,11 +122,9 @@ export const blockchain = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'mempool',
         text: s.c2,
-        duration: 2600,
       },
       {
         type: 'parallel',
-        duration: 1400,
         actions: [
           { type: 'move', object: 'p1', from: 'mempool', to: 'm1' },
           { type: 'move', object: 'p2', from: 'mempool', to: 'm2' },
@@ -138,11 +134,9 @@ export const blockchain = (locale: Locale): DataFlowSpec => {
       {
         type: 'comment',
         text: s.c3,
-        duration: 2800,
       },
       {
         type: 'parallel',
-        duration: 1800,
         actions: [
           { type: 'loading', object: 'm1' },
           { type: 'loading', object: 'm2' },
@@ -153,7 +147,6 @@ export const blockchain = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'm2',
         text: s.c4,
-        duration: 2600,
       },
       {
         type: 'move',
@@ -161,7 +154,6 @@ export const blockchain = (locale: Locale): DataFlowSpec => {
         object: 'block',
         from: 'm2',
         to: 'chain',
-        duration: 1400,
       },
       {
         type: 'set_content',
@@ -173,11 +165,9 @@ export const blockchain = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'chain',
         text: s.c5,
-        duration: 2600,
       },
       {
         type: 'parallel',
-        duration: 1400,
         actions: [
           { type: 'move', object: 'gossip1', from: 'm2', to: 'm1' },
           {
@@ -192,9 +182,7 @@ export const blockchain = (locale: Locale): DataFlowSpec => {
       {
         type: 'comment',
         text: s.cEnd,
-        duration: 2600,
       },
-      { type: 'wait', duration: 1400 },
     ],
   };
 };

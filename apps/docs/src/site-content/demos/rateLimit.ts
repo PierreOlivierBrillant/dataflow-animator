@@ -81,7 +81,6 @@ export const rateLimit = (locale: Locale): DataFlowSpec => {
     object: p.id,
     from: 'attacker',
     to: 'proxy',
-    duration: 650,
     delay_ms: i * 45,
     fade_in_ms: 0,
     fade_out_ms: 120,
@@ -98,7 +97,6 @@ export const rateLimit = (locale: Locale): DataFlowSpec => {
     object: p.id,
     from: 'proxy',
     to: 'attacker',
-    duration: 650,
     delay_ms: i * 120,
     fade_out_ms: 120,
   }));
@@ -140,14 +138,12 @@ export const rateLimit = (locale: Locale): DataFlowSpec => {
       {
         type: 'comment',
         text: s.introComment,
-        duration: 3200,
       },
       // 1. The flood hits the proxy.
       {
         type: 'comment',
         object: 'attacker',
         text: s.floodComment,
-        duration: 2600,
       },
       {
         type: 'parallel',
@@ -161,7 +157,6 @@ export const rateLimit = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'proxy',
         text: s.blockComment,
-        duration: 2800,
       },
       {
         id: 'limited',
@@ -175,21 +170,18 @@ export const rateLimit = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'app',
         text: s.protectedComment,
-        duration: 2800,
       },
       // 3. The legitimate user, under the limit, is still served.
       {
         type: 'comment',
         object: 'user',
         text: s.servedComment,
-        duration: 2800,
       },
       {
         type: 'move',
         object: 'legit',
         from: 'user',
         to: 'proxy',
-        duration: 700,
       },
       { type: 'move', object: 'fwd', from: 'proxy', to: 'app', duration: 700 },
       { type: 'loading', id: 'appwork', object: 'app', duration: 600 },
@@ -198,7 +190,6 @@ export const rateLimit = (locale: Locale): DataFlowSpec => {
         object: 'resp',
         from: 'app',
         to: 'proxy',
-        duration: 700,
         wait_for: 'appwork',
       },
       {
@@ -207,14 +198,11 @@ export const rateLimit = (locale: Locale): DataFlowSpec => {
         object: 'resp2',
         from: 'proxy',
         to: 'user',
-        duration: 700,
       },
       {
         type: 'comment',
         text: s.endComment,
-        duration: 3400,
       },
-      { type: 'wait', duration: 1200 },
     ],
   };
 };

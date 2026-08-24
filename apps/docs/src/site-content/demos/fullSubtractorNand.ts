@@ -72,7 +72,7 @@ export const fullSubtractorNand = (locale: Locale): DataFlowSpec => {
     connections,
     packets: [],
     timeline: [
-      { type: 'comment', text: s.intro, duration: 5000 },
+      { type: 'comment', text: s.intro },
       step({ A: 0, B: 0, Bin: 0 }, s.s000),
       step({ A: 0, B: 0, Bin: 1 }, s.s001),
       step({ A: 0, B: 1, Bin: 0 }, s.s010),

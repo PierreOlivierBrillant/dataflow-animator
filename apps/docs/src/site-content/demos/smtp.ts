@@ -106,20 +106,17 @@ export const smtp = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'alice',
         text: s.c1,
-        duration: 2400,
       },
       {
         type: 'move',
         object: 'submit',
         from: 'alice',
         to: 'out',
-        duration: 1300,
       },
       {
         type: 'comment',
         object: 'out',
         text: s.c2,
-        duration: 2800,
       },
       { type: 'move', object: 'mxq', from: 'out', to: 'dns', duration: 1200 },
       { type: 'move', object: 'mxr', from: 'dns', to: 'out', duration: 1200 },
@@ -127,7 +124,6 @@ export const smtp = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'out',
         text: s.c3,
-        duration: 2200,
       },
       { type: 'move', object: 'relay', from: 'out', to: 'in', duration: 1400 },
       { type: 'loading', id: 'filter', object: 'in', duration: 1000 },
@@ -141,13 +137,11 @@ export const smtp = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'in',
         text: s.c4,
-        duration: 2600,
       },
       {
         type: 'comment',
         object: 'bob',
         text: s.c5,
-        duration: 2600,
       },
       { type: 'move', object: 'fetch', from: 'bob', to: 'in', duration: 1200 },
       {
@@ -156,15 +150,12 @@ export const smtp = (locale: Locale): DataFlowSpec => {
         object: 'mail',
         from: 'in',
         to: 'bob',
-        duration: 1300,
       },
       {
         type: 'comment',
         object: 'bob',
         text: s.received,
-        duration: 2000,
       },
-      { type: 'wait', duration: 1200 },
     ],
   };
 };

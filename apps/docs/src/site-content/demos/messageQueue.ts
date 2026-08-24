@@ -115,14 +115,12 @@ export const messageQueue = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'producer',
         text: s.comment1,
-        duration: 2600,
       },
       {
         type: 'move',
         object: 'pub',
         from: 'producer',
         to: 'broker',
-        duration: 1300,
       },
       {
         type: 'set_content',
@@ -134,19 +132,16 @@ export const messageQueue = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'broker',
         text: s.comment2,
-        duration: 2400,
       },
       { type: 'loading', object: 'broker', duration: 1000 },
       {
         type: 'comment',
         object: 'broker',
         text: s.comment3,
-        duration: 2400,
       },
       {
         type: 'parallel',
         id: 'fanout',
-        duration: 1600,
         actions: [
           { type: 'move', object: 'd1', from: 'broker', to: 'c1' },
           {
@@ -168,11 +163,9 @@ export const messageQueue = (locale: Locale): DataFlowSpec => {
       {
         type: 'comment',
         text: s.comment4,
-        duration: 2800,
       },
       {
         type: 'parallel',
-        duration: 1600,
         actions: [
           { type: 'move', object: 'ack1', from: 'c1', to: 'broker' },
           {
@@ -197,7 +190,6 @@ export const messageQueue = (locale: Locale): DataFlowSpec => {
         content: { type: 'text', value: s.emptyQueue },
         keep_until_end: true,
       },
-      { type: 'wait', duration: 1400 },
     ],
   };
 };

@@ -107,34 +107,29 @@ export const tls = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'client',
         text: s.c1,
-        duration: 2400,
       },
       {
         type: 'move',
         object: 'hello',
         from: 'client',
         to: 'server',
-        duration: 1300,
       },
       { type: 'loading', object: 'server', duration: 1000 },
       {
         type: 'comment',
         object: 'server',
         text: s.c2,
-        duration: 2400,
       },
       {
         type: 'move',
         object: 'shello',
         from: 'server',
         to: 'client',
-        duration: 1300,
       },
       {
         type: 'comment',
         object: 'client',
         text: s.c3,
-        duration: 2400,
       },
       { type: 'loading', object: 'client', duration: 1000 },
       {
@@ -142,7 +137,6 @@ export const tls = (locale: Locale): DataFlowSpec => {
         object: 'finished',
         from: 'client',
         to: 'server',
-        duration: 1300,
       },
       {
         type: 'arrow',
@@ -152,19 +146,16 @@ export const tls = (locale: Locale): DataFlowSpec => {
         style: 'solid',
         arrow_head: 'both',
         keep_until_end: true,
-        duration: 1200,
       },
       {
         type: 'comment',
         text: s.appData,
-        duration: 2600,
       },
       {
         type: 'move',
         object: 'get',
         from: 'client',
         to: 'server',
-        duration: 1300,
       },
       { type: 'loading', id: 'render', object: 'server', duration: 900 },
       {
@@ -172,16 +163,13 @@ export const tls = (locale: Locale): DataFlowSpec => {
         object: 'page',
         from: 'server',
         to: 'client',
-        duration: 1300,
         wait_for: 'render',
       },
       {
         type: 'comment',
         object: 'client',
         text: s.loaded,
-        duration: 2000,
       },
-      { type: 'wait', duration: 1200 },
     ],
   };
 };

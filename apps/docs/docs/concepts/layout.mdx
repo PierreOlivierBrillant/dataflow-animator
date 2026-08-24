@@ -123,8 +123,11 @@ the same `lane` are **stacked** on the transverse axis.
 }
 ```
 
-When few lanes are defined (2-3), nodes spread out towards the edges
-of the canvas; beyond that, they tighten towards the center.
+Both axes share **one spacing step**, measured in pixels, and the grid is
+centred on the stage. Two neighbours are therefore the same distance apart
+whether they sit side by side or one above the other — and that distance does
+not change with the number of nodes. Add a lane and the diagram grows within the
+stage rather than redistributing itself across it.
 
 ## Transverse alignment (`align_with`)
 

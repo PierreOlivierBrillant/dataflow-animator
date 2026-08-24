@@ -86,8 +86,8 @@ export const avlTree = (locale: Locale): DataFlowSpec => {
     nodes: [N('50'), N('30'), N('70'), N('20'), N('40'), N('10', true)],
     packets: [{ id: 'k', kind: 'subicon', icon: '10' }],
     timeline: [
-      { type: 'comment', text: s.intro, duration: 3200 },
-      { type: 'comment', object: '50', text: s.insert, duration: 2800 },
+      { type: 'comment', text: s.intro },
+      { type: 'comment', object: '50', text: s.insert },
       {
         type: 'parallel',
         actions: [
@@ -112,7 +112,7 @@ export const avlTree = (locale: Locale): DataFlowSpec => {
           },
         ],
       },
-      { type: 'comment', object: '20', text: s.cmp20, duration: 2600 },
+      { type: 'comment', object: '20', text: s.cmp20 },
       {
         type: 'parallel',
         actions: [
@@ -120,8 +120,8 @@ export const avlTree = (locale: Locale): DataFlowSpec => {
           { type: 'comment', object: '20', text: s.placed, duration: 1500 },
         ],
       },
-      { type: 'comment', object: '10', text: s.linked, duration: 2400 },
-      { type: 'comment', text: s.walk, duration: 3000 },
+      { type: 'comment', object: '10', text: s.linked },
+      { type: 'comment', text: s.walk },
       {
         type: 'parallel',
         actions: [
@@ -158,10 +158,10 @@ export const avlTree = (locale: Locale): DataFlowSpec => {
           },
         ],
       },
-      { type: 'comment', object: '50', text: s.rotIntro, duration: 3200 },
-      { type: 'comment', object: '30', text: s.rotStep1, duration: 2800 },
-      { type: 'comment', object: '50', text: s.rotStep2, duration: 2800 },
-      { type: 'comment', object: '40', text: s.rotStep3, duration: 3000 },
+      { type: 'comment', object: '50', text: s.rotIntro },
+      { type: 'comment', object: '30', text: s.rotStep1 },
+      { type: 'comment', object: '50', text: s.rotStep2 },
+      { type: 'comment', object: '40', text: s.rotStep3 },
       {
         type: 'parallel',
         actions: [
@@ -169,13 +169,11 @@ export const avlTree = (locale: Locale): DataFlowSpec => {
             type: 'rotate_subtree',
             object: '50',
             rotation: 'right',
-            duration: 1700,
           },
           { type: 'comment', text: s.glide, keep_until_next: true },
         ],
       },
       { type: 'comment', object: '30', text: s.done, keep_until_end: true },
-      { type: 'wait', delay_ms: 1400 },
     ],
   };
 };

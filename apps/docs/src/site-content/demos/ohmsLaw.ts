@@ -114,12 +114,11 @@ export const ohmsLaw = (locale: Locale): DataFlowSpec => {
     ],
     packets: [],
     timeline: [
-      { type: 'comment', text: s.intro, duration: 4000 },
+      { type: 'comment', text: s.intro },
       {
         type: 'flow',
         route: LOOP,
         color: AMBER,
-        duration: 5000,
         count: 8,
         keep_until_end: true,
       },

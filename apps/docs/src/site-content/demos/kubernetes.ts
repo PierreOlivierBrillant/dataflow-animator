@@ -114,7 +114,6 @@ export const kubernetes = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'cli',
         text: s.comment1,
-        duration: 2400,
       },
       {
         type: 'set_content',
@@ -131,20 +130,17 @@ export const kubernetes = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'api',
         text: s.comment2,
-        duration: 2400,
       },
       {
         type: 'move',
         object: 'persist',
         from: 'api',
         to: 'etcd',
-        duration: 1200,
       },
       {
         type: 'comment',
         object: 'sched',
         text: s.comment3,
-        duration: 2600,
       },
       {
         type: 'move',
@@ -152,7 +148,6 @@ export const kubernetes = (locale: Locale): DataFlowSpec => {
         object: 'watch',
         from: 'api',
         to: 'sched',
-        duration: 1200,
       },
       { type: 'loading', id: 'decide', object: 'sched', duration: 1000 },
       {
@@ -160,28 +155,24 @@ export const kubernetes = (locale: Locale): DataFlowSpec => {
         object: 'bind',
         from: 'sched',
         to: 'api',
-        duration: 1200,
         wait_for: 'decide',
       },
       {
         type: 'comment',
         object: 'kubelet',
         text: s.comment4,
-        duration: 2600,
       },
       {
         type: 'move',
         object: 'create',
         from: 'api',
         to: 'kubelet',
-        duration: 1300,
       },
       {
         type: 'move',
         object: 'create',
         from: 'kubelet',
         to: 'pod',
-        duration: 1100,
       },
       { type: 'loading', id: 'boot', object: 'pod', duration: 1200 },
       {
@@ -195,9 +186,7 @@ export const kubernetes = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'pod',
         text: s.comment5,
-        duration: 2200,
       },
-      { type: 'wait', duration: 1200 },
     ],
   };
 };

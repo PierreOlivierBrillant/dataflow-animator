@@ -80,7 +80,7 @@ export const rcCircuit = (locale: Locale): DataFlowSpec => {
     ],
     packets: [],
     timeline: [
-      { type: 'comment', text: s.intro, duration: 4500 },
+      { type: 'comment', text: s.intro },
       {
         type: 'parallel',
         actions: [

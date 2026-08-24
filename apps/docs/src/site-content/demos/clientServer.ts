@@ -107,7 +107,6 @@ export const clientServer = (locale: Locale): DataFlowSpec => {
         type: 'comment',
         object: 'browser',
         text: s.openComment,
-        duration: 1500,
       },
       {
         type: 'parallel',
@@ -117,7 +116,6 @@ export const clientServer = (locale: Locale): DataFlowSpec => {
             object: 'req',
             from: 'browser',
             to: 'api',
-            duration: 900,
           },
           {
             type: 'loading',
@@ -132,14 +130,12 @@ export const clientServer = (locale: Locale): DataFlowSpec => {
         object: 'sql',
         from: 'api',
         to: 'db',
-        duration: 700,
       },
       {
         type: 'move',
         object: 'rows',
         from: 'db',
         to: 'api',
-        duration: 700,
         wait_for: 'dbwork',
       },
       {

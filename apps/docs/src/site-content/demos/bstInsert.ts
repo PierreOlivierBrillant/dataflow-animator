@@ -72,8 +72,8 @@ export const bstInsert = (locale: Locale): DataFlowSpec => {
     ],
     packets: [{ id: 'k', kind: 'subicon', icon: '7' }],
     timeline: [
-      { type: 'comment', text: s.intro, duration: 3400 },
-      { type: 'comment', object: '8', text: s.orphan, duration: 3200 },
+      { type: 'comment', text: s.intro },
+      { type: 'comment', object: '8', text: s.orphan },
       {
         type: 'parallel',
         actions: [
@@ -88,7 +88,7 @@ export const bstInsert = (locale: Locale): DataFlowSpec => {
           { type: 'comment', object: '4', text: s.cmp4, keep_until_next: true },
         ],
       },
-      { type: 'comment', object: '6', text: s.cmp6, duration: 3000 },
+      { type: 'comment', object: '6', text: s.cmp6 },
       {
         type: 'parallel',
         actions: [
@@ -96,9 +96,8 @@ export const bstInsert = (locale: Locale): DataFlowSpec => {
           { type: 'comment', object: '6', text: s.placed, duration: 1500 },
         ],
       },
-      { type: 'comment', object: '7', text: s.linked, duration: 2400 },
+      { type: 'comment', object: '7', text: s.linked },
       { type: 'comment', object: '7', text: s.done, keep_until_end: true },
-      { type: 'wait', delay_ms: 1400 },
     ],
   };
 };

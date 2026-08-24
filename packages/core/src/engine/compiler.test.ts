@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { Action, DataFlowSpec } from '../types';
-import { APPEAR_HOLD, ARRIVE_HOLD, compile, STEP_GAP } from './compiler';
+import { compile, STEP_GAP } from './compiler';
+import { appearHold, arriveHold } from './motionTime';
+import { FADE_MS } from './timeline';
 import { evaluate } from './timeline';
 
 const nodes: DataFlowSpec['nodes'] = [
@@ -37,18 +39,21 @@ describe('compile — scheduling', () => {
     );
     const m1 = timeline.clips.find((c) => c.id === 'm1')!;
     const m2 = timeline.clips.find((c) => c.id === 'm2')!;
-    // m1 : appears at 0, animates after APPEAR_HOLD, arrives at APPEAR_HOLD+500.
+    // The holds are fractions of the trip they frame, so each move has its own.
+    const in1 = appearHold(500);
+    const out1 = arriveHold(500);
+    const in2 = appearHold(300);
+    const out2 = arriveHold(300);
+    // m1: appears at 0, animates after its origin hold, arrives 500 ms later.
     expect(m1.startMs).toBe(0);
-    expect(m1.animStartMs).toBe(APPEAR_HOLD);
-    expect(m1.endMs).toBe(APPEAR_HOLD + 500);
+    expect(m1.animStartMs).toBe(in1);
+    expect(m1.endMs).toBe(in1 + 500);
     // End of step 0 = arrival + arrival hold.
-    const step0End = APPEAR_HOLD + 500 + ARRIVE_HOLD;
+    const step0End = in1 + 500 + out1;
     // m2 starts after step 0 + inter-step gap.
     expect(m2.startMs).toBe(step0End + STEP_GAP);
-    expect(m2.endMs).toBe(step0End + STEP_GAP + APPEAR_HOLD + 300);
-    expect(timeline.durationMs).toBe(
-      step0End + STEP_GAP + APPEAR_HOLD + 300 + ARRIVE_HOLD
-    );
+    expect(m2.endMs).toBe(step0End + STEP_GAP + in2 + 300);
+    expect(timeline.durationMs).toBe(step0End + STEP_GAP + in2 + 300 + out2);
     expect(timeline.steps).toHaveLength(2);
   });
 
@@ -81,9 +86,9 @@ describe('compile — scheduling', () => {
     const y = timeline.clips.find((c) => c.id === 'y')!;
     expect(x.startMs).toBe(0);
     expect(y.startMs).toBe(0);
-    // Duration = max(move footprint = APPEAR_HOLD+400+ARRIVE_HOLD, arrow = 600).
+    // Duration = max(move footprint = hold+400+hold, arrow = 600).
     expect(timeline.durationMs).toBe(
-      Math.max(APPEAR_HOLD + 400 + ARRIVE_HOLD, 600)
+      Math.max(appearHold(400) + 400 + arriveHold(400), 600)
     );
     expect(timeline.steps).toHaveLength(1);
   });
@@ -114,7 +119,8 @@ describe('compile — scheduling', () => {
     const step2 = timeline.steps[2];
     // A.endMs=1000 < step2.startMs → wait_for clamped: C starts at step2.startMs.
     expect(c.startMs).toBe(step2.startMs);
-    expect(c.endMs).toBe(step2.startMs + 100);
+    // A comment's `duration` is its FULLY-PRESENT time: the fade-in comes first.
+    expect(c.endMs).toBe(step2.startMs + FADE_MS + 100);
   });
 });
 
@@ -136,7 +142,9 @@ describe('compile — lifecycle', () => {
     const a = timeline.clips.find((c) => c.id === 'A')!;
     const b = timeline.clips.find((c) => c.id === 'B')!;
     // move: default keep_until_next=false -> visible until the end of arrival hold.
-    expect(b.visibleUntilMs).toBe(b.endMs + ARRIVE_HOLD);
+    expect(b.visibleUntilMs).toBe(
+      b.endMs + arriveHold(b.endMs - b.animStartMs)
+    );
     // arrow: persists until the START of the next step (across the gap).
     expect(a.visibleUntilMs).toBe(timeline.steps[1].startMs);
   });
@@ -265,7 +273,7 @@ describe('compile — stops', () => {
               object: 'p',
               from: 'a',
               to: 'b',
-              duration: 400,
+              duration: 900,
             },
             { type: 'arrow', id: 'y', from: 'a', to: 'b', duration: 600 },
           ],
@@ -308,7 +316,8 @@ describe('compile — wait_for on root action: clamped to step start', () => {
     const c = timeline.clips.find((cl) => cl.id === 'C')!;
     const step2 = timeline.steps[2];
     expect(c.startMs).toBe(step2.startMs);
-    expect(c.endMs).toBe(step2.startMs + 100);
+    // The comment fades in first, then stays for its `duration`.
+    expect(c.endMs).toBe(step2.startMs + FADE_MS + 100);
     // The step has a positive duration (endMs > startMs).
     expect(step2.endMs).toBeGreaterThan(step2.startMs);
   });

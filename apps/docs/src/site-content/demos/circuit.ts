@@ -63,7 +63,7 @@ export const circuit = (locale: Locale): DataFlowSpec => {
     ],
     packets: [],
     timeline: [
-      { type: 'comment', text: s.intro, duration: 3500 },
+      { type: 'comment', text: s.intro },
       {
         type: 'parallel',
         actions: [
@@ -83,7 +83,6 @@ export const circuit = (locale: Locale): DataFlowSpec => {
             type: 'flow',
             route: LOOP,
             color: AMBER,
-            duration: 6000,
             count: 8,
             keep_until_end: true,
           },
