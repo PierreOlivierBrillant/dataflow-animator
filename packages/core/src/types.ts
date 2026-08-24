@@ -666,8 +666,10 @@ interface ActionBase {
    */
   delay_ms?: number;
   /**
-   * Fade-in duration in ms. Default: initial hold period
-   * for `move` (300 ms), 250 ms for other actions. 0 = instant appearance.
+   * Fade-in duration in ms. Default: 250 ms — or the element's appearance
+   * pause when that pause is shorter. The fade never fills the whole pause:
+   * a packet held at its origin to be read appears first, then stays legible
+   * for the rest of it. 0 = instant appearance.
    * @minimum 0
    * @multipleOf 1
    */

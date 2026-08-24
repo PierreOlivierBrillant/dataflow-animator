@@ -31,6 +31,14 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   a spec that times every action itself renders exactly as before. Nothing moves
   in space: only _when_ each step happens changes, never _what_ is drawn.
 
+- **A fade-in no longer fills the pause it belongs to.** It used to last the
+  whole appearance hold, which was harmless while that hold was a flat 300 ms
+  and wrong as soon as it became a reading pause: a packet held 1600 ms to let
+  its query be read took 1600 ms to become legible. The fade is capped at 250 ms
+  (or the hold, when shorter), and the rest of the hold is fully opaque —
+  measured on `microservices`' SQL packet: opaque at 250 ms, then legible for the
+  remaining 1350 ms.
+
 - **A packet now waits at its origin long enough to be read.** Its origin hold
   was a fraction of the trip — 120 ms for a 600 ms hop — which does not cover
   `SELECT * FROM users WHERE email=…`, text the reader meets while the packet is

@@ -409,6 +409,10 @@ The timeline compiles an array of ordered actions. See
   **local**: it reads one action's own content and never what happens beside it,
   so an author can predict a duration from the action alone.
 
+- **A fade never fills an appearance pause.** The fade-in lasts `FADE_MS` (or
+  the pause itself, when that is shorter) — it is not stretched across the whole
+  hold. The hold is the time an element is FULLY THERE; a fade spread over it
+  would make a packet legible only once it was due to have been read.
 - **Packet reading time**: a `move`'s ORIGIN hold is at least as long as the
   packet's own content needs — a header, a query, a row count are text the reader
   meets while the packet is still standing still. Charged on a packet's FIRST

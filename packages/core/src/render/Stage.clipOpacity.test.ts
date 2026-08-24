@@ -9,23 +9,45 @@ const ORIGIN_HOLD = 300;
 // Minimal clip visible for a very long time (no exit constraint).
 const farEnd = 99_999;
 
-describe('clipOpacity — fade-in with hold (inDur > 0)', () => {
-  const clip = { startMs: 0, animStartMs: ORIGIN_HOLD, visibleUntilMs: farEnd };
+describe('clipOpacity — fade-in with a hold LONGER than the fade', () => {
+  // A packet held at its origin to be read: the hold is a reading pause, so the
+  // fade must not stretch across it — the text would only become legible at the
+  // moment it was due to have been read.
+  const READING_HOLD = 1600;
+  const clip = {
+    startMs: 0,
+    animStartMs: READING_HOLD,
+    visibleUntilMs: farEnd,
+  };
 
   it('opacity 0 at the first instant', () => {
     expect(clipOpacity(clip, 0)).toBe(0);
   });
 
-  it('opacity ~0.5 mid-hold', () => {
-    expect(clipOpacity(clip, ORIGIN_HOLD / 2)).toBeCloseTo(0.5);
+  it('fades over FADE_MS, not over the whole hold', () => {
+    expect(clipOpacity(clip, FADE_MS / 2)).toBeCloseTo(0.5);
+    expect(clipOpacity(clip, FADE_MS)).toBe(1);
   });
 
-  it('opacity 1 at the end of the hold', () => {
-    expect(clipOpacity(clip, ORIGIN_HOLD)).toBe(1);
+  it('is fully opaque for the REST of the hold — the part meant for reading', () => {
+    expect(clipOpacity(clip, FADE_MS + 1)).toBe(1);
+    expect(clipOpacity(clip, READING_HOLD / 2)).toBe(1);
+    expect(clipOpacity(clip, READING_HOLD)).toBe(1);
   });
 
   it('stays at 1 long after the hold', () => {
-    expect(clipOpacity(clip, ORIGIN_HOLD + 1000)).toBe(1);
+    expect(clipOpacity(clip, READING_HOLD + 1000)).toBe(1);
+  });
+});
+
+describe('clipOpacity — fade-in with a hold SHORTER than the fade', () => {
+  // A quick hop: the fade cannot outlast the pause it belongs to.
+  const SHORT_HOLD = 90;
+  const clip = { startMs: 0, animStartMs: SHORT_HOLD, visibleUntilMs: farEnd };
+
+  it('fades over the hold itself', () => {
+    expect(clipOpacity(clip, SHORT_HOLD / 2)).toBeCloseTo(0.5);
+    expect(clipOpacity(clip, SHORT_HOLD)).toBe(1);
   });
 });
 

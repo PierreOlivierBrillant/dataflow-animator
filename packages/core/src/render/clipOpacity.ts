@@ -1,10 +1,16 @@
 import { clamp, easeInOutCubic, FADE_MS } from '../engine/timeline';
 
 /**
- * Opacity of a clip with fade: fade in during the appear hold (or over
- * FADE_MS if there is none), fade out over FADE_MS before disappearing.
- * No fade out if `keepEnd` is true (the clip must remain visible
- * until the very end of the timeline).
+ * Opacity of a clip: fade in over FADE_MS (or over the appear hold, when that
+ * hold is SHORTER), fade out over FADE_MS before disappearing. No fade out if
+ * `keepEnd` is true (the clip must remain visible until the very end).
+ *
+ * The fade-in is CAPPED at FADE_MS rather than filling the whole appear hold.
+ * That hold is a reading pause — long enough to take in a header or a query —
+ * and letting the fade stretch across it meant the packet only became legible
+ * at the moment it was due to have been read. An element appears, then it is
+ * there; the hold is the time it is fully there, not the time it takes to
+ * arrive.
  *
  * `fadeInMs` and `fadeOutMs` replace default durations if provided.
  * 0 = instant appearance/disappearance (no fade).
@@ -22,7 +28,11 @@ export function clipOpacity(
 ): number {
   const inDur = clip.animStartMs - clip.startMs;
   const effectiveFadeIn =
-    clip.fadeInMs !== undefined ? clip.fadeInMs : inDur > 0 ? inDur : FADE_MS;
+    clip.fadeInMs !== undefined
+      ? clip.fadeInMs
+      : inDur > 0
+        ? Math.min(inDur, FADE_MS)
+        : FADE_MS;
   const fadeIn =
     effectiveFadeIn <= 0
       ? 1
