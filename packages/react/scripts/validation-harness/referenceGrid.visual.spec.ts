@@ -19,7 +19,11 @@ import { RISK_DEMOS } from './riskDemos';
  * FRAGILE by nature: the goldens depend on the machine's font rendering and the
  * Chrome version (`channel: 'chrome'`). Regenerate in the target environment:
  *   npm run test:visual -- --update-snapshots
- * `maxDiffPixelRatio: 0.02` (playwright.config.ts) absorbs anti-aliasing dust.
+ * ...but NEVER to make a red run green: a diff here is the gate doing its job.
+ * The tolerance (`maxDiffPixels: 100`, `threshold: 0.05` in playwright.config.ts)
+ * is sized from a MEASURED noise floor of 0 px, well under the smallest real
+ * change measured (827 px). It is not a ratio: the noise does not scale with
+ * sheet height, so a ratio gave the tallest demo 4x the slack of the shortest.
  * NOT wired into CI — that would need a pinned rendering environment we do not
  * have here; it stays a local/manual gate, as it was before this step.
  */

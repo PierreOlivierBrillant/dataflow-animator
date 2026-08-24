@@ -239,10 +239,24 @@ renderer against its own past — a future change that moves a pixel is flagged.
 
 It does **not** compare against React; that renderer is gone. FRAGILE by nature:
 the goldens depend on the machine's font rendering and the Chrome version
-(`channel: 'chrome'`), and `maxDiffPixelRatio: 0.02` absorbs anti-aliasing dust.
-Regenerate in the target environment with `--update-snapshots`. It is a
-LOCAL/manual gate — **not wired into CI** (that would need a pinned rendering
-environment), exactly as it was before this step.
+(`channel: 'chrome'`). Regenerate in the target environment with
+`--update-snapshots` — but never to turn a red run green: that is the one thing
+this gate exists to prevent. It is a LOCAL/manual gate — **not wired into CI**
+(that would need a pinned rendering environment), exactly as it was before this
+step.
+
+Its tolerance is `maxDiffPixels: 100` with a per-pixel `threshold: 0.05`, both
+measured rather than guessed. The run-to-run noise floor is **0 differing
+pixels** over the 12 goldens (measured twice; only exact per-pixel equality
+shows any jitter, 41 px at worst), while the smallest real change measured —
+one packet's text edited — is 827 px. The previous `maxDiffPixelRatio: 0.02`
+was ~46x too loose: it allowed 28k px (collision) to 112k px (microservices) of
+drift, so six edited demo strings went through green in **both** themes. A
+ratio was also the wrong instrument, since the noise does not scale with sheet
+height: the goldens span 1.42 to 5.62 Mpx, giving the tallest 4x the slack of
+the shortest. The tightened per-pixel threshold is what makes the LIGHT theme
+see — its surfaces sit near the scene background, so a changed block produces
+many low-amplitude deltas that the default 0.2 discarded.
 
 ### Shared plumbing
 
