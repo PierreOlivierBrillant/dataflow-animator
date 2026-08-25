@@ -45,7 +45,7 @@ const RENDERERS = [values.renderer === 'wrapper' ? 'wrapper' : 'vanilla'];
 const FRAMES = Number(values.frames);
 
 // The harness's own vite.config.ts reads PORT from the environment (see
-// scripts/validation-harness/vite.config.ts) — reusing that logic here
+// ../vite.config.ts) — reusing that logic here
 // avoids a second, potentially-diverging port-selection implementation.
 // `strictPort` in the config file only applies to server.port when set, so
 // we force it via override to fail loudly on a collision rather than
@@ -55,7 +55,7 @@ process.env.PORT = values.port;
 
 console.log(`Starting harness on port ${values.port}...`);
 const server = await createServer({
-  configFile: join(__dirname, 'validation-harness/vite.config.ts'),
+  configFile: join(__dirname, '../vite.config.ts'),
   server: { strictPort: true },
 });
 await server.listen();
@@ -148,8 +148,8 @@ const report = {
 // kept for history only. `vanilla` and `wrapper` runs each write their own file.
 const defaultOut =
   values.renderer === 'wrapper'
-    ? 'validation-harness/bench-wrapper.json'
-    : 'validation-harness/bench-vanilla.json';
+    ? '../bench-wrapper.json'
+    : '../bench-vanilla.json';
 const outPath = values.out ?? join(__dirname, defaultOut);
 mkdirSync(dirname(outPath), { recursive: true });
 writeFileSync(outPath, `${JSON.stringify(report, null, 2)}\n`);

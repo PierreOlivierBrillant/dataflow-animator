@@ -43,20 +43,17 @@ import {
   firstDifference,
   normalizeStageHtml,
 } from '@dataflow-animator/core/dom/normalizeHtml';
-import { DataFlowPlayer } from '../../src/DataFlowPlayer';
+import { DataFlowPlayer } from '../../packages/react/src/DataFlowPlayer';
 // The custom element, by relative path into its source — the same way this file
-// already reaches `../../src/DataFlowPlayer` and the site's demos. Importing the
+// already reaches the React binding's source and the site's demos. Importing the
 // barrel is what REGISTERS `<dataflow-player>`, so the `?wc=1` mode below needs
 // nothing else.
 import {
   MOUNTED_EVENT,
   type DataFlowPlayerElement,
-} from '../../../element/src/index';
-import type { DataFlowSpec, PlayerTheme } from '../../src/types';
-import {
-  demosById,
-  getSpec,
-} from '../../../../apps/docs/src/site-content/demos';
+} from '../../packages/element/src/index';
+import type { DataFlowSpec, PlayerTheme } from '../../packages/react/src/types';
+import { demosById, getSpec } from '../docs/src/site-content/demos';
 import '@dataflow-animator/core/styles/dataflow.css';
 import './harness.css';
 

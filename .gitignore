@@ -42,4 +42,5 @@ blob-report/
 
 # A/B gate scratch results (*.ab.spec.ts): written by the tests, read and
 # printed by globalTeardown, one run at a time.
-**/scripts/validation-harness/.ab-results/
+# A/B gate run artefacts (the bench writes them per run).
+apps/harness/.ab-results/

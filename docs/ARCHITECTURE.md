@@ -181,7 +181,6 @@ packages/
       types.ts                        the React-facing props type; re-exports core's spec types
       utils/styleMap.ts               CSSProperties → the core's kebab-case string map
       components/nodes/NodeView.tsx   isolated node preview, mounts renderNodeVisual
-    scripts/validation-harness/       the visual gates — imports the core's DEEP subpaths
   element/                           @dataflow-animator/element — the published custom element
     src/                              imports the core's TOP-LEVEL barrel only, never a subpath
       DataFlowPlayerElement.ts        the element + defineDataFlowPlayer; calls mountPlayer(this, …)
@@ -202,6 +201,11 @@ apps/
     docs/                            MDX content (intro, concepts, reference)
     src/                             React components of the site
       site-content/demos/            demos importable in the lib
+  harness/                           @dataflow-animator/harness — the visual gates. PRIVATE.
+    main.tsx                          the bench page: contact sheet, curve panels, A/B modes
+    *.ab.spec.ts                      the pixel gates (selftest, element, mount-vs-update)
+    referenceGrid.visual.spec.ts      the golden non-regression grid
+    scripts/                          extract-curves.mjs (headless), bench-perf.mjs
 docs/
   SPEC.md, ARCHITECTURE.md           internal references
 ```
@@ -218,7 +222,7 @@ to as well.
 | the published library build (`vite`, `rollup -c`) | **external** → runtime dependency, not inlined | no (needs none)     |
 | the published library build (`ng-packagr`)        | **node_modules** → the core's own `exports`    | no (needs none)     |
 
-- The **harness** (`packages/react/scripts/validation-harness/`) imports
+- The **harness** (`apps/harness/`) imports
   `@dataflow-animator/core/dom/mount`, `/engine/timeline`, `/render/clipOpacity`…
   Those subpaths are deliberately absent from the core's published `exports`:
   they point into `src/`, which is not published, and they are renderer plumbing

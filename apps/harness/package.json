@@ -1,0 +1,30 @@
+{
+  "name": "@dataflow-animator/harness",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Visual validation bench for the renderer: contact sheet, curve panels, and the A/B pixel gates.",
+  "scripts": {
+    "harness": "vite --config vite.config.ts",
+    "curves": "node scripts/extract-curves.mjs",
+    "test:visual": "playwright test",
+    "harness:selftest": "playwright test --config playwright.compare.config.ts selftest.ab.spec.ts",
+    "harness:mountupdate": "playwright test --config playwright.compare.config.ts mountUpdate.ab.spec.ts",
+    "harness:element": "playwright test --config playwright.compare.config.ts element.ab.spec.ts",
+    "harness:bench": "node scripts/bench-perf.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "@types/node": "^24.12.3",
+    "@types/pngjs": "^6.0.5",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "pixelmatch": "^7.2.0",
+    "pngjs": "^7.0.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "typescript": "~6.0.2",
+    "vite": "^8.0.12"
+  }
+}

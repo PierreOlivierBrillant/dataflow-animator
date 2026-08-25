@@ -33,15 +33,15 @@
         "src/index.ts",
         "src/**/*.test.ts",
         "src/**/*.test.tsx",
-        "scripts/*.mjs",
         "rollup.dts.config.mjs"
       ],
-      "project": [
-        "src/**/*.ts",
-        "src/**/*.tsx",
-        "scripts/*.mjs",
-        "scripts/validation-harness/**/*.{ts,tsx}"
-      ]
+      "project": ["src/**/*.ts", "src/**/*.tsx"]
+    },
+    // The visual bench: a private workspace that never ships. Its entries are
+    // the Vite page, the Playwright specs and the two node scripts.
+    "apps/harness": {
+      "entry": ["*.spec.ts", "scripts/*.mjs"],
+      "project": ["**/*.{ts,tsx}", "scripts/*.mjs"]
     },
     "apps/docs": {
       "entry": [

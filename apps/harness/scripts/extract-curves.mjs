@@ -25,7 +25,12 @@ const { values } = parseArgs({
   },
 });
 
-const distUrl = new URL('../dist/index.js', import.meta.url);
+// The BUILT React binding, not this workspace: the bench is a separate app now,
+// and `compile` is what it needs from the published surface.
+const distUrl = new URL(
+  '../../../packages/react/dist/index.js',
+  import.meta.url
+);
 let compile;
 try {
   ({ compile } = await import(distUrl.href));
@@ -38,14 +43,14 @@ try {
 }
 
 // Demo modules are resolved the same way `getSpec` (used by the Vite harness,
-// scripts/validation-harness/main.tsx) does: a demo export may be a plain
+// main.tsx) does: a demo export may be a plain
 // DataFlowSpec, or a localized builder `(locale) => DataFlowSpec`. We import
 // the leaf demo file directly (rather than the `demos.ts` barrel) because
 // plain `node` — unlike Vite's bundler resolution — cannot resolve the
 // barrel's extension-less relative imports (`./demos/signalr`); the leaf
 // files only carry `import type`, which is erased and needs no resolution.
 const demoUrl = new URL(
-  `../../../apps/docs/src/site-content/demos/${values.demo}.ts`,
+  `../../docs/src/site-content/demos/${values.demo}.ts`,
   import.meta.url
 );
 let spec;

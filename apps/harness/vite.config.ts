@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 // the package sources directly (Stage, clipOpacity, easeInOutCubic are
 // NOT publicly exported — we import them from src to remain faithful
 // to the real render without polluting the public API). No added dependencies:
-// vite + @vitejs/plugin-react are already devDeps of the package.
+// vite + @vitejs/plugin-react are devDeps of this workspace.
 export default defineConfig({
   root: import.meta.dirname,
   // PORT lets a second harness run alongside one already holding 5199 (two
@@ -15,7 +15,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@dataflow-animator/core': fileURLToPath(
-        new URL('../../../core/src', import.meta.url)
+        new URL('../../packages/core/src', import.meta.url)
       ),
     },
   },

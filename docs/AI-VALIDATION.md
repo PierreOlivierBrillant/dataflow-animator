@@ -28,7 +28,7 @@ the **actual crossfade opacity** (`clipOpacity`, which also drives the geometry
 lerp) against the same curve passed through `easeInOutCubic`.
 
 ```bash
-npm run harness -w @dataflow-animator/react
+npm run harness -w @dataflow-animator/harness
 # → http://localhost:5199/?demo=spa&mode=light
 ```
 
@@ -124,7 +124,7 @@ reach**. When a spec feature gets a rendering path of its own, adding it to
 ### mount-vs-update — the primary structural gate (`?mu=1`)
 
 ```bash
-npm run harness:mountupdate -w @dataflow-animator/react
+npm run harness:mountupdate -w @dataflow-animator/harness
 ```
 
 `mountUpdate.ab.spec.ts` mounts two vanilla stages of the same spec: panel A
@@ -161,7 +161,7 @@ than listed by hand. `avlTree` has no `set_content`, so all of its cells assert.
 ### self-test — the measurement floor (`?ab=1`)
 
 ```bash
-npm run harness:selftest -w @dataflow-animator/react
+npm run harness:selftest -w @dataflow-animator/harness
 ```
 
 `selftest.ab.spec.ts` renders two INDEPENDENT vanilla panels of the same spec at
@@ -187,7 +187,7 @@ ready }` plus `{ passes, converged }` from the settle loop.
 ### element — the wrapper adds no pixel (`?wc=1`)
 
 ```bash
-npm run harness:element -w @dataflow-animator/react
+npm run harness:element -w @dataflow-animator/harness
 ```
 
 `element.ab.spec.ts` puts a bare `mountPlayer(container, spec, options)` in panel A
@@ -228,8 +228,8 @@ cannot fail is not a gate.
 ### reference grid — visual non-regression (`test:visual`)
 
 ```bash
-npm run test:visual -w @dataflow-animator/react
-npm run test:visual -w @dataflow-animator/react -- --update-snapshots  # regenerate
+npm run test:visual -w @dataflow-animator/harness
+npm run test:visual -w @dataflow-animator/harness -- --update-snapshots  # regenerate
 ```
 
 `referenceGrid.visual.spec.ts` captures a **contact sheet** per risk demo × theme
@@ -279,8 +279,8 @@ at the instants where its `set_content` is re-fitting.
 ### Perf baseline
 
 ```bash
-npm run harness:bench -w @dataflow-animator/react                        # vanilla
-npm run harness:bench -w @dataflow-animator/react -- --renderer wrapper  # published component
+npm run harness:bench -w @dataflow-animator/harness                        # vanilla
+npm run harness:bench -w @dataflow-animator/harness -- --renderer wrapper  # published component
 ```
 
 `scripts/bench-perf.mjs` drives the harness's `?bench=1&demo=<id>` page in one of

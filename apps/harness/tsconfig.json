@@ -1,0 +1,37 @@
+// EDITOR RESOLUTION, not a gate: there is deliberately no `typecheck` script.
+// The harness pulls in `apps/docs`'s demo catalog, which imports Docusaurus
+// modules whose types only exist inside that workspace's own program — so a
+// `tsc -p` here fails on `@docusaurus/useDocusaurusContext` before it reaches
+// anything about the bench. It was never typechecked in the React workspace
+// either (`tsconfig.app.json` included only `src`), and this move is meant to
+// preserve behaviour, not to add a barrier under cover of relocating files.
+{
+  "compilerOptions": {
+    "target": "es2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "esnext",
+    "types": ["vite/client", "node"],
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    // The harness is the ONE place allowed to reach the core's deep subpaths:
+    // it benches internals the published `exports` deliberately does not list
+    // (`dom/mount`, `render/clipOpacity`…). It never ships, which is what makes
+    // that exception safe — see ARCHITECTURE.md, "Two ways to consume the core".
+    "paths": {
+      "@dataflow-animator/core": ["../../packages/core/src/index.ts"],
+      "@dataflow-animator/core/*": ["../../packages/core/src/*"]
+    },
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "resolveJsonModule": true
+  },
+  "include": ["**/*.ts", "**/*.tsx", "../../packages/core/src/**/*.d.ts"],
+  "exclude": ["node_modules"]
+}

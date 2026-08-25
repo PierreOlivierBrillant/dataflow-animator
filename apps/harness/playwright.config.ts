@@ -33,7 +33,7 @@ import { defineConfig } from '@playwright/test';
 //     turns light from the blinder half into the more sensitive one. The noise
 //     floor stays at 0 px here (measured twice).
 export default defineConfig({
-  testDir: './scripts/validation-harness',
+  testDir: '.',
   testMatch: '**/*.visual.spec.ts',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,

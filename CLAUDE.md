@@ -28,6 +28,12 @@ packages/angular/                   @dataflow-animator/angular — the published
                                      — ng-packagr (Angular Package Format) instead of Vite, and
                                      `ng test` instead of a bare vitest
 apps/docs/                          Docusaurus site (demos, playground, API docs)
+apps/harness/                       @dataflow-animator/harness — the visual validation bench:
+                                     contact sheet, curve panels, A/B pixel gates. PRIVATE,
+                                     never published. It reaches into all four other workspaces
+                                     at once (the core's deep subpaths by alias, the react and
+                                     element SOURCES, the site's demo catalog), which is why it
+                                     is a workspace of its own and not a folder inside one
 docs/                               SPEC.md, ARCHITECTURE.md (internal references)
 ```
 
@@ -85,9 +91,9 @@ and only the published `exports` left:
 ```bash
 npm run smoke:consumer -w @dataflow-animator/element   # packs core + element, mounts them in a throwaway project
 npm run smoke:consumer -w @dataflow-animator/angular   # packs core + angular, AOT-builds a real Angular CLI app
-npm run harness:selftest -w @dataflow-animator/react   # 144 checks, must be 0.00%
-npm run harness:element  -w @dataflow-animator/react   # 70 cells, must be 0.0000%
-npm run test:visual -w @dataflow-animator/react        # goldens
+npm run harness:selftest -w @dataflow-animator/harness # 144 checks, must be 0.00%
+npm run harness:element  -w @dataflow-animator/harness # 70 cells, must be 0.0000%
+npm run test:visual -w @dataflow-animator/harness      # goldens
 ```
 
 These are the ONLY checks that can catch a broken `exports` map, a re-inlined
@@ -321,14 +327,19 @@ Package (`packages/core/` — published as `@dataflow-animator/core`):
 
 Package (`packages/react/` — published as `@dataflow-animator/react`):
 
+| Script                     | Effect                                      |
+| -------------------------- | ------------------------------------------- |
+| `npm run build`            | Typecheck + vite build + .d.ts declarations |
+| `npm run dev`              | vite build in watch mode                    |
+| `npm run lint`             | ESLint on src/                              |
+| `npm test`                 | Unit vitest tests                           |
+| `npm run test:coverage`    | Tests + coverage                            |
+| `npm run test:integration` | Integration tests on demos                  |
+
+App (`apps/harness/` — `@dataflow-animator/harness`, private):
+
 | Script                        | Effect                                                     |
 | ----------------------------- | ---------------------------------------------------------- |
-| `npm run build`               | Typecheck + vite build + .d.ts declarations                |
-| `npm run dev`                 | vite build in watch mode                                   |
-| `npm run lint`                | ESLint on src/                                             |
-| `npm test`                    | Unit vitest tests                                          |
-| `npm run test:coverage`       | Tests + coverage                                           |
-| `npm run test:integration`    | Integration tests on demos                                 |
 | `npm run harness`             | Visual validation harness (Vite, :5199)                    |
 | `npm run curves`              | Headless structural pass (`--demo <id>`)                   |
 | `npm run test:visual`         | Playwright visual regression (goldens)                     |
@@ -336,6 +347,12 @@ Package (`packages/react/` — published as `@dataflow-animator/react`):
 | `npm run harness:element`     | `<dataflow-player>` vs `mountPlayer` — 70 cells at 0.0000% |
 | `npm run harness:mountupdate` | `mountStage` + `update(t)` vs a fresh mount at `t`         |
 | `npm run harness:bench`       | Perf baseline of the player (per-frame)                    |
+
+There is deliberately **no `lint` and no `typecheck`** here, matching what the bench had inside
+`packages/react` (whose `eslint src` and `tsconfig.app.json` both stopped at `src`). A `tsc -p`
+on this workspace fails on `@docusaurus/useDocusaurusContext` long before it reaches anything
+about the bench, because it pulls in the site's demo catalog. Adding either is a change of its
+own, not something to slip into a file move.
 
 Package (`packages/element/` — published as `@dataflow-animator/element`):
 
@@ -360,10 +377,10 @@ Package (`packages/angular/` — published as `@dataflow-animator/angular`):
 | `npm run test:coverage`  | Same, with coverage thresholds (declared in `angular.json`, not a vitest config)                                        |
 | `npm run smoke:consumer` | Packs core + angular, installs both in a real Angular CLI app, `ng build` AOT + a headless render. THE pre-publish gate |
 
-NB: the element's pixel gate lives in the REACT workspace
-(`npm run harness:element -w @dataflow-animator/react`), because that is where the whole A/B
-harness and its plumbing live. The harness is really a bench for the CORE, not for react — moving
-it out is a worthwhile cleanup that the Angular package's own large diff had to leave intact.
+NB: the bench used to live inside `packages/react`, which made
+`npm run harness:element -w @dataflow-animator/react` read as if the element's pixel gate
+belonged to the React binding. It never did — the bench exercises the CORE, and reaches into
+all four workspaces at once, so no single package could own it. It is `apps/harness` now.
 
 ## Workflows to avoid
 

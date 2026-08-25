@@ -56,7 +56,7 @@ export function clipOpacity(
  * Packet/arrow fades keep raw `clipOpacity`.
  *
  * Single source of truth shared with the validation harness (see
- * scripts/validation-harness): the curve it plots IS the one rendered here.
+ * apps/harness): the curve it plots IS the one rendered here.
  */
 export function contentCrossfade(
   clip: Parameters<typeof clipOpacity>[0],
