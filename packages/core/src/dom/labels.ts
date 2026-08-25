@@ -198,6 +198,8 @@ export interface PlayerLabels {
   describePacketBadge: string;
   /** A `set_content` carrying an image. */
   describeContentImage: string;
+  /** A `set_content` showing an image whose `frames` sequence animates it. */
+  describeContentAnimation: string;
   /** A `set_content` carrying a table. `{columns}`, `{rows}`. */
   describeContentTable: string;
   /** Singular of {@link PlayerLabels.describeContentTable}. */
@@ -279,6 +281,7 @@ export const DEFAULT_PLAYER_LABELS: PlayerLabels = {
   describePacketPanel: 'a panel',
   describePacketBadge: 'a badge',
   describeContentImage: 'an image',
+  describeContentAnimation: 'an animation',
   describeContentTable: 'a table of {rows} rows, columns {columns}',
   describeContentTableOne: 'a table of {rows} row, columns {columns}',
   describeContentEmpty: 'nothing',

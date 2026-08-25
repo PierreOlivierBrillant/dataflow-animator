@@ -1,3 +1,5 @@
+import { contentFrameSrc } from '../engine/contentFrames';
+import { appendSanitizedHtml } from '../html/sanitize';
 import type { Highlighter, ObjectContent } from '../types';
 import { h, pruneEmptyStyle, setStyle } from './el';
 
@@ -6,10 +8,11 @@ import { h, pruneEmptyStyle, setStyle } from './el';
  * `CodeBlock`.
  *
  * NO RICH TEXT HERE, deliberately. `content.value` is rendered as a plain text
- * node in every mode except `code` (which goes through the highlighter), so
- * `$…$` is NOT interpreted. Calling `appendRichText` would silently change that
- * for every existing spec whose content happens to contain a dollar sign — a
- * price, a shell variable. `packetElement.ts` carries the same rule.
+ * node in every mode except `code` (which goes through the highlighter) and
+ * `html` (which goes through the sanitiser), so `$…$` is NOT interpreted.
+ * Calling `appendRichText` would silently change that for every existing spec
+ * whose content happens to contain a dollar sign — a price, a shell variable.
+ * `packetElement.ts` carries the same rule.
  *
  * WHY THIS IS NOT AN OVERLAY — unlike packets, arrows and comment bubbles, this
  * panel lives INSIDE `.rdfa-node` and makes the node GROW. It is therefore part
@@ -102,10 +105,35 @@ export function applyCodeFontScale(target: CodeFitTarget, scale: number): void {
   setStyle(pre, { 'font-size': `${Math.max(1, baseFont * scale)}px` });
 }
 
+/**
+ * The handle an `image` panel carrying `frames` exposes, so `applyNodeElement`
+ * can point it at the frame belonging to the current `t`.
+ *
+ * A retained `<img>` whose `src` moves is the whole mechanism: swapping the
+ * attribute keeps ONE image in the DOM, which is what makes the exported
+ * `<foreignObject>` (which inlines everything it can see) stay small.
+ */
+export interface FrameTarget {
+  img: HTMLImageElement;
+  /** The content the sources come from — read at apply time, never copied. */
+  content: ObjectContent;
+  /** Index currently written, so a steady frame costs no attribute write. */
+  index?: number;
+}
+
 export interface ContentPanelResult {
   el: HTMLElement;
   /** Present only for `code` panels — the target of the font-fit loop. */
   codeFit?: CodeFitTarget;
+  /** Present only for an `image` panel with a `frames` sequence. */
+  frames?: FrameTarget;
+}
+
+/** The fake browser chrome shared by the `text`, `image` and `html` modes. */
+function windowBar(url: string): HTMLElement {
+  return h('div', { class: 'rdfa-window-bar' }, [
+    h('span', { class: 'rdfa-window-url' }, [url]),
+  ]);
 }
 
 /** Port of `ContentPanel`. */
@@ -135,14 +163,34 @@ export function buildContentPanel(
   const url = content.url ?? 'https://localhost';
 
   if (type === 'image') {
-    const img = h('img', { src: content.value, alt: '' });
+    // Built at the STILL (`value`), never at frame 0: `applyNodeElement` writes
+    // the frame belonging to `t` immediately afterwards, on the create path as
+    // much as on the update path, and the two must not disagree about which
+    // src a freshly mounted node carries.
+    const img = h('img', { src: contentFrameSrc(content, undefined), alt: '' });
     return {
       el: h('div', { class: 'rdfa-content' }, [
-        h('div', { class: 'rdfa-window-bar' }, [
-          h('span', { class: 'rdfa-window-url' }, [url]),
-        ]),
+        windowBar(url),
         h('div', { class: 'rdfa-content-body' }, [img]),
       ]),
+      frames: content.frames?.length ? { img, content } : undefined,
+    };
+  }
+
+  if (type === 'html') {
+    const body = h('div', {
+      class: 'rdfa-content-body rdfa-content-html',
+    });
+    appendSanitizedHtml(body, content.value ?? '');
+    // The address bar is OPT-IN here, unlike `text`: rich markup is as often a
+    // legend or a card as it is a web page, and a browser frame around a legend
+    // states something the author did not.
+    return {
+      el: h(
+        'div',
+        { class: 'rdfa-content' },
+        content.url ? [windowBar(content.url), body] : [body]
+      ),
     };
   }
 
@@ -183,9 +231,7 @@ export function buildContentPanel(
   // text / UI: dummy browser window.
   return {
     el: h('div', { class: 'rdfa-content' }, [
-      h('div', { class: 'rdfa-window-bar' }, [
-        h('span', { class: 'rdfa-window-url' }, [url]),
-      ]),
+      windowBar(url),
       h(
         'div',
         { class: 'rdfa-content-body' },
@@ -193,4 +239,22 @@ export function buildContentPanel(
       ),
     ]),
   };
+}
+
+/**
+ * Points an `image` panel's `<img>` at the frame belonging to the current `t`.
+ *
+ * `index` is memoised on the target rather than compared against the attribute:
+ * a frame source is routinely a fifty-kilobyte `data:` URI, and string-comparing
+ * one per node per frame is a real cost for a value the caller already knows.
+ */
+export function applyContentFrame(
+  target: FrameTarget,
+  index: number | undefined
+): void {
+  if (target.index === index) return;
+  target.index = index;
+  const src = contentFrameSrc(target.content, index);
+  if (src === undefined) target.img.removeAttribute('src');
+  else target.img.setAttribute('src', src);
 }

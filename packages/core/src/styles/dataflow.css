@@ -1087,6 +1087,143 @@
   display: block;
 }
 
+/* ---------- set_content / content: rich HTML ---------- */
+/* The sanitizer refuses `position`, and `contain` is the second lock on the
+   same door: it makes the panel a containing block, so nothing an author writes
+   can lay itself out against the stage instead of against its own node.
+   `class` is refused too, which is why every rule below styles ELEMENTS — an
+   authored `<h3>` has to look right with no hook of its own, and the host
+   page's stylesheet never reaches inside the player anyway. */
+.rdfa-content-html {
+  contain: layout paint;
+  overflow-wrap: anywhere;
+}
+
+.rdfa-content-html > :first-child {
+  margin-top: 0;
+}
+
+.rdfa-content-html > :last-child {
+  margin-bottom: 0;
+}
+
+.rdfa-content-html p,
+.rdfa-content-html ul,
+.rdfa-content-html ol,
+.rdfa-content-html dl,
+.rdfa-content-html blockquote,
+.rdfa-content-html figure,
+.rdfa-content-html pre {
+  margin: calc(6px * var(--rdfa-content-scale, 1)) 0;
+}
+
+.rdfa-content-html h1,
+.rdfa-content-html h2,
+.rdfa-content-html h3,
+.rdfa-content-html h4,
+.rdfa-content-html h5,
+.rdfa-content-html h6 {
+  margin: calc(8px * var(--rdfa-content-scale, 1)) 0
+    calc(4px * var(--rdfa-content-scale, 1));
+  line-height: 1.25;
+  font-weight: 650;
+}
+
+/* A panel is a card, not a page: the UA's 2em <h1> would fill it on its own. */
+.rdfa-content-html h1 {
+  font-size: calc(16px * var(--rdfa-content-scale, 1));
+}
+
+.rdfa-content-html h2 {
+  font-size: calc(14.5px * var(--rdfa-content-scale, 1));
+}
+
+.rdfa-content-html h3 {
+  font-size: calc(13.5px * var(--rdfa-content-scale, 1));
+}
+
+.rdfa-content-html h4,
+.rdfa-content-html h5,
+.rdfa-content-html h6 {
+  font-size: calc(12.5px * var(--rdfa-content-scale, 1));
+}
+
+.rdfa-content-html ul,
+.rdfa-content-html ol {
+  padding-left: calc(18px * var(--rdfa-content-scale, 1));
+}
+
+.rdfa-content-html li {
+  margin: calc(2px * var(--rdfa-content-scale, 1)) 0;
+}
+
+.rdfa-content-html code,
+.rdfa-content-html kbd,
+.rdfa-content-html samp,
+.rdfa-content-html pre {
+  font-family: var(--rdfa-mono);
+  font-size: calc(11.5px * var(--rdfa-content-scale, 1));
+}
+
+.rdfa-content-html code {
+  background: color-mix(in srgb, var(--rdfa-surface) 88%, var(--rdfa-border));
+  border-radius: 3px;
+  padding: 0 calc(3px * var(--rdfa-content-scale, 1));
+}
+
+.rdfa-content-html pre {
+  background: color-mix(in srgb, var(--rdfa-surface) 88%, var(--rdfa-border));
+  border-radius: 4px;
+  padding: calc(6px * var(--rdfa-content-scale, 1));
+  overflow: hidden;
+  white-space: pre-wrap;
+}
+
+.rdfa-content-html pre code {
+  background: none;
+  padding: 0;
+}
+
+.rdfa-content-html blockquote {
+  border-left: 2px solid var(--rdfa-border);
+  padding-left: calc(8px * var(--rdfa-content-scale, 1));
+  color: var(--rdfa-muted);
+}
+
+.rdfa-content-html hr {
+  border: 0;
+  border-top: 1px solid var(--rdfa-border);
+  margin: calc(6px * var(--rdfa-content-scale, 1)) 0;
+}
+
+.rdfa-content-html table {
+  border-collapse: collapse;
+  font-size: calc(11px * var(--rdfa-content-scale, 1));
+}
+
+.rdfa-content-html th,
+.rdfa-content-html td {
+  border: 1px solid var(--rdfa-border);
+  padding: calc(3px * var(--rdfa-content-scale, 1))
+    calc(6px * var(--rdfa-content-scale, 1));
+  text-align: left;
+}
+
+.rdfa-content-html th {
+  background: var(--rdfa-window-bg);
+  font-weight: 600;
+}
+
+.rdfa-content-html figcaption {
+  font-size: calc(11px * var(--rdfa-content-scale, 1));
+  color: var(--rdfa-muted);
+}
+
+.rdfa-content-html svg {
+  max-width: 100%;
+  display: block;
+}
+
 /* ---------- set_content / content : tableau ---------- */
 .rdfa-content--table .rdfa-content-body {
   padding: 0;

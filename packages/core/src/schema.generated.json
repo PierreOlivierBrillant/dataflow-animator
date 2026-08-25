@@ -323,11 +323,11 @@
       "properties": {
         "type": {
           "$ref": "#/definitions/ContentType",
-          "description": "Content display mode: `code` (colored terminal), `text` (browser-like window), `image` (illustration) or `table` (data table)."
+          "description": "Content display mode: `code` (colored terminal), `text` (browser-like window), `image` (illustration), `table` (data table) or `html` (rich markup, sanitized)."
         },
         "value": {
           "type": "string",
-          "description": "Textual content according to `type`: source code (`code`), text (`text`) or image path/URL (`image`).",
+          "description": "Textual content according to `type`: source code (`code`), text (`text`), image path/URL (`image`) or markup (`html`).",
           "examples": [
             "SELECT * FROM users;"
           ]
@@ -338,10 +338,31 @@
         },
         "url": {
           "type": "string",
-          "description": "(`text` mode) URL displayed in the window's address bar.",
+          "description": "(`text` mode, and `html` when provided) URL displayed in the window's address bar. An `html` panel with no `url` renders bare, without chrome.",
           "examples": [
             "https://app.example.com/login"
           ]
+        },
+        "frames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "(`image` mode) Frame sequence played from the ANIMATION's clock rather than the browser's: it pauses with the player, rewinds when scrubbed backwards and exports frame-accurately — none of which an animated GIF in `value` can do. Each entry is an image source, ideally a `data:` URI (a remote one cannot be rasterized by the video export). `value` is the still shown when the list is empty.",
+          "examples": [
+            [
+              "data:image/png;base64,iVBORw0…",
+              "data:image/png;base64,iVBORw1…"
+            ]
+          ]
+        },
+        "fps": {
+          "type": "number",
+          "description": "(`image` mode) Playback rate of `frames`, in frames per second. Clamped to `[0.1, 60]`. Default: 12."
+        },
+        "loop": {
+          "type": "boolean",
+          "description": "(`image` mode) Whether `frames` repeats. `false` holds the last frame once the sequence has played through. Default: true."
         },
         "columns": {
           "type": "array",
@@ -390,7 +411,8 @@
         "image",
         "text",
         "code",
-        "table"
+        "table",
+        "html"
       ],
       "description": "Content modes for `set_content` (action) and `content` (static object)."
     },

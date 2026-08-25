@@ -435,6 +435,7 @@ export const fr = {
     describePacketPanel: 'un panneau',
     describePacketBadge: 'une pastille',
     describeContentImage: 'une image',
+    describeContentAnimation: 'une animation',
     describeContentTable: 'un tableau de {rows} lignes, colonnes {columns}',
     describeContentTableOne: 'un tableau de {rows} ligne, colonnes {columns}',
     describeContentEmpty: 'rien',

@@ -397,6 +397,7 @@ export const en: Messages = {
     describePacketPanel: 'a panel',
     describePacketBadge: 'a badge',
     describeContentImage: 'an image',
+    describeContentAnimation: 'an animation',
     describeContentTable: 'a table of {rows} rows, columns {columns}',
     describeContentTableOne: 'a table of {rows} row, columns {columns}',
     describeContentEmpty: 'nothing',

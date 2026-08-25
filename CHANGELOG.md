@@ -7,6 +7,54 @@ here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 2.1.0 — 2026-08-24
+
+### Added
+
+- **A `content` / `set_content` panel can now be rich HTML.** A new content
+  `type: 'html'` renders the markup in `value` — headings, lists, tables,
+  images, inline SVG — instead of a flat string. The markup is parsed INERT and
+  then REBUILT from an allow-list: a spec is data, and it may well arrive from a
+  CMS or a form, so an element, an attribute or a CSS declaration that is not on
+  a list never reaches the document. `<script>`, `<style>`, `<iframe>`, every
+  `on*` handler and any URL whose scheme is not `http`, `https` or
+  `data:image/…` are dropped silently.
+
+  `class` and `id` are dropped too, and that one is not about security: a
+  rasterised video frame carries only the CSS rules whose selector contains
+  `rdfa`, so a class the host page styles would render on screen and render
+  UNSTYLED in the exported video — the same spec, two different pictures. Inline
+  `style` travels with the element, so it is what authors get instead (itself
+  filtered: no `position`, no custom properties, no `url(…)`).
+
+  Unlike `text`, an `html` panel shows the browser chrome only when given a
+  `url`.
+
+- **An `image` panel can now animate, on the ANIMATION's clock.** `frames` is an
+  ordered list of image sources, played at `fps` (default 12) and looping unless
+  `loop: false`. The frame on screen is `floor(elapsed × fps) mod frames.length`
+  — a pure function of `t`, like every other rendered value — so it pauses with
+  the player, rewinds when the scrub bar goes backwards, and exports
+  frame-accurately.
+
+  An animated GIF in `value` does none of that: a GIF's playhead is not
+  reachable from JavaScript, so it keeps running while the player is paused and
+  an exported frame catches whichever moment the decoder happened to be on.
+  `frames` exists to replace it. Prefer `data:` URIs — a rasterised frame cannot
+  load anything from another origin.
+
+- **One new `PlayerLabels` key**, `describeContentAnimation`, so the transcript
+  tells an animated panel apart from a still image. An `html` panel is
+  transcribed as its WORDS, with the markup stripped.
+
+### Changed
+
+- **The derived reading time reads the new modes properly.** An `html` panel is
+  counted on its text rather than on its markup, so `<strong>` no longer buys a
+  two-word panel the ceiling of a paragraph. An `image` carrying `frames` is
+  given the time its sequence needs to play through once, instead of the flat
+  beat a still gets.
+
 ## 2.0.0 — 2026-08-24
 
 ### Changed

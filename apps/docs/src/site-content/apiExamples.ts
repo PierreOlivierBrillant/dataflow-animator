@@ -25,6 +25,22 @@ import type { Locale } from '../i18n';
  * quelles.
  */
 
+/**
+ * Eight frames of a rotating dot, as inline SVG.
+ *
+ * `data:` rather than a file on purpose: a rasterised video frame cannot load
+ * anything from another origin, so a sequence built from remote images plays on
+ * screen and fails the export.
+ */
+const apiSpinnerFrames = Array.from({ length: 8 }, (_, i) => {
+  const angle = (i / 8) * 2 * Math.PI;
+  const x = (50 + 32 * Math.cos(angle)).toFixed(1);
+  const y = (50 + 32 * Math.sin(angle)).toFixed(1);
+  return `data:image/svg+xml,${encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 100 100"><circle cx="50" cy="50" r="38" fill="none" stroke="#cbd5e1" stroke-width="6"/><circle cx="${x}" cy="${y}" r="9" fill="#3b82f6"/></svg>`
+  )}`;
+});
+
 export interface ApiExamples {
   specs: Record<string, DataFlowSpec>;
   notes: Record<string, string>;
@@ -459,6 +475,18 @@ function build(locale: Locale): ApiExamples {
               [2, 'bob@x.io'],
             ],
           },
+        },
+      ],
+      packets: [],
+      timeline: [],
+    },
+    'ObjectContent.frames': {
+      nodes: [
+        {
+          id: 'n',
+          type: 'server',
+          text: tr('Worker', 'Worker'),
+          content: { type: 'image', frames: apiSpinnerFrames, fps: 8 },
         },
       ],
       packets: [],

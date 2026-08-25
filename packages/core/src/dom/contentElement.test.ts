@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   applyCodeFontScale,
+  applyContentFrame,
   buildContentPanel,
   measureCodeFit,
   type CodeFitTarget,
@@ -175,5 +176,127 @@ describe('measureCodeFit', () => {
     measureCodeFit({ pre });
 
     expect(pre.style.fontSize).toBe('7px');
+  });
+});
+
+describe('buildContentPanel — html mode', () => {
+  it('renders the sanitised markup, not the escaped source', () => {
+    const { el } = buildContentPanel(
+      { type: 'html', value: '<p>Hello <b>you</b></p>' },
+      highlight
+    );
+    const body = el.querySelector('.rdfa-content-html');
+    expect(body?.innerHTML).toBe('<p>Hello <b>you</b></p>');
+    // The `code` mode's highlighter must not be involved here.
+    expect(el.querySelector('mark')).toBeNull();
+  });
+
+  it('goes through the sanitiser', () => {
+    const { el } = buildContentPanel(
+      { type: 'html', value: '<p onclick="x()">a</p><script>y()</script>' },
+      highlight
+    );
+    expect(el.querySelector('.rdfa-content-html')?.innerHTML).toBe('<p>a</p>');
+  });
+
+  it('renders bare unless a url asks for the browser chrome', () => {
+    const bare = buildContentPanel(
+      { type: 'html', value: '<p>a</p>' },
+      highlight
+    );
+    expect(bare.el.querySelector('.rdfa-window-bar')).toBeNull();
+
+    const framed = buildContentPanel(
+      { type: 'html', value: '<p>a</p>', url: 'https://app.test' },
+      highlight
+    );
+    expect(framed.el.querySelector('.rdfa-window-url')?.textContent).toBe(
+      'https://app.test'
+    );
+  });
+
+  it('accepts a missing value', () => {
+    const { el } = buildContentPanel({ type: 'html' }, highlight);
+    expect(el.querySelector('.rdfa-content-html')?.childNodes.length).toBe(0);
+  });
+
+  it('exposes no code-fit and no frame target', () => {
+    const panel = buildContentPanel(
+      { type: 'html', value: '<p>a</p>' },
+      highlight
+    );
+    expect(panel.codeFit).toBeUndefined();
+    expect(panel.frames).toBeUndefined();
+  });
+});
+
+describe('buildContentPanel — image frames', () => {
+  const content = {
+    type: 'image' as const,
+    value: 'still.png',
+    frames: ['f0.png', 'f1.png'],
+  };
+
+  it('builds at the still and hands back a frame target', () => {
+    const { el, frames } = buildContentPanel(content, highlight);
+    // `applyNodeElement` writes the frame for `t` right after this, on the
+    // create path as much as the update path.
+    expect(el.querySelector('img')?.getAttribute('src')).toBe('still.png');
+    expect(frames?.img).toBe(el.querySelector('img'));
+    expect(frames?.content).toBe(content);
+  });
+
+  it('hands back no target for a still image', () => {
+    const panel = buildContentPanel(
+      { type: 'image', value: 'still.png' },
+      highlight
+    );
+    expect(panel.frames).toBeUndefined();
+    expect(panel.el.querySelector('img')?.getAttribute('src')).toBe(
+      'still.png'
+    );
+  });
+
+  it('hands back no target for an empty sequence', () => {
+    expect(
+      buildContentPanel({ type: 'image', frames: [] }, highlight).frames
+    ).toBeUndefined();
+  });
+});
+
+describe('applyContentFrame', () => {
+  const content = {
+    type: 'image' as const,
+    value: 'still.png',
+    frames: ['f0.png', 'f1.png'],
+  };
+
+  it('points the img at the frame for the index', () => {
+    const { frames } = buildContentPanel(content, highlight);
+    applyContentFrame(frames!, 1);
+    expect(frames!.img.getAttribute('src')).toBe('f1.png');
+  });
+
+  it('writes nothing when the frame has not moved', () => {
+    const { frames } = buildContentPanel(content, highlight);
+    applyContentFrame(frames!, 0);
+    frames!.img.setAttribute('src', 'tampered');
+    applyContentFrame(frames!, 0);
+    expect(frames!.img.getAttribute('src')).toBe('tampered');
+  });
+
+  it('falls back to the still for an absent index', () => {
+    const { frames } = buildContentPanel(content, highlight);
+    applyContentFrame(frames!, 1);
+    applyContentFrame(frames!, undefined);
+    expect(frames!.img.getAttribute('src')).toBe('still.png');
+  });
+
+  it('removes the attribute rather than writing "undefined"', () => {
+    const bare = { type: 'image' as const, frames: ['f0.png'] };
+    const { frames } = buildContentPanel(bare, highlight);
+    applyContentFrame(frames!, 0);
+    applyContentFrame(frames!, undefined);
+    expect(frames!.img.hasAttribute('src')).toBe(false);
   });
 });

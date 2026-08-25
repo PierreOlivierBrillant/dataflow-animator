@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { derivedDuration, packetReadingTime } from './readingTime';
 import { compile } from './compiler';
-import type { Action, DataFlowSpec, Packet } from '../types';
+import type { Action, DataFlowSpec, ObjectContent, Packet } from '../types';
 import { FADE_MS } from './timeline';
 import { appearHold } from './motionTime';
 import { clipOpacity } from '../render/clipOpacity';
@@ -421,5 +421,59 @@ describe('compile — a packet is held long enough to be read', () => {
     // Same packet, same text: re-paying would only pad the animation.
     expect(hold('second')).toBeLessThan(hold('first'));
     expect(hold('second')).toBe(appearHold(600));
+  });
+});
+
+describe('derivedDuration — rich content', () => {
+  const setContent = (content: ObjectContent): Action =>
+    ({ type: 'set_content', object: 'n', content }) as Action;
+
+  it('counts the words of an html panel, not its markup', () => {
+    const plain = derivedDuration(
+      setContent({ type: 'text', value: 'a'.repeat(80) }),
+      1
+    )!;
+    const marked = derivedDuration(
+      setContent({
+        type: 'html',
+        value: `<p><strong>${'a'.repeat(80)}</strong></p>`,
+      }),
+      1
+    )!;
+    // Same eighty characters to read: the eleven characters of `<strong>` and
+    // its close tag must not buy the panel any extra time.
+    expect(marked).toBe(plain);
+  });
+
+  it('gives an html panel with no words the per-type default', () => {
+    expect(
+      derivedDuration(setContent({ type: 'html', value: '<hr>' }), 1)
+    ).toBeUndefined();
+  });
+
+  it('gives a frame sequence the time it needs to play through', () => {
+    // 24 frames at 12 fps is a two-second animation; cutting it at the flat
+    // image beat would stop it two thirds of the way through.
+    const ms = derivedDuration(
+      setContent({ type: 'image', frames: Array(24).fill('f'), fps: 12 }),
+      1
+    )!;
+    expect(ms).toBe(2400);
+  });
+
+  it('still gives a still image the flat beat', () => {
+    const ms = derivedDuration(
+      setContent({ type: 'image', value: 'a.png' }),
+      1
+    )!;
+    expect(ms).toBe(1500);
+  });
+
+  it('clamps a very long sequence like any other content', () => {
+    const ms = derivedDuration(
+      setContent({ type: 'image', frames: Array(600).fill('f'), fps: 12 }),
+      1
+    )!;
+    expect(ms).toBe(7000);
   });
 });

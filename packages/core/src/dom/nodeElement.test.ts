@@ -577,3 +577,63 @@ describe('renderNodeVisual', () => {
     expect(el.innerHTML).toContain('<em>hl</em>');
   });
 });
+
+describe('applyNodeElement — animated image content', () => {
+  const content = {
+    type: 'image' as const,
+    value: 'still.png',
+    frames: ['f0.png', 'f1.png', 'f2.png'],
+  };
+  const node: Node = { id: 'n', type: 'server' };
+
+  it('shows the frame the caller asked for, on the create path', () => {
+    const el = build(node, { content, contentFrame: 2 });
+    expect(el.querySelector('img')?.getAttribute('src')).toBe('f2.png');
+  });
+
+  it('advances the frame without rebuilding the panel', () => {
+    // The point of the retained renderer: the content object is identical
+    // frame to frame, so `sameBodyKey` short-circuits and the <img> survives.
+    const handle = buildHandle(node, { content, contentFrame: 0 });
+    const img = handle.el.querySelector('img');
+    applyNodeElement(handle, node, {
+      placement: { cx: 0.25, cy: 0.5 },
+      highlight: escapeHtml,
+      content,
+      contentFrame: 1,
+    });
+    expect(handle.el.querySelector('img')).toBe(img);
+    expect(img?.getAttribute('src')).toBe('f1.png');
+  });
+
+  it('leaves a still image alone', () => {
+    const still = { type: 'image' as const, value: 'still.png' };
+    const handle = buildHandle(node, { content: still, contentFrame: 2 });
+    expect(handle.frames).toBeUndefined();
+    expect(handle.el.querySelector('img')?.getAttribute('src')).toBe(
+      'still.png'
+    );
+  });
+
+  it('drops the frame target when the content stops being a sequence', () => {
+    const handle = buildHandle(node, { content, contentFrame: 1 });
+    expect(handle.frames).toBeDefined();
+    applyNodeElement(handle, node, {
+      placement: { cx: 0.25, cy: 0.5 },
+      highlight: escapeHtml,
+      content: { type: 'text', value: 'plain' },
+    });
+    expect(handle.frames).toBeUndefined();
+  });
+});
+
+describe('applyNodeElement — html content', () => {
+  it('replaces the visual with the sanitised panel', () => {
+    const el = build(
+      { id: 'n', type: 'server' },
+      { content: { type: 'html', value: '<p>a<script>x()</script></p>' } }
+    );
+    expect(el.className).toContain('rdfa-node--content');
+    expect(el.querySelector('.rdfa-content-html')?.innerHTML).toBe('<p>a</p>');
+  });
+});

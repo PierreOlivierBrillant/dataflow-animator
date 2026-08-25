@@ -448,6 +448,89 @@ describe('mountStage — set_content and comments', () => {
     ],
   });
 
+  const animatedSpec = {
+    timeline: [
+      { type: 'wait' as const, duration: 1000 },
+      {
+        type: 'set_content' as const,
+        object: 'a',
+        content: {
+          type: 'image' as const,
+          frames: ['f0.png', 'f1.png', 'f2.png', 'f3.png'],
+          fps: 10,
+        },
+        duration: 3000,
+      },
+    ],
+  };
+
+  /** The `src` currently on node `a`'s panel image. */
+  const frameSrc = (container: Element): string | null | undefined =>
+    container.querySelector('[data-node-id="a"] img')?.getAttribute('src');
+
+  /**
+   * When the panel appears. Read from the compiled timeline rather than
+   * assumed: a step does not start where the previous one ended (the compiler
+   * spaces them), and hard-coding that spacing here would make these tests fail
+   * for a reason that has nothing to do with frames.
+   */
+  const clipStart = compile({ ...spec, ...animatedSpec }).timeline.clips[0]
+    .startMs;
+
+  it('drives a frame sequence from the timeline clock', () => {
+    // Elapsed is measured from the CLIP, not from t=0: the sequence starts when
+    // the panel does, so 250 ms into it at 10 fps is frame 2.
+    const { container } = mount(animatedSpec, clipStart + 250);
+    expect(frameSrc(container)).toBe('f2.png');
+  });
+
+  it('rewinds when `update` scrubs backwards', () => {
+    // The claim a GIF cannot make: the same instant gives the same frame,
+    // whichever direction time was travelling when it was asked for.
+    const { container, handle } = mount(animatedSpec, clipStart);
+    expect(frameSrc(container)).toBe('f0.png');
+
+    handle.update(clipStart + 300);
+    expect(frameSrc(container)).toBe('f3.png');
+    handle.update(clipStart + 100);
+    expect(frameSrc(container)).toBe('f1.png');
+    handle.update(clipStart);
+    expect(frameSrc(container)).toBe('f0.png');
+  });
+
+  it('lands a scrubbed frame on the same DOM as a fresh mount', () => {
+    // The mount-vs-update gate, applied to the one value that moves while the
+    // panel itself does not.
+    const scrubbed = mount(animatedSpec, clipStart);
+    scrubbed.handle.update(clipStart + 200);
+    const fresh = mount(animatedSpec, clipStart + 200);
+
+    expect(normalizeStageHtml(scrubbed.container)).toBe(
+      normalizeStageHtml(fresh.container)
+    );
+  });
+
+  it('times a node`s own sequence from the start of the animation', () => {
+    const { container } = mount(
+      {
+        nodes: [
+          {
+            id: 'a',
+            type: 'server',
+            content: {
+              type: 'image',
+              frames: ['f0.png', 'f1.png'],
+              fps: 10,
+            },
+          },
+          { id: 'b', type: 'database' },
+        ],
+      },
+      100
+    );
+    expect(frameSrc(container)).toBe('f1.png');
+  });
+
   it('builds the panel INSIDE its node, not in the overlay', () => {
     const { container } = mount(contentSpec, 500);
 
