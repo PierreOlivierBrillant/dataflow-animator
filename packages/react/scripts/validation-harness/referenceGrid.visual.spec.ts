@@ -56,9 +56,16 @@ for (const demo of RISK_DEMOS) {
 
       // The live probe loops (rAF) → non-deterministic image: excluded from the
       // golden (it is a diagnostic, not a regression target).
-      await page.evaluate(() =>
-        document.querySelector('.probe-section')?.remove()
-      );
+      //
+      // The demo picker is dropped for the same reason, plus a sharper one: it
+      // lists EVERY demo, so adding or renaming one reflows the chips and turns
+      // all 12 goldens red — ~11k pixels of pure navigation churn, with the
+      // contact sheet underneath provably untouched. Left in, the gate would
+      // train its reader to regenerate on a red instead of reading it.
+      await page.evaluate(() => {
+        document.querySelector('.probe-section')?.remove();
+        document.querySelector('.demo-nav')?.remove();
+      });
 
       await expect(page).toHaveScreenshot(`${demo}-${mode}.png`, {
         fullPage: true,

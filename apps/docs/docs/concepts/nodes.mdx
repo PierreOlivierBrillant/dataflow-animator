@@ -12,6 +12,8 @@ import {
   colorsExample,
   revealExample,
   rotationExample,
+  functionalBlockExample,
+  cmosInverterExample,
 } from './_nodes/examples';
 
 **Nodes** (`nodes`) are the static objects of the scene: servers,
@@ -152,14 +154,102 @@ name (`"R1:a"`, `"battery:+"`, `"Q1:collector"`), and they read best in
 The family also includes **digital logic gates** — `and_gate`, `or_gate`,
 `not_gate`, `nand_gate`, `nor_gate`, `xor_gate`, `xnor_gate`, `buffer_gate` —
 with two inputs `a` / `b` on the left and an output `y` on the right (a single
-input for `not_gate` / `buffer_gate`), and a `signal` node — a **labelled I/O
+input for `not_gate` / `buffer_gate`), their **three-input** counterparts
+`and3_gate`, `or3_gate`, `nand3_gate`, `nor3_gate` and `xor3_gate` (inputs
+`a` / `b` / `c`, the middle one at mid-height so a straight wire needs no bend),
+and a `signal` node — a **labelled I/O
 pad** that shows a bit in its centre (set via [`set_icon`](../reference/actions.mdx#set_icon),
 lit with [`set_color`](../reference/actions.mdx#set_color)) — for the inputs and
 outputs of a logic diagram.
 
+### Functional blocks
+
+Some circuits are clearer when a sub-circuit is drawn as **one labelled box**
+instead of the gates inside it. Eight types cover the blocks whose terminal
+count is fixed:
+
+| Type                         | Terminals                                        |
+| ---------------------------- | ------------------------------------------------ |
+| `d_flip_flop`, `t_flip_flop` | `d` / `t`, `clk` → `q`, `qn`                     |
+| `jk_flip_flop`               | `j`, `clk`, `k` → `q`, `qn`                      |
+| `sr_latch`                   | `s`, `r` → `q`, `qn` (level-sensitive: no clock) |
+| `mux_2to1`                   | `i0`, `i1`, `sel` (from below) → `y`             |
+| `demux_1to2`                 | `i`, `sel` (from below) → `y0`, `y1`             |
+| `half_adder`                 | `a`, `b` → `s` (sum), `cout` (carry)             |
+| `full_adder`                 | `a`, `b`, `cin` → `s`, `cout`                    |
+
+`qn` also answers to `q_bar`, `sel` to `s`, and `s` to `sum` — spell a terminal
+whichever way reads best in your spec.
+
+<DataFlowPlayer
+  spec={functionalBlockExample}
+  mode="auto"
+  controls={false}
+  height={320}
+/>
+
+```ts
+nodes: [
+  { id: 'i0', type: 'signal', x: 0.12, y: 0.28, text: 'A', icon: '1' },
+  { id: 'i1', type: 'signal', x: 0.12, y: 0.72, text: 'B', icon: '0' },
+  { id: 'm', type: 'mux_2to1', x: 0.55, y: 0.45, text: 'MUX 2:1' },
+  { id: 'sel', type: 'signal', x: 0.45, y: 0.86, text: 'S', icon: '0' },
+  { id: 'y', type: 'signal', x: 0.88, y: 0.45, text: 'Y', icon: '1' },
+],
+connections: [
+  { from: 'i0', to: 'm:i0' },
+  { from: 'i1', to: 'm:i1' },
+  { from: 'sel', to: 'm:sel' },
+  { from: 'm:y', to: 'y' },
+],
+```
+
+:::note Only fixed-pin blocks
+
+A block whose terminal COUNT varies with its size — an N-bit register, a 4:1
+multiplexer, an n→2ⁿ decoder — is deliberately **not** a type. One type per size
+would multiply symbols without end; those blocks need their pins declared in the
+spec, which the format does not do yet.
+
+:::
+
+### MOS transistors
+
+`mosfet_n` and `mosfet_p` expose `gate` (`g`), `drain` (`d`) and `source` (`s`),
+and `transmission_gate` is the CMOS pass gate (`in` → `out`, controls `en` above
+and `enb` below). N and P are told apart by the **bubble on the gate**, the
+convention CMOS logic diagrams use.
+
+The two channel terminals are **mirrored** between the two: `source` is the upper
+terminal on a pMOS, `drain` is the upper one on an nMOS. That is not a quirk —
+it is what every CMOS schematic does, and it is what lets a pull-up and a
+pull-down stack be wired straight down the page:
+
+<DataFlowPlayer
+  spec={cmosInverterExample}
+  mode="auto"
+  controls={false}
+  height={340}
+/>
+
+```ts
+connections: [
+  { from: 'vdd', to: 'P:s' }, // pMOS source faces the supply
+  { from: 'P:d', to: 'out' },
+  { from: 'out', to: 'N:d' }, // nMOS drain faces the output
+  { from: 'N:s', to: 'gnd:a' },
+  { from: 'out', to: 'y' },
+  { from: 'in', to: 'P:g' },
+  { from: 'in', to: 'N:g' },
+],
+```
+
 In a logic diagram, each wire driven by a `signal` input or a gate output is
 automatically tinted by its **net** (its driver), so wires that cross or run in
-parallel read as distinct and are visibly not joined. A wire's explicit `color`
+parallel read as distinct and are visibly not joined. The blocks above drive a
+net too, so a flip-flop's `q` is tinted like a gate's `y`. A `transmission_gate`
+does not — it passes a net rather than driving one — and neither do the MOS
+transistors, whose pull-up and pull-down networks share one output node. A wire's explicit `color`
 (or a [`set_color`](../reference/actions.mdx#set_color) on the connection) always
 overrides the automatic tint; wires driven by a non-logic source (a battery, a
 junction) stay neutral.
@@ -172,7 +262,9 @@ constant τ = R·C), **Logic gates** (all eight gates stepping through the full
 truth table), **Half-adder**, and a family built entirely from the
 **universal NAND gate** —
 **Half-adder**, **Half-subtractor**, **Full adder**, **Full subtractor** and an
-**SR latch** (two cross-coupled NANDs — one bit of memory). In the logic demos
+**SR latch** (two cross-coupled NANDs — one bit of memory), and one level
+further down, the **CMOS NAND gate** — the same NAND drawn as its four MOS
+transistors, lighting up the ones that conduct. In the logic demos
 each wire is coloured by the **bit it carries** (green = 1) via `set_color`, so
 students can trace the signal propagating through the gates.
 

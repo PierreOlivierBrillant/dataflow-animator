@@ -83,6 +83,10 @@ export type NodeType =
   | 'voltmeter'
   | 'antenna'
   | 'transformer'
+  // ─── MOS transistors (gate `g`, drain `d`, source `s`) ───────────────────────
+  | 'mosfet_n'
+  | 'mosfet_p'
+  | 'transmission_gate'
   // ─── Digital logic gates (inputs `a`/`b` on the left, output `y` on the right) ─
   | 'and_gate'
   | 'or_gate'
@@ -91,7 +95,22 @@ export type NodeType =
   | 'nor_gate'
   | 'xor_gate'
   | 'xnor_gate'
-  | 'buffer_gate';
+  | 'buffer_gate'
+  // ─── Three-input logic gates (inputs `a`/`b`/`c`, output `y`) ────────────────
+  | 'and3_gate'
+  | 'or3_gate'
+  | 'nand3_gate'
+  | 'nor3_gate'
+  | 'xor3_gate'
+  // ─── Fixed-pin functional blocks (drawn as a labelled box) ───────────────────
+  | 'd_flip_flop'
+  | 'jk_flip_flop'
+  | 't_flip_flop'
+  | 'sr_latch'
+  | 'mux_2to1'
+  | 'demux_1to2'
+  | 'half_adder'
+  | 'full_adder';
 
 export type PacketKind =
   | 'http_packet'

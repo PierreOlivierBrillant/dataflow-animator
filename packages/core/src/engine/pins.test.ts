@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { COMPONENT_PINS, parseRef, refNode, resolvePin } from './pins';
+import {
+  COMPONENT_PINS,
+  commutativeInputPins,
+  isLogicDriver,
+  parseRef,
+  refNode,
+  resolvePin,
+} from './pins';
+import type { NodeType } from '../types';
 
 describe('parseRef', () => {
   it('splits a "node:pin" reference on the first colon', () => {
@@ -86,5 +94,124 @@ describe('COMPONENT_PINS catalog', () => {
         expect(Math.hypot(def.nx, def.ny)).toBeGreaterThan(0);
       }
     }
+  });
+});
+
+describe('three-input logic gates', () => {
+  it('spreads a/b/c down the left face with the output on the right', () => {
+    for (const type of [
+      'and3_gate',
+      'or3_gate',
+      'nand3_gate',
+      'nor3_gate',
+      'xor3_gate',
+    ] as const) {
+      const a = resolvePin(type, 'a')!;
+      const b = resolvePin(type, 'b')!;
+      const c = resolvePin(type, 'c')!;
+      const y = resolvePin(type, 'y')!;
+
+      expect([a.nx, b.nx, c.nx].every((nx) => nx < 0)).toBe(true);
+      expect(a.y).toBeLessThan(b.y);
+      expect(b.y).toBeLessThan(c.y);
+      // The middle input is at mid-height, so a straight wire needs no bend.
+      expect(b.y).toBe(0.5);
+      expect(y.nx).toBeGreaterThan(0);
+      expect(resolvePin(type, 'out')).toEqual(y);
+    }
+  });
+});
+
+describe('fixed-pin functional blocks', () => {
+  it('gives every bistable a q / qn pair on the right, qn below q', () => {
+    for (const type of [
+      'd_flip_flop',
+      'jk_flip_flop',
+      't_flip_flop',
+      'sr_latch',
+    ] as const) {
+      const q = resolvePin(type, 'q')!;
+      const qn = resolvePin(type, 'qn')!;
+
+      expect(q.nx).toBeGreaterThan(0);
+      expect(qn.nx).toBeGreaterThan(0);
+      expect(q.y).toBeLessThan(qn.y);
+      expect(resolvePin(type, 'q_bar')).toEqual(qn);
+    }
+  });
+
+  it('brings a (de)multiplexer select line in from BELOW', () => {
+    for (const type of ['mux_2to1', 'demux_1to2'] as const) {
+      const sel = resolvePin(type, 'sel')!;
+
+      expect(sel.ny).toBeGreaterThan(0); // outward normal points down
+      expect(sel.y).toBe(1);
+      expect(resolvePin(type, 's')).toEqual(sel);
+    }
+  });
+
+  it('adds cin to the full adder that the half adder does not have', () => {
+    expect(resolvePin('half_adder', 'cin')).toBeUndefined();
+    expect(resolvePin('full_adder', 'cin')!.nx).toBeLessThan(0);
+    // Sum above carry on both, so one reads as the other minus a terminal.
+    expect(resolvePin('half_adder', 's')!.y).toBeLessThan(
+      resolvePin('half_adder', 'cout')!.y
+    );
+    expect(resolvePin('full_adder', 's')!.y).toBeLessThan(
+      resolvePin('full_adder', 'cout')!.y
+    );
+  });
+});
+
+describe('commutativeInputPins', () => {
+  it('names pins the component actually declares', () => {
+    // A typo here disables the router's swap SILENTLY: it looks up a pin that
+    // is never found and the group is dropped, with no error anywhere.
+    for (const type of Object.keys(COMPONENT_PINS) as NodeType[]) {
+      const pair = commutativeInputPins(type);
+      if (!pair) continue;
+      expect(resolvePin(type, pair[0])).toBeDefined();
+      expect(resolvePin(type, pair[1])).toBeDefined();
+      expect(pair[0]).not.toBe(pair[1]);
+    }
+  });
+
+  it('offers the OUTER two inputs of a three-input gate', () => {
+    expect(commutativeInputPins('and3_gate')).toEqual(['a', 'c']);
+  });
+
+  it('leaves order-sensitive terminals alone', () => {
+    expect(commutativeInputPins('opamp')).toBeUndefined();
+    expect(commutativeInputPins('transistor_npn')).toBeUndefined();
+    // J and K are NOT interchangeable: swapping them inverts the flip-flop.
+    expect(commutativeInputPins('jk_flip_flop')).toBeUndefined();
+  });
+});
+
+describe('isLogicDriver', () => {
+  it('covers every gate and every block that produces a bit', () => {
+    for (const type of [
+      'signal',
+      'and_gate',
+      'buffer_gate',
+      'nand3_gate',
+      'd_flip_flop',
+      'sr_latch',
+      'mux_2to1',
+      'full_adder',
+    ] as const)
+      expect(isLogicDriver(type)).toBe(true);
+  });
+
+  it('excludes what merely PASSES or shares a net', () => {
+    // `transmission_gate` ends in `_gate` and is not a driver — the exact case
+    // the old `endsWith('_gate')` rule got wrong.
+    expect(isLogicDriver('transmission_gate')).toBe(false);
+    // In a CMOS gate the pull-up and pull-down networks share one output node,
+    // so colouring by source node would paint one net in several colours.
+    expect(isLogicDriver('mosfet_n')).toBe(false);
+    expect(isLogicDriver('mosfet_p')).toBe(false);
+    expect(isLogicDriver('battery')).toBe(false);
+    expect(isLogicDriver('junction')).toBe(false);
   });
 });

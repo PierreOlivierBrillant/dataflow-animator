@@ -1,11 +1,6 @@
-import type { DataFlowSpec, NodeType } from '../types';
-import { refNode } from '../engine/pins';
+import type { DataFlowSpec } from '../types';
+import { isLogicDriver, refNode } from '../engine/pins';
 import { NET_PALETTE } from './stageConstants';
-
-/** A node that drives a logic net — a `signal` input or any `*_gate` output.
- *  Origin: `Stage.tsx` `isLogicType`. */
-const isLogicType = (t: NodeType): boolean =>
-  t === 'signal' || t.endsWith('_gate');
 
 /**
  * Assigns a stable colour to every logic net of a circuit schematic, so wires
@@ -27,7 +22,7 @@ export function netColorMap(spec: DataFlowSpec): Map<string, string> {
     const src = refNode(link.from);
     if (colors.has(src)) continue;
     const n = nodeById.get(src);
-    if (n && isLogicType(n.type))
+    if (n && isLogicDriver(n.type))
       colors.set(src, NET_PALETTE[i++ % NET_PALETTE.length]);
   }
   return colors;

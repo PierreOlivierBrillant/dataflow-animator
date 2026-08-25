@@ -7,6 +7,40 @@ here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- **Sixteen microelectronics symbols**, all with named terminals. Three MOS
+  parts — `mosfet_n`, `mosfet_p` and the CMOS pass gate `transmission_gate` —
+  so a logic gate can be drawn as the transistors it is actually made of. Five
+  three-input gates — `and3_gate`, `or3_gate`, `nand3_gate`, `nor3_gate`,
+  `xor3_gate` — with inputs `a` / `b` / `c`, the middle one at mid-height so a
+  straight wire into it needs no bend. And eight **functional blocks**, drawn as
+  a labelled box rather than as the gates inside them: `d_flip_flop`,
+  `jk_flip_flop`, `t_flip_flop`, `sr_latch` (outputs `q` / `qn`), `mux_2to1`,
+  `demux_1to2` (select line entering from below), `half_adder` and `full_adder`.
+
+  A pMOS's `source` is its UPPER terminal while an nMOS's `drain` is — mirrored
+  on purpose, because that is what lets a CMOS pull-up and pull-down stack be
+  wired straight down the page instead of routing back around itself.
+
+  Only blocks whose terminal COUNT is fixed are modelled. A parametric one — an
+  N-bit register, a 4:1 multiplexer, an n→2ⁿ decoder — would need one type per
+  size, and belongs to a future block whose pins are declared in the spec.
+
+- **A new gallery demo, "CMOS NAND gate"**: the same NAND the rest of the
+  electronics demos are built from, drawn as its four transistors, lighting up
+  the ones that conduct for each of the four input combinations.
+
+### Fixed
+
+- **Net tinting now covers every type that drives a net.** It was decided by
+  `type.endsWith('_gate')`, which silently excluded anything that is not spelled
+  like a gate — a flip-flop's `q` is as much a net driver as a NAND's `y` — and
+  would have wrongly included `transmission_gate`, which passes a net rather
+  than driving one. The rule is now an explicit list.
+
 ## 2.0.0 — 2026-08-24
 
 ### Changed

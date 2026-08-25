@@ -12,6 +12,8 @@ import {
   colorsExample,
   revealExample,
   rotationExample,
+  functionalBlockExample,
+  cmosInverterExample,
 } from './_nodes/examples';
 
 Les **nœuds** (`nodes`) sont les objets statiques de la scène : serveurs,
@@ -153,16 +155,104 @@ s'utilisent au mieux en
 La famille inclut aussi des **portes logiques numériques** — `and_gate`,
 `or_gate`, `not_gate`, `nand_gate`, `nor_gate`, `xor_gate`, `xnor_gate`,
 `buffer_gate` — avec deux entrées `a` / `b` à gauche et une sortie `y` à droite
-(une seule entrée pour `not_gate` / `buffer_gate`), et un nœud `signal` — un
+(une seule entrée pour `not_gate` / `buffer_gate`), leurs équivalents à **trois
+entrées** `and3_gate`, `or3_gate`, `nand3_gate`, `nor3_gate` et `xor3_gate`
+(entrées `a` / `b` / `c`, celle du milieu à mi-hauteur pour qu'un fil droit
+n'ait aucun coude à faire), et un nœud `signal` — un
 **pad d'E/S étiqueté** qui affiche un bit en son centre (posé via
 [`set_icon`](../reference/actions.mdx#set_icon), allumé par
 [`set_color`](../reference/actions.mdx#set_color)) — pour les entrées et sorties
 d'un schéma logique.
 
+### Blocs fonctionnels
+
+Certains circuits se lisent mieux quand un sous-circuit est dessiné comme **un
+seul boîtier étiqueté** plutôt que comme les portes qu'il contient. Huit types
+couvrent les blocs dont le nombre de bornes est fixe :
+
+| Type                         | Bornes                                            |
+| ---------------------------- | ------------------------------------------------- |
+| `d_flip_flop`, `t_flip_flop` | `d` / `t`, `clk` → `q`, `qn`                      |
+| `jk_flip_flop`               | `j`, `clk`, `k` → `q`, `qn`                       |
+| `sr_latch`                   | `s`, `r` → `q`, `qn` (sur niveau : pas d'horloge) |
+| `mux_2to1`                   | `i0`, `i1`, `sel` (par le bas) → `y`              |
+| `demux_1to2`                 | `i`, `sel` (par le bas) → `y0`, `y1`              |
+| `half_adder`                 | `a`, `b` → `s` (somme), `cout` (retenue)          |
+| `full_adder`                 | `a`, `b`, `cin` → `s`, `cout`                     |
+
+`qn` répond aussi à `q_bar`, `sel` à `s`, et `s` à `sum` — écrivez la borne de
+la façon qui se lit le mieux dans votre spec.
+
+<DataFlowPlayer
+  spec={functionalBlockExample}
+  mode="auto"
+  controls={false}
+  height={320}
+/>
+
+```ts
+nodes: [
+  { id: 'i0', type: 'signal', x: 0.12, y: 0.28, text: 'A', icon: '1' },
+  { id: 'i1', type: 'signal', x: 0.12, y: 0.72, text: 'B', icon: '0' },
+  { id: 'm', type: 'mux_2to1', x: 0.55, y: 0.45, text: 'MUX 2:1' },
+  { id: 'sel', type: 'signal', x: 0.45, y: 0.86, text: 'S', icon: '0' },
+  { id: 'y', type: 'signal', x: 0.88, y: 0.45, text: 'Y', icon: '1' },
+],
+connections: [
+  { from: 'i0', to: 'm:i0' },
+  { from: 'i1', to: 'm:i1' },
+  { from: 'sel', to: 'm:sel' },
+  { from: 'm:y', to: 'y' },
+],
+```
+
+:::note Uniquement les blocs à broches fixes
+
+Un bloc dont le NOMBRE de bornes varie avec sa taille — un registre N bits, un
+multiplexeur 4:1, un décodeur n→2ⁿ — n'est délibérément **pas** un type. Un type
+par taille multiplierait les symboles sans fin ; ces blocs ont besoin que leurs
+broches soient déclarées dans la spec, ce que le format ne fait pas encore.
+
+:::
+
+### Transistors MOS
+
+`mosfet_n` et `mosfet_p` exposent `gate` (`g`), `drain` (`d`) et `source` (`s`),
+et `transmission_gate` est la porte de transmission CMOS (`in` → `out`,
+commandes `en` au-dessus et `enb` au-dessous). Le N et le P se distinguent par
+la **bulle sur la grille**, la convention des schémas logiques CMOS.
+
+Les deux terminaux de canal sont **inversés** entre les deux : `source` est le
+terminal du haut sur un pMOS, `drain` est celui du haut sur un nMOS. Ce n'est
+pas une bizarrerie — c'est ce que fait tout schéma CMOS, et c'est ce qui permet
+de câbler un réseau P et un réseau N de haut en bas :
+
+<DataFlowPlayer
+  spec={cmosInverterExample}
+  mode="auto"
+  controls={false}
+  height={340}
+/>
+
+```ts
+connections: [
+  { from: 'vdd', to: 'P:s' }, // la source du pMOS regarde l'alimentation
+  { from: 'P:d', to: 'out' },
+  { from: 'out', to: 'N:d' }, // le drain du nMOS regarde la sortie
+  { from: 'N:s', to: 'gnd:a' },
+  { from: 'out', to: 'y' },
+  { from: 'in', to: 'P:g' },
+  { from: 'in', to: 'N:g' },
+],
+```
+
 Dans un schéma logique, chaque fil piloté par une entrée `signal` ou une sortie
 de porte est automatiquement teinté selon son **réseau** (son pilote), afin que
 les fils qui se croisent ou courent en parallèle se distinguent et ne semblent
-pas fusionner. La `color` explicite d'un fil (ou un
+pas fusionner. Les blocs ci-dessus pilotent eux aussi un réseau : le `q` d'une
+bascule est teinté comme le `y` d'une porte. Une `transmission_gate`, non — elle
+laisse passer un réseau au lieu d'en piloter un — et les transistors MOS non
+plus, leurs réseaux P et N partageant un même nœud de sortie. La `color` explicite d'un fil (ou un
 [`set_color`](../reference/actions.mdx#set_color) sur la connexion) l'emporte
 toujours sur la teinte automatique ; les fils pilotés par une source non logique
 (une pile, une jonction) restent neutres.
@@ -176,7 +266,9 @@ huit portes parcourant toute la table de vérité), **Demi-additionneur**, et un
 famille construite
 entièrement à partir de la **porte universelle NAND** — **Demi-additionneur**,
 **Demi-soustracteur**, **Additionneur complet**, **Soustracteur complet** et un
-**verrou SR** (deux NAND couplées en croix — un bit de mémoire). Dans les démos
+**verrou SR** (deux NAND couplées en croix — un bit de mémoire), et un cran plus
+bas, la **porte NAND en CMOS** — la même NAND dessinée en ses quatre transistors
+MOS, allumant ceux qui conduisent. Dans les démos
 logiques, chaque fil est coloré selon le **bit qu'il transporte** (vert = 1) via
 `set_color`, pour que les étudiants tracent le signal à travers les portes.
 
