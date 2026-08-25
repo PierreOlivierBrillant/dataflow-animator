@@ -14,6 +14,7 @@ import {
   rotationExample,
   functionalBlockExample,
   cmosInverterExample,
+  genericBlockExample,
 } from './_nodes/examples';
 
 Les **nœuds** (`nodes`) sont les objets statiques de la scène : serveurs,
@@ -212,6 +213,58 @@ Un bloc dont le NOMBRE de bornes varie avec sa taille — un registre N bits, un
 multiplexeur 4:1, un décodeur n→2ⁿ — n'est délibérément **pas** un type. Un type
 par taille multiplierait les symboles sans fin ; ces blocs ont besoin que leurs
 broches soient déclarées dans la spec, ce que le format ne fait pas encore.
+
+:::
+
+### Boîtiers génériques : `type: 'block'`
+
+Les huit blocs ci-dessus sont des symboles de la bibliothèque parce que leur
+nombre de bornes ne varie jamais. Un multiplexeur 4:1, un décodeur n→2ⁿ, un
+registre N bits ou une UAL en ont chacun un différent — un type de nœud par
+taille, indéfiniment. `type: 'block'` est la porte de sortie : **vous déclarez
+les bornes, et la boîte se dimensionne dessus.**
+
+```ts
+{
+  id: 'mux', type: 'block', body: 'MUX 4:1',
+  pins: [
+    { name: 'i0', label: 'D0' },
+    { name: 'i1', label: 'D1' },
+    { name: 'i2', label: 'D2' },
+    { name: 'i3', label: 'D3' },
+    { name: 'y',  side: 'right',  label: 'Y' },
+    { name: 's1', side: 'bottom', label: 'S1' },
+    { name: 's0', side: 'bottom', label: 'S0' },
+  ],
+}
+```
+
+Chaque broche porte un `name` — ce à quoi `"mux:i2"` fait référence —, un `side`
+optionnel (`'left'` par défaut, plus `'right'`, `'top'`, `'bottom'`) et un
+`label` optionnel imprimé dans la boîte, qui vaut le nom par défaut. Les bornes
+d'une même face sont réparties uniformément dans l'**ordre de déclaration** :
+réordonner le tableau réordonne les broches.
+
+La boîte grandit avec ce qu'elle contient : plus haute avec la plus chargée des
+faces gauche/droite, plus large avec les libellés les plus longs et avec le
+désignateur `body`. Rien n'est mesuré depuis le DOM — la taille découle de la
+seule déclaration, et c'est pourquoi un fil atterrit toujours exactement sur le
+libellé qui lui correspond.
+
+<DataFlowPlayer
+  spec={genericBlockExample}
+  mode="auto"
+  controls={false}
+  height={340}
+/>
+
+:::note Un boîtier ne participe pas au redressement des amorces
+
+La disposition en circuit décale les composants d'une fraction de leur propre
+corps pour aligner deux bornes, ce qui ne fonctionne que parce que tous les
+symboles de la bibliothèque rendent à une seule et même taille. Un boîtier, non :
+il reste où vous le placez et le routeur dessine les décrochages. Donnez-lui un
+peu plus de place qu'à une porte.
 
 :::
 

@@ -14,6 +14,7 @@ import {
   rotationExample,
   functionalBlockExample,
   cmosInverterExample,
+  genericBlockExample,
 } from './_nodes/examples';
 
 **Nodes** (`nodes`) are the static objects of the scene: servers,
@@ -210,6 +211,55 @@ A block whose terminal COUNT varies with its size — an N-bit register, a 4:1
 multiplexer, an n→2ⁿ decoder — is deliberately **not** a type. One type per size
 would multiply symbols without end; those blocks need their pins declared in the
 spec, which the format does not do yet.
+
+:::
+
+### Generic blocks: `type: 'block'`
+
+The eight blocks above are library symbols because their terminal count never
+varies. A 4:1 multiplexer, an n→2ⁿ decoder, an N-bit register or an ALU each have
+a different one — one node type per size, forever. `type: 'block'` is the escape
+hatch: **you declare the terminals, and the box sizes itself from them.**
+
+```ts
+{
+  id: 'mux', type: 'block', body: 'MUX 4:1',
+  pins: [
+    { name: 'i0', label: 'D0' },
+    { name: 'i1', label: 'D1' },
+    { name: 'i2', label: 'D2' },
+    { name: 'i3', label: 'D3' },
+    { name: 'y',  side: 'right',  label: 'Y' },
+    { name: 's1', side: 'bottom', label: 'S1' },
+    { name: 's0', side: 'bottom', label: 'S0' },
+  ],
+}
+```
+
+Each pin carries a `name` — what `"mux:i2"` refers to — an optional `side`
+(`'left'` by default, plus `'right'`, `'top'`, `'bottom'`) and an optional
+`label` printed inside the box, which defaults to the name. Terminals of one
+face are spread evenly over it in **declaration order**, so reordering the array
+reorders the pins.
+
+The box grows with what it holds: taller with the busiest of the left/right
+faces, wider with the longest labels and with the `body` designator. Nothing is
+measured from the DOM — the size follows from the declaration alone, which is
+why a wire always lands exactly on the label it belongs to.
+
+<DataFlowPlayer
+  spec={genericBlockExample}
+  mode="auto"
+  controls={false}
+  height={340}
+/>
+
+:::note A block opts out of lead straightening
+
+The circuit layout nudges components by fractions of their own body to line two
+terminals up, which only works because every library symbol renders at one size.
+A block does not, so it is left where you put it and the router draws the steps
+instead. Give a block a little more room than a gate.
 
 :::
 

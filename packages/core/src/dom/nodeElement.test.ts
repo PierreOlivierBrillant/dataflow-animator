@@ -6,6 +6,7 @@ import {
   renderNodeVisual,
 } from './nodeElement';
 import { escapeHtml } from '../highlight/highlight';
+import { blockGeometry } from '../engine/blockGeometry';
 import type { Node } from '../types';
 
 /** Unwraps to the element: most assertions here do not care about the code-fit
@@ -575,5 +576,64 @@ describe('renderNodeVisual', () => {
 
     expect(highlight).toHaveBeenCalledWith('x', 'js');
     expect(el.innerHTML).toContain('<em>hl</em>');
+  });
+});
+
+describe('renderNodeVisual — block', () => {
+  it('sizes the box from the declared terminals, in scaled design px', () => {
+    const el = renderNodeVisual({
+      id: 'mux',
+      type: 'block',
+      body: 'MUX 4:1',
+      pins: [
+        { name: 'i0' },
+        { name: 'i1' },
+        { name: 'i2' },
+        { name: 'i3' },
+        { name: 'y', side: 'right' },
+      ],
+    }) as HTMLElement;
+
+    expect(el.className).toBe('rdfa-block');
+    // Not a fixed 56px pictogram: the size is computed, and it still rides
+    // `--rdfa-scale` so a thumbnail is a strict reduction.
+    expect(el.style.width).toMatch(
+      /^calc\(\d+(\.\d+)?px \* var\(--rdfa-scale, 1\)\)$/
+    );
+    expect(el.style.height).toMatch(/var\(--rdfa-scale, 1\)/);
+    expect(el.querySelectorAll('.rdfa-block-pin')).toHaveLength(5);
+  });
+
+  it('prints each terminal label at the fraction its wire lands on', () => {
+    const node: Node = {
+      id: 'b',
+      type: 'block',
+      pins: [{ name: 'a' }, { name: 'b' }, { name: 'y', side: 'right' }],
+    };
+    const el = renderNodeVisual(node) as HTMLElement;
+    const geom = blockGeometry(node);
+    const tops = [...el.querySelectorAll<HTMLElement>('.rdfa-block-pin')].map(
+      (n) => n.style.top
+    );
+
+    expect(tops).toEqual([
+      `${geom.pins.a.y * 100}%`,
+      `${geom.pins.b.y * 100}%`,
+      `${geom.pins.y.y * 100}%`,
+    ]);
+  });
+
+  it('insets the designator by the label bands rather than centring on the box', () => {
+    const el = renderNodeVisual({
+      id: 'b',
+      type: 'block',
+      body: 'ALU',
+      pins: [{ name: 'a' }, { name: 'sel', side: 'bottom' }],
+    }) as HTMLElement;
+    const body = el.querySelector<HTMLElement>('.rdfa-block-body')!;
+
+    // A body centred on the whole box would print straight over `a` and `sel`.
+    expect(body.style.paddingLeft).not.toBe('');
+    expect(body.style.paddingBottom).not.toBe('');
   });
 });

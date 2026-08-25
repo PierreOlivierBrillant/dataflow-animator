@@ -600,6 +600,87 @@
   max-width: 55%;
 }
 
+/* Boîtier fonctionnel générique (`type: 'block'`) : une boîte dont la TAILLE
+   vient de `blockGeometry` (px de design × --rdfa-scale, posés en style inline).
+   Les libellés de bornes sont positionnés en absolu sur la fraction de face que
+   la MÊME géométrie donne au routeur — d'où l'absence de toute règle de
+   placement vertical ici : c'est le `top`/`left` inline qui décide. */
+.rdfa-block {
+  position: relative;
+  box-sizing: border-box;
+  color: var(--rdfa-node-stroke);
+}
+
+.rdfa-block-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.rdfa-block-bg > rect {
+  fill: var(--rdfa-fill, var(--rdfa-node-bg));
+  stroke: var(--rdfa-stroke, currentColor);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.rdfa-block-pin {
+  position: absolute;
+  z-index: 1;
+  font-size: calc(10px * var(--rdfa-scale, 1));
+  font-family: var(--rdfa-mono);
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--rdfa-ink, var(--rdfa-text));
+}
+
+.rdfa-block-pin--left,
+.rdfa-block-pin--right {
+  transform: translateY(-50%);
+}
+
+.rdfa-block-pin--left {
+  left: calc(4px * var(--rdfa-scale, 1));
+}
+
+.rdfa-block-pin--right {
+  right: calc(4px * var(--rdfa-scale, 1));
+}
+
+.rdfa-block-pin--top,
+.rdfa-block-pin--bottom {
+  transform: translateX(-50%);
+}
+
+.rdfa-block-pin--top {
+  top: calc(3px * var(--rdfa-scale, 1));
+}
+
+.rdfa-block-pin--bottom {
+  bottom: calc(3px * var(--rdfa-scale, 1));
+}
+
+.rdfa-block-body {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-size: calc(13px * var(--rdfa-scale, 1));
+  font-weight: 600;
+  font-family: var(--rdfa-mono);
+  line-height: 1.15;
+  text-align: center;
+  color: var(--rdfa-ink, var(--rdfa-text));
+  pointer-events: none;
+}
+
 .rdfa-shape {
   position: relative;
   display: inline-flex;

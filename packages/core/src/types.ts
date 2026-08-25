@@ -110,7 +110,9 @@ export type NodeType =
   | 'mux_2to1'
   | 'demux_1to2'
   | 'half_adder'
-  | 'full_adder';
+  | 'full_adder'
+  // ─── Generic functional block, terminals declared by {@link Node.pins} ───────
+  | 'block';
 
 export type PacketKind =
   | 'http_packet'
@@ -199,6 +201,40 @@ export interface ObjectContent {
    * @example [[1, "alice@corp.io"], [2, "bob@corp.io"]]
    */
   rows_data?: (string | number)[][];
+}
+
+/** Face of a `block` a terminal sits on. */
+export type BlockSide = 'left' | 'right' | 'top' | 'bottom';
+
+/**
+ * One declared terminal of a `type: 'block'` node.
+ *
+ * The fixed-pin symbols (`d_flip_flop`, `mux_2to1`, `full_adder`…) carry their
+ * terminals in the library because their COUNT never varies. A block is the
+ * escape hatch for everything whose count does — a 4:1 multiplexer, an n→2ⁿ
+ * decoder, an N-bit register, an ALU — which would otherwise need one node type
+ * per size, forever.
+ */
+export interface BlockPin {
+  /**
+   * Terminal name, used in `"node:pin"` endpoint references (`"mux:i3"`).
+   * Must be unique within the block.
+   * @example "i3"
+   */
+  name: string;
+  /**
+   * Face the terminal sits on. Terminals of the same face are spread evenly
+   * over it, in DECLARATION order (top to bottom on `left` / `right`, left to
+   * right on `top` / `bottom`). Default: `'left'`.
+   */
+  side?: BlockSide;
+  /**
+   * Text drawn inside the box next to the terminal. Defaults to {@link
+   * BlockPin.name} — set it when the wiring name and the printed name differ
+   * (`name: 'i0'`, `label: 'D0'`). Supports inline LaTeX between `$…$`.
+   * @example "D0"
+   */
+  label?: string;
 }
 
 export interface Node {
@@ -359,6 +395,20 @@ export interface Node {
    * @example 45
    */
   rotation?: number;
+  /**
+   * (`block`) Terminals of a generic functional block, in declaration order per
+   * face. The box SIZES ITSELF from them: its height follows the busiest of the
+   * `left` / `right` faces, its width the longest labels plus the `body` text,
+   * so a 4:1 multiplexer and an 8-bit register are the same node type at two
+   * different sizes.
+   *
+   * Wire a terminal by name like any other component (`"mux:i3"`,
+   * `"reg:clk"`). Ignored by every other node type — which carry their
+   * terminals in the library instead, `d_flip_flop` and `mux_2to1` included.
+   *
+   * @example [{ "name": "i0" }, { "name": "i1" }, { "name": "sel", "side": "bottom" }, { "name": "y", "side": "right" }]
+   */
+  pins?: BlockPin[];
   /**
    * (Electrical `switch` / `push_button`) Initial state of the contact: `true` =
    * closed (conducting), `false` = open (the default). Animate it with the

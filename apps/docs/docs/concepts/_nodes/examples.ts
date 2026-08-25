@@ -257,3 +257,39 @@ export const cmosInverterExample: DataFlowSpec = {
   packets: [],
   timeline: [],
 };
+
+/** Boîtier générique (`type: 'block'`) : les bornes sont DÉCLARÉES, la boîte se
+ *  dimensionne dessus. Les quatre faces sont utilisées ici. */
+export const genericBlockExample: DataFlowSpec = {
+  direction: 'circuit',
+  nodes: [
+    { id: 'a', type: 'signal', x: 0.12, y: 0.3, text: 'A', icon: '1' },
+    { id: 'b', type: 'signal', x: 0.12, y: 0.62, text: 'B', icon: '0' },
+    { id: 'op', type: 'signal', x: 0.45, y: 0.14, text: 'OP', icon: '1' },
+    {
+      id: 'alu',
+      type: 'block',
+      x: 0.52,
+      y: 0.46,
+      body: 'ALU',
+      pins: [
+        { name: 'a', label: 'A' },
+        { name: 'b', label: 'B' },
+        { name: 'op', side: 'top', label: 'OP' },
+        { name: 'y', side: 'right', label: 'Y' },
+        { name: 'z', side: 'right', label: 'Z' },
+      ],
+    },
+    { id: 'y', type: 'signal', x: 0.88, y: 0.36, text: 'Y', icon: '1' },
+    { id: 'z', type: 'signal', x: 0.88, y: 0.68, text: 'Z', icon: '0' },
+  ],
+  connections: [
+    { from: 'a', to: 'alu:a' },
+    { from: 'b', to: 'alu:b' },
+    { from: 'op', to: 'alu:op' },
+    { from: 'alu:y', to: 'y' },
+    { from: 'alu:z', to: 'z' },
+  ],
+  packets: [],
+  timeline: [],
+};

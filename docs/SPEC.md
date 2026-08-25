@@ -180,9 +180,22 @@ functional blocks** drawn as a labelled box rather than as the gates inside it:
 `d_flip_flop`, `jk_flip_flop`, `t_flip_flop`, `sr_latch` (outputs `q` / `qn`),
 `mux_2to1`, `demux_1to2` (select line entering from below) and `half_adder`,
 `full_adder` (sum on the upper output row, carry on the lower).
-Only blocks whose terminal COUNT is fixed belong to that family; a parametric one
-— an N-bit register, a 4:1 mux, an n→2ⁿ decoder — would need pins declared in the
-spec rather than a type per size, and is deliberately not modelled.
+Only blocks whose terminal COUNT is fixed belong to that family. A parametric one
+— an N-bit register, a 4:1 mux, an n→2ⁿ decoder, an ALU — is `type: 'block'`
+instead: a **generic box whose terminals are declared by {@link Node.pins}**
+(`{ name, side?, label? }`, `side` defaulting to `'left'`). Terminals of one face
+are spread evenly over it in declaration order, and the box SIZES ITSELF from
+them — taller with the busiest of the left/right faces, wider with the longest
+labels and the `body` designator.
+
+The size and every terminal fraction come from one pure function,
+[`engine/blockGeometry.ts`](../packages/core/src/engine/blockGeometry.ts), which
+both the renderer and `resolvePin` read: a label and the wire that lands on it
+cannot drift apart, because there is no second formula. Nothing is measured from
+the DOM, so a block's geometry is known before mount and identical under SSR. A
+block is excluded from the layout's lead-straightening nudges (`hasUniformBody`):
+those compare terminal offsets as fractions of each body, which is only sound
+while every symbol renders at one size.
 Component symbols expose **named terminals** (see [§4](#4-routing-and-collision-prevention));
 `switch` / `push_button` carry a `closed` state animated by the [`toggle` action](#5-animation-engine-and-actions).
 Any node may also set `value` + `unit` to build its label (`"10 kΩ"`), combined

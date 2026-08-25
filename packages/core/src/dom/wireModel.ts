@@ -114,7 +114,7 @@ export function contourResolver(
     const { node, pin } = parseRef(ref);
     const n = nodeById.get(node);
     if (!n) return undefined;
-    const pinDef = resolvePin(n.type, pin);
+    const pinDef = resolvePin(n, pin);
     const rotationDeg = n.rotation ?? autoRotationById.get(n.id) ?? 0;
     return pinDef
       ? { kind: 'pin', pin: pinDef, rotationDeg }
@@ -356,6 +356,15 @@ export function routeCircuit(
   });
   if (!raw.length) return empty;
 
+  // Identity of the TERMINAL an end leaves from, so the router can tell two pins
+  // of one node apart. Keyed by the resolved POSITION rather than by the pin's
+  // spelling: `and_gate` exposes `y` and `out` as aliases of one terminal, and
+  // two wires written each way must still count as the same driver.
+  const terminalId = (ref: string, nodeId: string): string => {
+    const c = ctx.contourFor(ref);
+    return c?.kind === 'pin' ? `${nodeId}@${c.pin.x},${c.pin.y}` : nodeId;
+  };
+
   const wires: RouterWire[] = raw.map(
     ({ link, key, fromNode, toNode, ends, fromFace, toFace }) => {
       // Every wire of a pad shares its ONE centred port, and forks downstream.
@@ -369,6 +378,7 @@ export function routeCircuit(
         key,
         from: {
           node: fromNode,
+          terminal: terminalId(link.from, fromNode),
           point: fromPort ?? ends.from.point,
           normal: fromPort ? { x: 1, y: 0 } : ends.from.normal,
           hardNormal: ctx.contourFor(link.from)?.kind !== 'point',
@@ -376,6 +386,7 @@ export function routeCircuit(
         },
         to: {
           node: toNode,
+          terminal: terminalId(link.to, toNode),
           point: toPort ?? ends.to.point,
           normal: toPort ? { x: -1, y: 0 } : ends.to.normal,
           hardNormal: ctx.contourFor(link.to)?.kind !== 'point',

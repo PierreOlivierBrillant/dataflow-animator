@@ -223,6 +223,31 @@
             45
           ]
         },
+        "pins": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/BlockPin"
+          },
+          "description": "(`block`) Terminals of a generic functional block, in declaration order per face. The box SIZES ITSELF from them: its height follows the busiest of the `left` / `right` faces, its width the longest labels plus the `body` text, so a 4:1 multiplexer and an 8-bit register are the same node type at two different sizes.\n\nWire a terminal by name like any other component (`\"mux:i3\"`, `\"reg:clk\"`). Ignored by every other node type — which carry their terminals in the library instead, `d_flip_flop` and `mux_2to1` included.",
+          "examples": [
+            [
+              {
+                "name": "i0"
+              },
+              {
+                "name": "i1"
+              },
+              {
+                "name": "sel",
+                "side": "bottom"
+              },
+              {
+                "name": "y",
+                "side": "right"
+              }
+            ]
+          ]
+        },
         "closed": {
           "type": "boolean",
           "description": "(Electrical `switch` / `push_button`) Initial state of the contact: `true` = closed (conducting), `false` = open (the default). Animate it with the `toggle` action — the lever swings and the state persists. Ignored by every other node type.",
@@ -330,9 +355,10 @@
         "mux_2to1",
         "demux_1to2",
         "half_adder",
-        "full_adder"
+        "full_adder",
+        "block"
       ],
-      "description": "Node types (appearance). Decor arrows live in `connections`.\n\nFour families:\n- **Pictograms** (`desktop` … `cloud`): a fixed SVG icon.\n- **Text nodes** (`simple_node`, `complex_node`): a text box   (body only, or header + body like an HTTP packet).\n- **Geometric shapes** (`square` … `star`): a drawn shape that can   contain short centered text (`body` field).\n- **Electrical components** (`resistor` … `transformer`): schematic symbols   with **named terminals** (see  {@link  Node.pins  }  — actually resolved from the   type). A `Connection` targets a specific terminal with `\"node:pin\"` (e.g.   `\"R1:a\"`, `\"Q1:base\"`). Best drawn in `direction: 'circuit'`."
+      "description": "Node types (appearance). Decor arrows live in `connections`.\n\nFour families:\n- **Pictograms** (`desktop` … `cloud`): a fixed SVG icon.\n- **Text nodes** (`simple_node`, `complex_node`): a text box   (body only, or header + body like an HTTP packet).\n- **Geometric shapes** (`square` … `star`): a drawn shape that can   contain short centered text (`body` field).\n- **Electrical components** (`resistor` … `transformer`): schematic symbols   with **named terminals** (see  {@link  Node.pins }  — actually resolved from the   type). A `Connection` targets a specific terminal with `\"node:pin\"` (e.g.   `\"R1:a\"`, `\"Q1:base\"`). Best drawn in `direction: 'circuit'`."
     },
     "ObjectContent": {
       "type": "object",
@@ -435,6 +461,44 @@
         "http"
       ],
       "description": "Languages supported by the syntax highlighting engine (Prism)."
+    },
+    "BlockPin": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Terminal name, used in `\"node:pin\"` endpoint references (`\"mux:i3\"`). Must be unique within the block.",
+          "examples": [
+            "i3"
+          ]
+        },
+        "side": {
+          "$ref": "#/definitions/BlockSide",
+          "description": "Face the terminal sits on. Terminals of the same face are spread evenly over it, in DECLARATION order (top to bottom on `left` / `right`, left to right on `top` / `bottom`). Default: `'left'`."
+        },
+        "label": {
+          "type": "string",
+          "description": "Text drawn inside the box next to the terminal. Defaults to  {@link  * BlockPin.name }  — set it when the wiring name and the printed name differ (`name: 'i0'`, `label: 'D0'`). Supports inline LaTeX between `$…$`.",
+          "examples": [
+            "D0"
+          ]
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "additionalProperties": false,
+      "description": "One declared terminal of a `type: 'block'` node.\n\nThe fixed-pin symbols (`d_flip_flop`, `mux_2to1`, `full_adder`…) carry their terminals in the library because their COUNT never varies. A block is the escape hatch for everything whose count does — a 4:1 multiplexer, an n→2ⁿ decoder, an N-bit register, an ALU — which would otherwise need one node type per size, forever."
+    },
+    "BlockSide": {
+      "type": "string",
+      "enum": [
+        "left",
+        "right",
+        "top",
+        "bottom"
+      ],
+      "description": "Face of a `block` a terminal sits on."
     },
     "TreeSpec": {
       "type": "object",

@@ -29,6 +29,27 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   N-bit register, a 4:1 multiplexer, an n→2ⁿ decoder — would need one type per
   size, and belongs to a future block whose pins are declared in the spec.
 
+- **`type: 'block'` — a functional block whose terminals are declared in the
+  spec.** The fixed-pin symbols cover what never varies; a 4:1 multiplexer, an
+  n→2ⁿ decoder, an N-bit register or an ALU each have a different terminal count,
+  and one node type per size is not a catalogue that ends. A block takes a
+  `pins` list — `{ name, side?, label? }`, `side` one of `left` (the default),
+  `right`, `top`, `bottom` — spreads each face's terminals evenly in declaration
+  order, and **sizes its box from them**: taller with the busiest vertical face,
+  wider with the longest labels and the `body` designator.
+
+  The size and every terminal position come from a single pure function that
+  both the renderer and the wire router read, so a printed pin name and the wire
+  that lands on it cannot drift apart. Nothing is measured from the DOM, so the
+  geometry is known before mount and identical under SSR.
+
+  A block does not take part in the circuit layout's lead-straightening nudges:
+  those compare terminal offsets as fractions of each body, which only holds
+  while every symbol renders at one size. The router draws the steps instead.
+
+- **A new gallery demo, "Multiplexer 4:1"**, stepping through the four select
+  values and lighting the one input path that reaches the output.
+
 - **A new gallery demo, "CMOS NAND gate"**: the same NAND the rest of the
   electronics demos are built from, drawn as its four transistors, lighting up
   the ones that conduct for each of the four input combinations.

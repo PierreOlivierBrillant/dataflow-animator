@@ -45,6 +45,7 @@ import { fullAdderNand } from './demos/fullAdderNand';
 import { fullSubtractorNand } from './demos/fullSubtractorNand';
 import { srLatch } from './demos/srLatch';
 import { cmosNand } from './demos/cmosNand';
+import { mux4to1 } from './demos/mux4to1';
 import { rcCircuit } from './demos/rcCircuit';
 
 /** Clé de catégorie (stable, indépendante de la langue). Les libellés affichés
@@ -1177,6 +1178,39 @@ export const demos: Demo[] = [
       ],
     },
     spec: cmosNand,
+  },
+  {
+    id: 'mux4to1',
+    title: {
+      fr: 'Multiplexeur 4:1 (boîtier générique)',
+      en: 'Multiplexer 4:1 (generic block)',
+    },
+    description: {
+      fr: 'Quatre entrées, deux bits de sélection, une sortie — et un boîtier dont les bornes sont déclarées dans la spec plutôt qu’un symbole par taille.',
+      en: 'Four inputs, two select bits, one output — a block whose terminals are declared in the spec rather than one symbol per size.',
+    },
+    category: 'electronics',
+    tags: {
+      fr: [
+        'multiplexeur',
+        'mux',
+        'sélection',
+        'boîtier',
+        'combinatoire',
+        'numérique',
+        'broches',
+      ],
+      en: [
+        'multiplexer',
+        'mux',
+        'select',
+        'block',
+        'combinational',
+        'digital',
+        'pins',
+      ],
+    },
+    spec: mux4to1,
   },
   {
     id: 'rcCircuit',

@@ -1,4 +1,5 @@
-import type { NodeType } from '../types';
+import type { Node, NodeType } from '../types';
+import { blockGeometry } from './blockGeometry';
 
 /**
  * Named terminals ("pins") of electrical component symbols, and the parsing of
@@ -267,13 +268,31 @@ export const COMPONENT_PINS: Partial<Record<NodeType, Record<string, PinDef>>> =
   };
 
 /**
- * Whether `type` declares named terminals at all. A type that does NOT (a `signal`
+ * Whether `node` declares named terminals at all. A node that does NOT (a `signal`
  * I/O pad, a plain box) has a single terminal centred on the face it presents — so
  * callers must not read a missing {@link PinDef} as "unknown pin"; it is the absence
  * of a pin MAP that says "this is a face-anchored pad".
+ *
+ * Takes the NODE, not the type: a `block` carries its terminals in the spec, so
+ * two nodes of the same type can legitimately answer differently.
  */
-export function hasPins(type: NodeType): boolean {
-  return COMPONENT_PINS[type] !== undefined;
+export function hasPins(node: Node): boolean {
+  if (node.type === 'block') return (node.pins?.length ?? 0) > 0;
+  return COMPONENT_PINS[node.type] !== undefined;
+}
+
+/**
+ * Whether a node's terminal offsets are comparable with another node's.
+ *
+ * The layout's lead-straightening heuristics compare two terminals as FRACTIONS
+ * of their own bodies, which only works because every library symbol renders at
+ * one and the same size. A `block` sizes itself from its pin count, so its 0.25
+ * is not a gate's 0.25 — and a nudge computed from the difference would move the
+ * node by the wrong amount. Blocks therefore opt out, and the router draws the
+ * steps instead of the layout hiding them.
+ */
+export function hasUniformBody(node: Node): boolean {
+  return node.type !== 'block';
 }
 
 /** An INTERCHANGEABLE PAIR of input terminals, whose order is logically
@@ -383,15 +402,20 @@ export function refNode(ref: string): string {
 }
 
 /**
- * Resolves the {@link PinDef} a `"node:pin"` reference targets, given the node's
- * `type`. Returns `undefined` when the reference has no pin, the type has no
- * terminals, or the name is unknown — the caller then falls back to face/outline
- * anchoring.
+ * Resolves the {@link PinDef} a `"node:pin"` reference targets. Returns
+ * `undefined` when the reference has no pin, the node has no terminals, or the
+ * name is unknown — the caller then falls back to face/outline anchoring.
+ *
+ * A `block` is resolved from the terminals IT declares, everything else from the
+ * per-type table. The block's positions come from {@link blockGeometry}, the same
+ * call the renderer lays its labels out with, so a wire cannot land anywhere but
+ * on the label it belongs to.
  */
 export function resolvePin(
-  type: NodeType,
+  node: Node,
   pin: string | undefined
 ): PinDef | undefined {
   if (!pin) return undefined;
-  return COMPONENT_PINS[type]?.[pin];
+  if (node.type === 'block') return blockGeometry(node).pins[pin];
+  return COMPONENT_PINS[node.type]?.[pin];
 }
