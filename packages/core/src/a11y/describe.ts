@@ -6,6 +6,7 @@ import type {
   Packet,
 } from '../types';
 import type { Timeline } from '../engine/timeline';
+import { htmlToPlainText } from '../html/plainText';
 import type { PlayerLabels } from '../dom/labels';
 
 /**
@@ -201,7 +202,17 @@ function objectName(id: string, cast: Cast, labels: PlayerLabels): string {
 /** The content a `set_content` puts on a node, as one spoken clause. */
 function contentName(content: ObjectContent, labels: PlayerLabels): string {
   const { type, value, url, columns, rows_data: rows } = content;
-  if (type === 'image') return labels.describeContentImage;
+  if (type === 'image')
+    return content.frames?.length
+      ? labels.describeContentAnimation
+      : labels.describeContentImage;
+  if (type === 'html') {
+    // The transcript is the ONLY equivalent of the stage for a reader who is
+    // not looking at it, so a rich panel has to arrive as its words — not as
+    // its markup, and not as "some HTML".
+    const words = htmlToPlainText(value ?? '');
+    return words === '' ? labels.describeContentEmpty : condense(words);
+  }
   if (type === 'table') {
     return fillCount(
       labels.describeContentTable,

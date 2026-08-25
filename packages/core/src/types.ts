@@ -147,7 +147,7 @@ export type PathShape =
   | 'smoothstep';
 
 /** Content modes for `set_content` (action) and `content` (static object). */
-export type ContentType = 'image' | 'text' | 'code' | 'table';
+export type ContentType = 'image' | 'text' | 'code' | 'table' | 'html';
 
 /** Languages supported by the syntax highlighting engine (Prism). */
 export type HighlightLanguage =
@@ -175,22 +175,60 @@ export type HighlightLanguage =
 export interface ObjectContent {
   /**
    * Content display mode: `code` (colored terminal), `text` (browser-like
-   * window), `image` (illustration) or `table` (data table).
+   * window), `image` (illustration), `table` (data table) or `html` (rich
+   * markup, sanitized).
    */
   type?: ContentType;
   /**
-   * Textual content according to `type`: source code (`code`), text (`text`) or
-   * image path/URL (`image`).
+   * Textual content according to `type`: source code (`code`), text (`text`),
+   * image path/URL (`image`) or markup (`html`).
    * @example "SELECT * FROM users;"
    */
   value?: string;
   /** Language for syntax highlighting. Recognized values: see {@link HighlightLanguage}. */
   language?: HighlightLanguage | (string & {});
   /**
-   * (`text` mode) URL displayed in the window's address bar.
+   * (`text` mode, and `html` when provided) URL displayed in the window's
+   * address bar. An `html` panel with no `url` renders bare, without chrome.
    * @example "https://app.example.com/login"
    */
   url?: string;
+  /**
+   * (`html` mode) Width, in px, of the DESIGN SPACE the markup is laid out in.
+   * Setting it turns the panel into a SCREEN: the layout is computed once at
+   * this width and then scaled uniformly to fit the room the node has, so the
+   * same arrangement is recognisable at every player size instead of
+   * re-flowing. Clamped to `[40, 4000]`.
+   * @example 480
+   */
+  screen_width?: number;
+  /**
+   * (`html` mode) Height of the design space, in px. Default:
+   * `screen_width × 0.625` — a 16:10 lid. A screen is a fixed box: what does
+   * not fit is cropped, as it is on a real one.
+   * @example 300
+   */
+  screen_height?: number;
+  /**
+   * (`image` mode) Frame sequence played from the ANIMATION's clock rather than
+   * the browser's: it pauses with the player, rewinds when scrubbed backwards
+   * and exports frame-accurately — none of which an animated GIF in `value`
+   * can do. Each entry is an image source, ideally a `data:` URI (a remote one
+   * cannot be rasterized by the video export). `value` is the still shown when
+   * the list is empty.
+   * @example ["data:image/png;base64,iVBORw0…", "data:image/png;base64,iVBORw1…"]
+   */
+  frames?: string[];
+  /**
+   * (`image` mode) Playback rate of `frames`, in frames per second. Clamped to
+   * `[0.1, 60]`. Default: 12.
+   */
+  fps?: number;
+  /**
+   * (`image` mode) Whether `frames` repeats. `false` holds the last frame once
+   * the sequence has played through. Default: true.
+   */
+  loop?: boolean;
   /**
    * (`table` mode) Column headers.
    * @example ["id", "email"]

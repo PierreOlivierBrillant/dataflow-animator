@@ -25,6 +25,22 @@ import type { Locale } from '../i18n';
  * quelles.
  */
 
+/**
+ * Eight frames of a rotating dot, as inline SVG.
+ *
+ * `data:` rather than a file on purpose: a rasterised video frame cannot load
+ * anything from another origin, so a sequence built from remote images plays on
+ * screen and fails the export.
+ */
+const apiSpinnerFrames = Array.from({ length: 8 }, (_, i) => {
+  const angle = (i / 8) * 2 * Math.PI;
+  const x = (50 + 32 * Math.cos(angle)).toFixed(1);
+  const y = (50 + 32 * Math.sin(angle)).toFixed(1);
+  return `data:image/svg+xml,${encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 100 100"><circle cx="50" cy="50" r="38" fill="none" stroke="#cbd5e1" stroke-width="6"/><circle cx="${x}" cy="${y}" r="9" fill="#3b82f6"/></svg>`
+  )}`;
+});
+
 export interface ApiExamples {
   specs: Record<string, DataFlowSpec>;
   notes: Record<string, string>;
@@ -459,6 +475,42 @@ function build(locale: Locale): ApiExamples {
               [2, 'bob@x.io'],
             ],
           },
+        },
+      ],
+      packets: [],
+      timeline: [],
+    },
+    'ObjectContent.screen_width': {
+      nodes: [
+        {
+          id: 'n',
+          type: 'laptop',
+          text: tr('Browser', 'Navigateur'),
+          content: {
+            type: 'html',
+            url: 'app.example/dashboard',
+            screen_width: 480,
+            screen_height: 300,
+            value:
+              '<div style="height:100%;display:flex;flex-direction:column;background:#fff;color:#111">' +
+              '<div style="padding:8px 12px;border-bottom:1px solid #e5e5e5;font-weight:600;font-size:13px">Dashboard</div>' +
+              '<div style="flex:1;display:flex;gap:10px;padding:12px">' +
+              '<div style="flex:1;background:#eef2ff;border-radius:6px"></div>' +
+              '<div style="flex:1;background:#ecfdf5;border-radius:6px"></div>' +
+              '</div></div>',
+          },
+        },
+      ],
+      packets: [],
+      timeline: [],
+    },
+    'ObjectContent.frames': {
+      nodes: [
+        {
+          id: 'n',
+          type: 'server',
+          text: tr('Worker', 'Worker'),
+          content: { type: 'image', frames: apiSpinnerFrames, fps: 8 },
         },
       ],
       packets: [],

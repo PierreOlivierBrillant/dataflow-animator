@@ -5,7 +5,14 @@ import type { ContentLimit } from '../engine/placements';
 import { blockGeometry } from '../engine/blockGeometry';
 import { escapeHtml } from '../highlight/highlight';
 import { h, pct, px, s, syncStyle, type Child } from './el';
-import { buildContentPanel, type CodeFitTarget } from './contentElement';
+import {
+  applyContentFrame,
+  applyContentScreen,
+  buildContentPanel,
+  type CodeFitTarget,
+  type FrameTarget,
+  type ScreenTarget,
+} from './contentElement';
 import { renderNodeIcon } from './icons/nodeIcons';
 import { renderSubIcon } from './icons/subIcons';
 import { appendRichText } from './richtext';
@@ -34,6 +41,9 @@ export interface NodeElementOptions {
   /** Per-node panel ceiling, so a panel shrinks rather than covering a
    *  neighbour. Rewritten each pass (it scales with the player). */
   contentLimit?: ContentLimit;
+  /** Index into an `image` content's `frames`, for the current `t`. Absent when
+   *  the content carries no sequence — the still in `value` then stands. */
+  contentFrame?: number;
   /** Runtime badge override (`set_icon`); `''` clears it. */
   iconOverride?: string;
   /** Live contact state (0..1) for `switch` / `push_button`. */
@@ -280,6 +290,10 @@ export interface NodeElement {
   readonly label?: HTMLElement;
   /** Present when the node currently hosts a `code` panel. */
   codeFit?: CodeFitTarget;
+  /** Present when the node hosts an `image` panel with a `frames` sequence. */
+  frames?: FrameTarget;
+  /** Present when the node hosts an `html` panel with a design space. */
+  screen?: ScreenTarget;
   /** Memo of the last applied values, so a stable node costs no DOM writes. */
   cls?: string;
   labelCls?: string;
@@ -423,8 +437,17 @@ export function applyNodeElement(
     }
 
     handle.codeFit = panel?.codeFit;
+    handle.frames = panel?.frames;
+    handle.screen = panel?.screen;
     handle.body = bodyKey;
   }
+
+  // Outside the rebuild: the sequence advances while the panel itself is
+  // unchanged, which is exactly the case `sameBodyKey` short-circuits.
+  if (handle.frames) applyContentFrame(handle.frames, options.contentFrame);
+  // Same reason, different input: the node's allowance is rewritten on every
+  // convergence pass, and a screen's whole job is to follow it.
+  if (handle.screen) applyContentScreen(handle.screen, options.contentLimit);
 
   // Rotation lives on the VISUAL, never on `.rdfa-node`: the label must stay
   // upright, and the layout box arrows anchor to must not change. The reveal's

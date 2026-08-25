@@ -316,6 +316,62 @@ describe('describeAnimation', () => {
     );
   });
 
+  it('speaks the WORDS of an html panel, never its markup', () => {
+    const result = run({
+      ...base,
+      timeline: [
+        {
+          type: 'set_content',
+          object: 'api',
+          content: {
+            type: 'html',
+            value: '<h3>Cache hit</h3><p>Served from <b>Redis</b>.</p>',
+          },
+        },
+      ],
+    });
+
+    expect(result.steps[0].text).toBe(
+      'Web server now shows: Cache hit Served from Redis.'
+    );
+  });
+
+  it('says an html panel with no words shows nothing', () => {
+    const result = run({
+      ...base,
+      timeline: [
+        {
+          type: 'set_content',
+          object: 'api',
+          content: { type: 'html', value: '<hr>' },
+        },
+      ],
+    });
+
+    expect(result.steps[0].text).toBe('Web server now shows: nothing.');
+  });
+
+  it('tells an animation apart from a still image', () => {
+    const result = run({
+      ...base,
+      timeline: [
+        {
+          type: 'set_content',
+          object: 'api',
+          content: { type: 'image', value: 'a.png' },
+        },
+        {
+          type: 'set_content',
+          object: 'db',
+          content: { type: 'image', frames: ['f0.png', 'f1.png'] },
+        },
+      ],
+    });
+
+    expect(result.steps[0].text).toBe('Web server now shows: an image.');
+    expect(result.steps[1].text).toBe('Database now shows: an animation.');
+  });
+
   it('clips overlong content to a readable clause', () => {
     const result = run({
       ...base,

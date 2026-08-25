@@ -10,6 +10,8 @@ import {
   parallelExample,
   loadingExample,
   setContentExample,
+  richContentExample,
+  screenExample,
   commentExample,
   setVisibleExample,
   setColorExample,
@@ -98,13 +100,15 @@ Affiche un spinner de chargement sur un nœud cible (simule un traitement).
 
 Mute le contenu d'un nœud. Le contenu suit la forme `ObjectContent`, partagée
 avec le champ [`content`](../concepts/nodes.mdx#content--contenu-initial) d'un
-nœud. Quatre modes via `type` :
+nœud. Cinq modes via `type` :
 
 - **`code`** : terminal sombre avec coloration Prism, sans barre d'URL ; la
   police s'ajuste pour faire tenir la ligne la plus longue sans wrap.
 - **`text`** : fenêtre de navigateur avec barre d'URL paramétrable (`url`).
-- **`image`** : image (`value` = chemin/URL) affichée dans une fenêtre.
+- **`image`** : image (`value` = chemin/URL) affichée dans une fenêtre, ou
+  **séquence animée** (`frames`).
 - **`table`** : tableau de données (`columns` + `rows_data`).
+- **`html`** : balisage riche, assaini (`value`).
 
 :::caution Le texte est dans `value`
 
@@ -158,18 +162,141 @@ Mode `table` :
 }
 ```
 
-| Champ       | Modes concernés | Rôle                                             |
-| ----------- | --------------- | ------------------------------------------------ |
-| `type`      | tous            | `code` \| `text` \| `image` \| `table`.          |
-| `value`     | code/text/image | Texte source, ou chemin d'image.                 |
-| `language`  | code            | Langage de coloration (cf. `HighlightLanguage`). |
-| `url`       | text            | Barre d'adresse de la fenêtre.                   |
-| `columns`   | table           | En-têtes de colonnes.                            |
-| `rows_data` | table           | Lignes de données.                               |
+| Champ           | Modes concernés      | Rôle                                                         |
+| --------------- | -------------------- | ------------------------------------------------------------ |
+| `type`          | tous                 | `code` \| `text` \| `image` \| `table` \| `html`.            |
+| `value`         | code/text/image/html | Texte source, chemin d'image, ou balisage.                   |
+| `language`      | code                 | Langage de coloration (cf. `HighlightLanguage`).             |
+| `url`           | text/html            | Barre d'adresse de la fenêtre.                               |
+| `columns`       | table                | En-têtes de colonnes.                                        |
+| `rows_data`     | table                | Lignes de données.                                           |
+| `screen_width`  | html                 | Largeur de conception en px — fait du panneau un écran.      |
+| `screen_height` | html                 | Hauteur de conception en px (défaut `screen_width` × 0,625). |
+| `frames`        | image                | Séquence d'images, jouée sur l'horloge de l'animation.       |
+| `fps`           | image                | Cadence de `frames` (12 par défaut, bornée 0,1–60).          |
+| `loop`          | image                | `false` retient la dernière image au lieu de reboucler.      |
 
-Les trois modes, côte à côte (`code`, `text`, puis `table`) :
+Les trois modes textuels, côte à côte (`code`, `text`, puis `table`) :
 
 <DataFlowPlayer spec={setContentExample} mode="auto" height={340} />
+
+### `html` — balisage riche
+
+Le balisage de `value` est analysé **inerte**, puis **reconstruit depuis une
+liste blanche** : mise en forme, listes, tableaux, `img`, et un sous-ensemble
+étroit de SVG inline. Une spec est une donnée — elle peut venir d'un CMS ou d'un
+formulaire — donc tout ce qui n'est pas sur la liste est écarté silencieusement :
+`<script>`, `<style>`, `<iframe>`, tous les gestionnaires `on*`, et toute URL
+dont le schéma n'est ni `http`, ni `https`, ni `data:image/…`.
+
+:::caution Style inline, jamais `class`
+
+`class` et `id` sont écartés, et ce n'est pas une décision de sécurité. Une image
+vidéo rasterisée n'embarque que les règles CSS dont le sélecteur contient `rdfa`
+: une classe stylée par la page hôte s'afficherait à l'écran et **sans style dans
+la vidéo exportée** — la même spec, deux images différentes. Le `style` inline,
+lui, voyage avec l'élément : c'est celui qu'il faut utiliser. Il est filtré aussi
+: `position` et les propriétés personnalisées sont refusées (elles laisseraient
+le contenu sortir de son nœud ou repeindre le lecteur), et `url(…)` est refusé
+dans toute valeur.
+
+:::
+
+```ts
+{
+  type: 'set_content',
+  object: 'card',
+  content: {
+    type: 'html',
+    value:
+      '<h3>Cache préchauffé</h3>' +
+      '<ul><li><b>Taux de succès</b> 94&nbsp;%</li></ul>' +
+      '<p style="color:#16a34a">Tous les fragments au vert</p>',
+  },
+}
+```
+
+Contrairement à `text`, un panneau `html` n'affiche le chrome de navigateur **que
+si vous lui donnez une `url`** — un balisage riche est aussi souvent une légende
+ou une fiche qu'une page web.
+
+### `screen_width` — une page qui se met à l'échelle au lieu de se remettre en page
+
+Par défaut, un panneau riche se comporte comme un paragraphe : sa boîte est
+plafonnée par l'allocation du nœud et sa typographie garde la taille que lui
+donne la feuille de style — le même balisage devient donc une mise en page à deux
+colonnes sur un grand lecteur et une pile de lignes repliées sur un petit. Pour
+une **interface simulée**, c'est le mauvais comportement : la disposition EST le
+message, et un étudiant doit reconnaître le même écran à toutes les tailles.
+
+Renseignez `screen_width` et le panneau devient un **écran** : le balisage est
+mis en page une seule fois, dans cet espace de pixels, et le rendu ne change plus
+que l'ÉCHELLE.
+
+```ts
+content: {
+  type: 'html',
+  url: 'videos.example/watch?v=42',
+  screen_width: 480,   // l'espace de conception contre lequel on écrit
+  screen_height: 300,  // facultatif — par défaut 480 × 0,625, un écran 16:10
+  value: '<div style="display:flex">…</div>',
+}
+```
+
+Trois conséquences à connaître :
+
+- **La barre d'adresse passe à l'intérieur de l'écran**, donc elle se met à
+  l'échelle avec la page au lieu de rester à côté à la taille du lecteur — un
+  navigateur simulé est une seule image.
+- **La mise à l'échelle du lecteur s'arrête au bord de l'écran.** À l'intérieur,
+  `12px` vaut 12 pixels de conception, quelle que soit la taille de la fenêtre.
+- **Un écran est une boîte fixe** : ce qui ne rentre pas est rogné, exactement
+  comme un vrai écran rogne ce qui est sous la ligne de flottaison.
+
+Ci-dessous : une page dont la coquille ne bouge pas pendant que ses données
+arrivent. Les deux `set_content` portent `fade_in_ms: 0`, donc le basculement est
+instantané — et comme le balisage de la coquille est identique de part et
+d'autre, seule la région qui a changé semble changer. C'est ce qui le fait lire
+comme une application monopage plutôt que comme un rechargement.
+
+<DataFlowPlayer spec={screenExample} mode="auto" height={360} />
+
+### `image` — une image fixe, ou une séquence animée
+
+`value` seul donne une image fixe. `frames` est une liste ordonnée de sources
+d'images jouée sur **l'horloge de l'animation** : l'image à l'écran est une
+fonction pure de `t`, exactement comme toute autre valeur rendue.
+
+```ts
+{
+  type: 'set_content',
+  object: 'worker',
+  content: {
+    type: 'image',
+    frames: ['data:image/svg+xml,…', 'data:image/svg+xml,…'],
+    fps: 8,
+  },
+}
+```
+
+C'est ce qu'un GIF animé ne sait pas faire. La tête de lecture d'un GIF est
+inaccessible depuis JavaScript : il continue de tourner pendant que le lecteur
+est en pause, ne rembobine pas quand on scrube en arrière, et une image exportée
+attrape l'instant où le décodeur se trouvait. Une séquence `frames` se met en
+pause, rembobine et s'exporte image par image.
+
+Un `set_content` sans `duration` explicite reçoit le temps nécessaire à sa
+séquence pour se dérouler une fois, au lieu du battement fixe d'une image.
+
+:::tip Préférez les URI `data:`
+
+Une image vidéo rasterisée ne peut rien charger depuis une autre origine. Une
+entrée de `frames` (ou un `<img src>` dans un panneau `html`) qui pointe vers une
+URL distante s'affiche à l'écran et fait échouer l'export vidéo.
+
+:::
+
+<DataFlowPlayer spec={richContentExample} mode="auto" height={340} />
 
 ## `comment`
 

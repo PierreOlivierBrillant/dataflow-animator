@@ -10,6 +10,8 @@ import {
   parallelExample,
   loadingExample,
   setContentExample,
+  richContentExample,
+  screenExample,
   commentExample,
   setVisibleExample,
   setColorExample,
@@ -97,14 +99,15 @@ Displays a loading spinner on a target node (simulates processing).
 ## `set_content`
 
 Mutates the content of a node. The content follows the `ObjectContent` shape, shared
-avec `node.content` (voir [`content`](../concepts/nodes.mdx#content--initial-content))
-:
+with `node.content` (see [`content`](../concepts/nodes.mdx#content--initial-content)):
 
 - **`code`**: dark terminal with Prism highlighting, no URL bar; the
   font adjusts to fit the longest line without wrapping.
 - **`text`**: browser window with a configurable URL bar (`url`).
-- **`image`**: image (`value` = path/URL) displayed in a window.
+- **`image`**: image (`value` = path/URL) displayed in a window, or an
+  **animated sequence** (`frames`).
 - **`table`**: data table (`columns` + `rows_data`).
+- **`html`**: rich markup, sanitized (`value`).
 
 :::caution The text is in `value`
 
@@ -158,18 +161,136 @@ the wrapping object.
 }
 ```
 
-| Field       | Affected modes  | Role                                             |
-| ----------- | --------------- | ------------------------------------------------ |
-| `type`      | all             | `code` \| `text` \| `image` \| `table`.          |
-| `value`     | code/text/image | Source text, or image path.                      |
-| `language`  | code            | Highlighting language (cf. `HighlightLanguage`). |
-| `url`       | text            | Address bar of the window.                       |
-| `columns`   | table           | Column headers.                                  |
-| `rows_data` | table           | Data rows.                                       |
+| Field           | Affected modes       | Role                                                  |
+| --------------- | -------------------- | ----------------------------------------------------- |
+| `type`          | all                  | `code` \| `text` \| `image` \| `table` \| `html`.     |
+| `value`         | code/text/image/html | Source text, image path, or markup.                   |
+| `language`      | code                 | Highlighting language (cf. `HighlightLanguage`).      |
+| `url`           | text/html            | Address bar of the window.                            |
+| `columns`       | table                | Column headers.                                       |
+| `rows_data`     | table                | Data rows.                                            |
+| `screen_width`  | html                 | Design width in px — turns the panel into a screen.   |
+| `screen_height` | html                 | Design height in px (default `screen_width` × 0.625). |
+| `frames`        | image                | Frame sequence, played from the animation's clock.    |
+| `fps`           | image                | Rate of `frames` (default 12, clamped to 0.1–60).     |
+| `loop`          | image                | `false` holds the last frame instead of repeating.    |
 
-The three modes, side by side (`code`, `text`, then `table`):
+The three text modes, side by side (`code`, `text`, then `table`):
 
 <DataFlowPlayer spec={setContentExample} mode="auto" height={340} />
+
+### `html` — rich markup
+
+The markup in `value` is parsed **inert** and then **rebuilt from an allow-list**:
+formatting, lists, tables, `img`, and a narrow inline-SVG subset. A spec is data
+— it may come from a CMS or a form — so anything not on the list is dropped
+silently: `<script>`, `<style>`, `<iframe>`, every `on*` handler, and any URL
+whose scheme is not `http`, `https` or `data:image/…`.
+
+:::caution Style inline, never `class`
+
+`class` and `id` are dropped, and this is not a security decision. A rasterized
+video frame carries only the CSS rules whose selector contains `rdfa`, so a class
+the host page styles would render on screen and render **unstyled in the exported
+video** — the same spec, two different pictures. Inline `style` travels with the
+element, so use it. The `style` attribute is filtered too: `position` and custom
+properties are refused (they would let content escape its node or repaint the
+player), and `url(…)` is refused in every value.
+
+:::
+
+```ts
+{
+  type: 'set_content',
+  object: 'card',
+  content: {
+    type: 'html',
+    value:
+      '<h3>Cache warmed</h3>' +
+      '<ul><li><b>Hit rate</b> 94&nbsp;%</li></ul>' +
+      '<p style="color:#16a34a">All shards green</p>',
+  },
+}
+```
+
+Unlike `text`, an `html` panel shows the browser chrome **only if you give it a
+`url`** — rich markup is as often a legend or a card as it is a web page.
+
+### `screen_width` — a page that scales instead of re-flowing
+
+By default a rich panel behaves like a paragraph: its box is capped by the
+node's allowance and the type keeps the size the stylesheet gives it, so the
+same markup is a two-column layout on a wide player and a stack of wrapped lines
+on a narrow one. For a **simulated interface** that is the wrong behaviour — the
+arrangement IS the message, and a student has to recognise the same screen at
+every size.
+
+Set `screen_width` and the panel becomes a **screen**: the markup is laid out
+once, in that pixel space, and the renderer only ever changes the SCALE.
+
+```ts
+content: {
+  type: 'html',
+  url: 'videos.example/watch?v=42',
+  screen_width: 480,   // the design space the markup is written against
+  screen_height: 300,  // optional — defaults to 480 × 0.625, a 16:10 lid
+  value: '<div style="display:flex">…</div>',
+}
+```
+
+Three consequences worth knowing:
+
+- **The address bar moves inside the screen**, so it scales with the page rather
+  than sitting beside it at the player's own size — a simulated browser is one
+  picture.
+- **The player's own scaling stops at the screen's edge.** Inside, `12px` means
+  12 design pixels, at every window size.
+- **A screen is a fixed box**: what does not fit is cropped, exactly as a real
+  one crops what is below the fold.
+
+Below: a page whose shell never moves while its data arrives. Both `set_content`
+carry `fade_in_ms: 0`, so the swap is instant — and because the shell markup is
+identical either side of it, only the region that changed appears to change.
+That is what makes it read as a single-page app rather than a reload.
+
+<DataFlowPlayer spec={screenExample} mode="auto" height={360} />
+
+### `image` — a still, or an animated sequence
+
+`value` alone is a still image. `frames` is an ordered list of image sources
+played from the **animation's own clock**: the frame on screen is a pure function
+of `t`, exactly like every other rendered value.
+
+```ts
+{
+  type: 'set_content',
+  object: 'worker',
+  content: {
+    type: 'image',
+    frames: ['data:image/svg+xml,…', 'data:image/svg+xml,…'],
+    fps: 8,
+  },
+}
+```
+
+That is what an animated GIF cannot do. A GIF's playhead is not reachable from
+JavaScript, so it keeps running while the player is paused, does not rewind when
+the scrub bar goes backwards, and an exported frame catches whichever moment the
+decoder happened to be on. A `frames` sequence pauses, rewinds and exports
+frame-accurately.
+
+A `set_content` with no explicit `duration` is given the time its sequence needs
+to play through once, instead of the flat beat a still image gets.
+
+:::tip Prefer `data:` URIs
+
+A rasterized video frame cannot load anything from another origin. A `frames`
+entry (or an `<img src>` inside an `html` panel) pointing at a remote URL renders
+on screen and makes the video export fail.
+
+:::
+
+<DataFlowPlayer spec={richContentExample} mode="auto" height={340} />
 
 ## `comment`
 

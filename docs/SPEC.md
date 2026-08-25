@@ -348,8 +348,8 @@ The timeline compiles an array of ordered actions. See
 4. **loading**: spinner attached to a target node (simulates processing).
 5. **set_content**: mutates the content of a node. Mode `code` (terminal + Prism highlighting,
    **without URL bar**; the code never wraps, its font
-   adjusts to fit), or `text`/`image` (browser window with URL bar
-   configurable via `content.url`).
+   adjusts to fit), `text`/`image` (browser window with URL bar
+   configurable via `content.url`), `table`, or `html` — see §5.1.
 6. **comment**: fading text bubble near a node (`object`).
 7. **highlight**: highlights (pulsing halo) a static node or connection (by `object` = id).
 8. **wait**: dead time — no clip emitted, the step simply occupies `duration` ms
@@ -417,6 +417,76 @@ The timeline compiles an array of ordered actions. See
     lever over `duration` ms. Like `set_visible`, the reached state persists until
     the end of the chronology (or a contrary `toggle`) and is scrubbable both ways.
 
+### 5.1 Content modes (`content` and `set_content`)
+
+Both the static `node.content` and the `set_content` action carry an
+`ObjectContent`, whose `type` selects one of five panels:
+
+| `type`  | Panel                                     | Reads                            |
+| ------- | ----------------------------------------- | -------------------------------- |
+| `text`  | Fake browser window, URL bar always shown | `value`, `url`                   |
+| `code`  | Terminal, no URL bar, font fitted         | `value`, `language`              |
+| `table` | Data grid                                 | `columns`, `rows_data`           |
+| `image` | Illustration in a browser window          | `value`, `frames`, `fps`, `loop` |
+| `html`  | Rich markup, URL bar only if `url` is set | `value`, `url`                   |
+
+**`html` — a sanitized subset, not a browser.** The markup in `value` is parsed
+INERT (`DOMParser`), then REBUILT from an allow-list: an element, an attribute or
+a CSS declaration that is not on a list never reaches the document. A spec is
+data — it may come from a CMS or a database row — so this is a security boundary,
+not a convenience. What is allowed:
+
+- **Elements**: block and inline formatting (`p`, `h1`–`h6`, `ul`/`ol`/`li`,
+  `dl`, `table`…, `b`, `em`, `code`, `mark`, `sub`, `sup`…), `img`, `figure`,
+  and a narrow SVG subset (`svg`, `g`, `path`, `rect`, `circle`, `ellipse`,
+  `line`, `polyline`, `polygon`, `text`, `tspan`, `title`, `desc`).
+- **Attributes**: `style`, `title`, `lang`, `dir`; `src`/`alt`/`width`/`height`
+  on `img`; `colspan`/`rowspan` on cells; the SVG presentation attributes.
+- **CSS**: an allow-list of properties. `position` is absent (content must not
+  escape its node), custom properties are absent (they would repaint the
+  player), `url(…)` is refused in every value, and `!important` is stripped.
+
+Refused, and each for a reason worth stating: `script`, `style`, `iframe`,
+`form` and their contents (dropped outright); every `on*` handler; any URL whose
+scheme is not `http`, `https` or `data:image/…`; `class` and `id`. `class` is
+not a security question — **a class the host page styles renders on screen and
+renders unstyled in the exported video**, because a rasterized frame carries only
+the rules whose selector contains `rdfa`. Inline `style` travels with the
+element, so it is what authors get instead. An unrecognised HTML element is
+unwrapped (its text survives); `<a>` is unwrapped for the same reason a node
+already has a `url` field.
+
+**`html` — a screen, when it declares one.** By default the panel flows like a
+paragraph: its box is capped by the node's allowance and its type keeps the
+stylesheet's size, so the same markup re-flows differently at different player
+sizes. `screen_width` (plus optional `screen_height`, defaulting to
+`screen_width × 0.625`) turns it into a fixed DESIGN SPACE: the markup is laid
+out once at that width and the renderer only changes the uniform SCALE
+(`min(maxW/w, maxH/h)`, from the node's `ContentLimit` — pure arithmetic, never
+a measurement). The arrangement is therefore identical at every size, which is
+what a simulated interface needs and a paragraph does not. The address bar moves
+INSIDE the screen so it scales with the page, the player's own
+`--rdfa-content-scale` is neutralised inside it, and what overflows the box is
+cropped.
+
+**`image` — a still, or a sequence.** `value` alone is a still image. `frames` is
+an ordered list of image sources played from the **animation's clock**: the frame
+on screen is `floor(elapsed × fps) mod frames.length`, a pure function of `t`
+like every other rendered value. It therefore pauses with the player, rewinds
+when the scrub bar goes backwards, and exports frame-accurately. `fps` defaults
+to 12 (clamped to `[0.1, 60]`); `loop: false` holds the last frame instead of
+repeating.
+
+An animated GIF in `value` does none of that — a GIF's playhead is not reachable
+from JavaScript, so it keeps running while the player is paused and an exported
+frame catches whichever moment the decoder was on. `frames` exists precisely to
+replace it.
+
+**Export constraint, both modes**: a rasterized frame is a `data:` SVG that can
+load nothing external, so an `img` (or a `frames` entry) pointing at a remote URL
+renders on screen and fails the video export. `data:` URIs are the form
+guaranteed to survive.
+
 ## 6. Temporal lifecycle
 
 - **Derived reading time**: an action carrying something to read and declaring no
@@ -426,8 +496,11 @@ The timeline compiles an array of ordered actions. See
   - `comment` — the length of `text`, read as prose;
   - `set_content` — the length of the panel (`value`, plus a table's `columns`
     and `rows_data`), read at a speed that depends on `content.type`: code
-    slowest, then tables, then text. An `image` has no length, so it gets a flat
-    beat instead.
+    slowest, then tables, then text. An `html` panel is counted on its TEXT,
+    with the markup stripped, and read at prose speed. An `image` has no length,
+    so it gets a flat beat instead — unless it carries `frames`, in which case it
+    gets the time the sequence needs to play through (still subject to the
+    ceiling below).
 
   For a `comment`, that time is the **fully-present** stretch: the bubble is
   given an appearance phase first (its `fade_in_ms`, or `FADE_MS` by default),

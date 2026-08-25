@@ -1,4 +1,6 @@
+import { htmlToPlainText } from '../html/plainText';
 import type { Action, ObjectContent, Packet } from '../types';
+import { contentCycleMs } from './contentFrames';
 
 /**
  * How long an action needs to stay on screen for its content to be READ,
@@ -34,6 +36,10 @@ const CPS_BY_CONTENT: Record<NonNullable<ObjectContent['type']>, number> = {
   text: PROSE_CPS,
   code: 14,
   table: 18,
+  // Rich markup is prose that has been laid out — headings, a list, a figure.
+  // The reader takes it in at prose speed; the tags are not read at all, which
+  // is why `contentLength` strips them before counting.
+  html: PROSE_CPS,
   // Never used: an image has no characters, so it takes IMAGE_MS below.
   image: PROSE_CPS,
 };
@@ -55,7 +61,13 @@ const MAX_MS = 7000;
 /** Characters a reader has to get through in this panel. */
 function contentLength(content: ObjectContent): number {
   const parts: string[] = [];
-  if (content.value) parts.push(content.value);
+  if (content.value)
+    parts.push(
+      // Markup is not read: `<b>x</b>` is one character on screen and eight
+      // to `String.length`. Counting it would hand a two-word panel the
+      // reading time of a paragraph.
+      content.type === 'html' ? htmlToPlainText(content.value) : content.value
+    );
   if (content.columns) parts.push(...content.columns);
   if (content.rows_data) {
     for (const row of content.rows_data) parts.push(...row.map(String));
@@ -86,7 +98,12 @@ export function derivedDuration(
     if (!content) return undefined;
     const type = content.type ?? 'text';
     if (type === 'image') {
-      ms = IMAGE_MS;
+      // A sequence gets the time it needs to PLAY: cutting an animation off
+      // halfway is a different failure from cutting prose off halfway, and the
+      // author who wrote the frames already said how long it lasts. A still
+      // has nothing to say, so it keeps the flat beat.
+      const cycleMs = contentCycleMs(content);
+      ms = cycleMs === undefined ? IMAGE_MS : ACQUIRE_MS + cycleMs;
     } else {
       const length = contentLength(content);
       if (length === 0) return undefined;

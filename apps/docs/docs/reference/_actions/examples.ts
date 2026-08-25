@@ -155,6 +155,148 @@ export const setContentExample: DataFlowSpec = {
   ],
 };
 
+/**
+ * Eight frames of a rotating dot, built as inline SVG.
+ *
+ * A `data:` URI rather than a file: a rasterised video frame cannot load
+ * anything from another origin, so a sequence made of remote images plays on
+ * screen and fails the export.
+ */
+const spinnerFrames = Array.from({ length: 8 }, (_, i) => {
+  const angle = (i / 8) * 2 * Math.PI;
+  const x = (50 + 32 * Math.cos(angle)).toFixed(1);
+  const y = (50 + 32 * Math.sin(angle)).toFixed(1);
+  return `data:image/svg+xml,${encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 100 100"><circle cx="50" cy="50" r="38" fill="none" stroke="#cbd5e1" stroke-width="6"/><circle cx="${x}" cy="${y}" r="9" fill="#3b82f6"/></svg>`
+  )}`;
+});
+
+/** `set_content`: the `html` mode and a `frames` sequence, side by side. */
+export const richContentExample: DataFlowSpec = {
+  direction: 'left-to-right',
+  nodes: [
+    { id: 'card', type: 'server', text: 'Health check', lane: 1 },
+    { id: 'worker', type: 'server', text: 'Worker', lane: 2 },
+  ],
+  packets: [],
+  timeline: [
+    {
+      type: 'set_content',
+      object: 'card',
+      content: {
+        type: 'html',
+        value:
+          '<h3>Cache warmed</h3>' +
+          '<ul><li><b>Hit rate</b> 94&nbsp;%</li><li><b>Keys</b> 12&nbsp;480</li></ul>' +
+          '<p style="color:#16a34a">All shards green</p>',
+      },
+      keep_until_end: true,
+    },
+    {
+      type: 'set_content',
+      object: 'worker',
+      content: { type: 'image', frames: spinnerFrames, fps: 8 },
+      keep_until_end: true,
+    },
+  ],
+};
+
+/**
+ * A tiny video app, drawn in a fixed 480x300 design space.
+ *
+ * The whole point of `screen_width`: the shell below is laid out ONCE at 480px
+ * and only ever scaled, so a student recognises the same screen in a thumbnail
+ * and on a projector. Nothing here is a full mock-up — the grey blocks say
+ * "not loaded yet" and the black one says "loaded", which is the entire lesson.
+ */
+const videoShell = (main: string): string => `
+  <div style="height:100%;display:flex;flex-direction:column;background:#fff;color:#111">
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #e5e5e5">
+      <span style="display:inline-block;width:18px;height:13px;background:#e11d48;border-radius:3px"></span>
+      <b style="font-size:13px">Videos</b>
+    </div>
+    <div style="flex:1;display:flex;min-height:0">
+      <div style="width:96px;border-right:1px solid #e5e5e5;padding:10px 8px;font-size:11px;color:#555">
+        <div style="margin-bottom:6px">Home</div><div style="margin-bottom:6px">Subscriptions</div><div>History</div>
+      </div>
+      <div style="flex:1;padding:12px">${main}</div>
+    </div>
+  </div>`;
+
+/** Grey placeholders: the shell is there, the data is not. */
+const skeleton = `
+  <div style="width:100%;height:126px;background:#e5e7eb;border-radius:6px"></div>
+  <div style="height:10px;width:70%;background:#e5e7eb;border-radius:3px;margin-top:10px"></div>
+  <div style="height:10px;width:40%;background:#e5e7eb;border-radius:3px;margin-top:6px"></div>`;
+
+/** The same slots, filled. */
+const loadedVideo = `
+  <div style="width:100%;height:126px;background:#111;border-radius:6px;display:flex;align-items:center;justify-content:center">
+    <span style="display:inline-block;width:0;height:0;border-left:18px solid #fff;border-top:11px solid transparent;border-bottom:11px solid transparent"></span>
+  </div>
+  <div style="font-size:12px;font-weight:600;margin-top:10px">How a single-page app works</div>
+  <div style="font-size:11px;color:#666;margin-top:3px">Web channel &middot; 12k views</div>`;
+
+/** `screen_width`: a page drawn in a fixed design space, then scaled. */
+export const screenExample: DataFlowSpec = {
+  direction: 'left-to-right',
+  // The screen sits in the MIDDLE on purpose. A panel grows around its node's
+  // centre, so a node pinned near a stage edge can only use the room between
+  // itself and that edge — half of what a central one gets.
+  nodes: [
+    { id: 'cdn', type: 'cloud', text: 'CDN', lane: 1 },
+    { id: 'browser', type: 'laptop', text: 'Browser', lane: 2 },
+    { id: 'api', type: 'server', text: 'API', lane: 3 },
+  ],
+  packets: [
+    {
+      id: 'req',
+      kind: 'http_packet',
+      packet_content: { header: 'GET /video/42' },
+    },
+    { id: 'res', kind: 'http_packet', packet_content: { header: '200 OK' } },
+    {
+      id: 'stream',
+      kind: 'http_packet',
+      packet_content: { header: 'video.mp4' },
+    },
+  ],
+  timeline: [
+    {
+      type: 'set_content',
+      object: 'browser',
+      // Instant, not a crossfade: the shell is identical from one step
+      // to the next, so an abrupt swap reads as a region updating in
+      // place — which is exactly what a single-page app does.
+      fade_in_ms: 0,
+      content: {
+        type: 'html',
+        url: 'videos.example/watch?v=42',
+        screen_width: 480,
+        screen_height: 300,
+        value: videoShell(skeleton),
+      },
+      duration: 700,
+    },
+    { type: 'move', object: 'req', from: 'browser', to: 'api' },
+    { type: 'move', object: 'res', from: 'api', to: 'browser' },
+    { type: 'move', object: 'stream', from: 'cdn', to: 'browser' },
+    {
+      type: 'set_content',
+      object: 'browser',
+      fade_in_ms: 0,
+      content: {
+        type: 'html',
+        url: 'videos.example/watch?v=42',
+        screen_width: 480,
+        screen_height: 300,
+        value: videoShell(loadedVideo),
+      },
+      keep_until_end: true,
+    },
+  ],
+};
+
 /** `comment`: an omniscient bubble (no `object`) then bubbles attached to nodes. */
 export const commentExample: DataFlowSpec = {
   direction: 'left-to-right',

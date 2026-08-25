@@ -32,6 +32,7 @@ import {
 } from '../engine/geometry';
 import { refNode } from '../engine/pins';
 import { highlightCode } from '../highlight/highlight';
+import { contentFrameIndex } from '../engine/contentFrames';
 import { clipOpacity, contentCrossfade } from '../render/clipOpacity';
 import { h, s, setStyle, syncStyle } from './el';
 import {
@@ -290,7 +291,7 @@ export function mountStage(
   let state: NodeStateAtT;
   let contentByNode: Record<
     string,
-    { content: ObjectContent; opacity: number }
+    { content: ObjectContent; opacity: number; startMs: number }
   > = {};
   let revealByNode: Record<string, number> = {};
   let activeContentNodeIds = new Set<string>();
@@ -319,7 +320,13 @@ export function mountStage(
     contentByNode = {};
     for (const node of spec.nodes) {
       if (node.content)
-        contentByNode[node.id] = { content: node.content, opacity: 1 };
+        // A node's OWN content has been there since the beginning, so a frame
+        // sequence on it is timed from the start of the animation.
+        contentByNode[node.id] = {
+          content: node.content,
+          opacity: 1,
+          startMs: 0,
+        };
     }
     activeContentNodeIds = new Set<string>();
     for (const a of active) {
@@ -329,6 +336,8 @@ export function mountStage(
       contentByNode[clip.objectId] = {
         content: clip.content,
         opacity: contentCrossfade(clip, tMs),
+        // A sequence starts when the panel does, not when the animation does.
+        startMs: clip.startMs,
       };
     }
     // Revealed fraction: the top-down `clip-path` wipe. Deliberately DECOUPLED
@@ -413,6 +422,9 @@ export function mountStage(
       contentOpacity: content?.opacity,
       reveal: revealByNode[node.id],
       contentLimit: content ? model.contentLimits[node.id] : undefined,
+      contentFrame: content
+        ? contentFrameIndex(content.content, currentT - content.startMs)
+        : undefined,
       iconOverride: state.icon[node.id],
       closed: state.closed[node.id],
       loading: state.loading.has(node.id),
