@@ -11,6 +11,7 @@ import {
   loadingExample,
   setContentExample,
   richContentExample,
+  screenExample,
   commentExample,
   setVisibleExample,
   setColorExample,
@@ -160,17 +161,19 @@ the wrapping object.
 }
 ```
 
-| Field       | Affected modes       | Role                                               |
-| ----------- | -------------------- | -------------------------------------------------- |
-| `type`      | all                  | `code` \| `text` \| `image` \| `table` \| `html`.  |
-| `value`     | code/text/image/html | Source text, image path, or markup.                |
-| `language`  | code                 | Highlighting language (cf. `HighlightLanguage`).   |
-| `url`       | text/html            | Address bar of the window.                         |
-| `columns`   | table                | Column headers.                                    |
-| `rows_data` | table                | Data rows.                                         |
-| `frames`    | image                | Frame sequence, played from the animation's clock. |
-| `fps`       | image                | Rate of `frames` (default 12, clamped to 0.1–60).  |
-| `loop`      | image                | `false` holds the last frame instead of repeating. |
+| Field           | Affected modes       | Role                                                  |
+| --------------- | -------------------- | ----------------------------------------------------- |
+| `type`          | all                  | `code` \| `text` \| `image` \| `table` \| `html`.     |
+| `value`         | code/text/image/html | Source text, image path, or markup.                   |
+| `language`      | code                 | Highlighting language (cf. `HighlightLanguage`).      |
+| `url`           | text/html            | Address bar of the window.                            |
+| `columns`       | table                | Column headers.                                       |
+| `rows_data`     | table                | Data rows.                                            |
+| `screen_width`  | html                 | Design width in px — turns the panel into a screen.   |
+| `screen_height` | html                 | Design height in px (default `screen_width` × 0.625). |
+| `frames`        | image                | Frame sequence, played from the animation's clock.    |
+| `fps`           | image                | Rate of `frames` (default 12, clamped to 0.1–60).     |
+| `loop`          | image                | `false` holds the last frame instead of repeating.    |
 
 The three text modes, side by side (`code`, `text`, then `table`):
 
@@ -212,6 +215,45 @@ player), and `url(…)` is refused in every value.
 
 Unlike `text`, an `html` panel shows the browser chrome **only if you give it a
 `url`** — rich markup is as often a legend or a card as it is a web page.
+
+### `screen_width` — a page that scales instead of re-flowing
+
+By default a rich panel behaves like a paragraph: its box is capped by the
+node's allowance and the type keeps the size the stylesheet gives it, so the
+same markup is a two-column layout on a wide player and a stack of wrapped lines
+on a narrow one. For a **simulated interface** that is the wrong behaviour — the
+arrangement IS the message, and a student has to recognise the same screen at
+every size.
+
+Set `screen_width` and the panel becomes a **screen**: the markup is laid out
+once, in that pixel space, and the renderer only ever changes the SCALE.
+
+```ts
+content: {
+  type: 'html',
+  url: 'videos.example/watch?v=42',
+  screen_width: 480,   // the design space the markup is written against
+  screen_height: 300,  // optional — defaults to 480 × 0.625, a 16:10 lid
+  value: '<div style="display:flex">…</div>',
+}
+```
+
+Three consequences worth knowing:
+
+- **The address bar moves inside the screen**, so it scales with the page rather
+  than sitting beside it at the player's own size — a simulated browser is one
+  picture.
+- **The player's own scaling stops at the screen's edge.** Inside, `12px` means
+  12 design pixels, at every window size.
+- **A screen is a fixed box**: what does not fit is cropped, exactly as a real
+  one crops what is below the fold.
+
+Below: a page whose shell never moves while its data arrives. Both `set_content`
+carry `fade_in_ms: 0`, so the swap is instant — and because the shell markup is
+identical either side of it, only the region that changed appears to change.
+That is what makes it read as a single-page app rather than a reload.
+
+<DataFlowPlayer spec={screenExample} mode="auto" height={360} />
 
 ### `image` — a still, or an animated sequence
 

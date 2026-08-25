@@ -213,6 +213,103 @@ export const richContentExample: DataFlowSpec = {
   ],
 };
 
+/**
+ * Une petite application vidéo, dessinée dans un espace fixe de 480x300.
+ *
+ * Tout l'intérêt de `screen_width` : la coquille ci-dessous est mise en page UNE
+ * fois à 480 px et n'est ensuite que mise à l'échelle, donc un étudiant
+ * reconnaît le même écran en vignette et au projecteur. Rien ici n'est une
+ * maquette complète — les blocs gris disent « pas encore chargé » et le noir
+ * dit « chargé », et c'est toute la leçon.
+ */
+const videoShell = (main: string): string => `
+  <div style="height:100%;display:flex;flex-direction:column;background:#fff;color:#111">
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #e5e5e5">
+      <span style="display:inline-block;width:18px;height:13px;background:#e11d48;border-radius:3px"></span>
+      <b style="font-size:13px">Vidéos</b>
+    </div>
+    <div style="flex:1;display:flex;min-height:0">
+      <div style="width:96px;border-right:1px solid #e5e5e5;padding:10px 8px;font-size:11px;color:#555">
+        <div style="margin-bottom:6px">Accueil</div><div style="margin-bottom:6px">Abonnements</div><div>Historique</div>
+      </div>
+      <div style="flex:1;padding:12px">${main}</div>
+    </div>
+  </div>`;
+
+/** Réserves grises : la coquille est là, les données non. */
+const skeleton = `
+  <div style="width:100%;height:126px;background:#e5e7eb;border-radius:6px"></div>
+  <div style="height:10px;width:70%;background:#e5e7eb;border-radius:3px;margin-top:10px"></div>
+  <div style="height:10px;width:40%;background:#e5e7eb;border-radius:3px;margin-top:6px"></div>`;
+
+/** Les mêmes emplacements, remplis. */
+const loadedVideo = `
+  <div style="width:100%;height:126px;background:#111;border-radius:6px;display:flex;align-items:center;justify-content:center">
+    <span style="display:inline-block;width:0;height:0;border-left:18px solid #fff;border-top:11px solid transparent;border-bottom:11px solid transparent"></span>
+  </div>
+  <div style="font-size:12px;font-weight:600;margin-top:10px">Comment fonctionne une SPA</div>
+  <div style="font-size:11px;color:#666;margin-top:3px">Chaîne Web &middot; 12 k vues</div>`;
+
+/** `screen_width`: une page dessinée dans un espace fixe, puis mise à l'échelle. */
+export const screenExample: DataFlowSpec = {
+  direction: 'left-to-right',
+  // L'écran est au MILIEU volontairement. Un panneau grandit autour du centre
+  // de son nœud : un nœud collé au bord de la scène ne dispose donc que de
+  // l'espace qui l'en sépare — la moitié de ce qu'obtient un nœud central.
+  nodes: [
+    { id: 'cdn', type: 'cloud', text: 'CDN', lane: 1 },
+    { id: 'browser', type: 'laptop', text: 'Navigateur', lane: 2 },
+    { id: 'api', type: 'server', text: 'API', lane: 3 },
+  ],
+  packets: [
+    {
+      id: 'req',
+      kind: 'http_packet',
+      packet_content: { header: 'GET /video/42' },
+    },
+    { id: 'res', kind: 'http_packet', packet_content: { header: '200 OK' } },
+    {
+      id: 'stream',
+      kind: 'http_packet',
+      packet_content: { header: 'video.mp4' },
+    },
+  ],
+  timeline: [
+    {
+      type: 'set_content',
+      object: 'browser',
+      // Instantané, pas un fondu : la coquille est identique d'une étape
+      // à l'autre, donc un basculement sec se lit comme une région qui
+      // se met à jour sur place — exactement ce que fait une SPA.
+      fade_in_ms: 0,
+      content: {
+        type: 'html',
+        url: 'videos.example/watch?v=42',
+        screen_width: 480,
+        screen_height: 300,
+        value: videoShell(skeleton),
+      },
+      duration: 700,
+    },
+    { type: 'move', object: 'req', from: 'browser', to: 'api' },
+    { type: 'move', object: 'res', from: 'api', to: 'browser' },
+    { type: 'move', object: 'stream', from: 'cdn', to: 'browser' },
+    {
+      type: 'set_content',
+      object: 'browser',
+      fade_in_ms: 0,
+      content: {
+        type: 'html',
+        url: 'videos.example/watch?v=42',
+        screen_width: 480,
+        screen_height: 300,
+        value: videoShell(loadedVideo),
+      },
+      keep_until_end: true,
+    },
+  ],
+};
+
 /** `comment` : une bulle omnisciente (sans `object`) puis des bulles attachées aux nœuds. */
 export const commentExample: DataFlowSpec = {
   direction: 'left-to-right',

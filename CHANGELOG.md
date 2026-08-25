@@ -43,6 +43,21 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   `frames` exists to replace it. Prefer `data:` URIs — a rasterised frame cannot
   load anything from another origin.
 
+- **An `html` panel can declare a design space and become a SCREEN.**
+  `screen_width` (plus optional `screen_height`, defaulting to
+  `screen_width × 0.625`) lays the markup out once at that size and then only
+  ever changes the uniform SCALE, instead of re-flowing inside whatever box the
+  node's allowance grants. For a simulated interface the arrangement IS the
+  message — a student has to recognise the same screen in a thumbnail and on a
+  projector — and that is exactly what a paragraph-shaped panel cannot promise.
+
+  The scale is `min(maxW/w, maxH/h)` over the node's existing `ContentLimit`:
+  pure arithmetic, never a measurement, so a screen scrubs and exports like the
+  rest of the renderer. The address bar moves INSIDE the screen so it scales
+  with the page, the player's own `--rdfa-content-scale` is neutralised within
+  it, and what overflows is cropped — as a real screen crops what is below the
+  fold.
+
 - **One new `PlayerLabels` key**, `describeContentAnimation`, so the transcript
   tells an animated panel apart from a still image. An `html` panel is
   transcribed as its WORDS, with the markup stripped.

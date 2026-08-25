@@ -480,6 +480,30 @@ function build(locale: Locale): ApiExamples {
       packets: [],
       timeline: [],
     },
+    'ObjectContent.screen_width': {
+      nodes: [
+        {
+          id: 'n',
+          type: 'laptop',
+          text: tr('Browser', 'Navigateur'),
+          content: {
+            type: 'html',
+            url: 'app.example/dashboard',
+            screen_width: 480,
+            screen_height: 300,
+            value:
+              '<div style="height:100%;display:flex;flex-direction:column;background:#fff;color:#111">' +
+              '<div style="padding:8px 12px;border-bottom:1px solid #e5e5e5;font-weight:600;font-size:13px">Dashboard</div>' +
+              '<div style="flex:1;display:flex;gap:10px;padding:12px">' +
+              '<div style="flex:1;background:#eef2ff;border-radius:6px"></div>' +
+              '<div style="flex:1;background:#ecfdf5;border-radius:6px"></div>' +
+              '</div></div>',
+          },
+        },
+      ],
+      packets: [],
+      timeline: [],
+    },
     'ObjectContent.frames': {
       nodes: [
         {

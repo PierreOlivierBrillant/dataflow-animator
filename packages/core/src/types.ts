@@ -173,6 +173,22 @@ export interface ObjectContent {
    */
   url?: string;
   /**
+   * (`html` mode) Width, in px, of the DESIGN SPACE the markup is laid out in.
+   * Setting it turns the panel into a SCREEN: the layout is computed once at
+   * this width and then scaled uniformly to fit the room the node has, so the
+   * same arrangement is recognisable at every player size instead of
+   * re-flowing. Clamped to `[40, 4000]`.
+   * @example 480
+   */
+  screen_width?: number;
+  /**
+   * (`html` mode) Height of the design space, in px. Default:
+   * `screen_width × 0.625` — a 16:10 lid. A screen is a fixed box: what does
+   * not fit is cropped, as it is on a real one.
+   * @example 300
+   */
+  screen_height?: number;
+  /**
    * (`image` mode) Frame sequence played from the ANIMATION's clock rather than
    * the browser's: it pauses with the player, rewinds when scrubbed backwards
    * and exports frame-accurately — none of which an animated GIF in `value`

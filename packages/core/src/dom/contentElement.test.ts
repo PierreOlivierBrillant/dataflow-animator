@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   applyCodeFontScale,
   applyContentFrame,
+  applyContentScreen,
   buildContentPanel,
   measureCodeFit,
   type CodeFitTarget,
@@ -298,5 +299,90 @@ describe('applyContentFrame', () => {
     applyContentFrame(frames!, 0);
     applyContentFrame(frames!, undefined);
     expect(frames!.img.hasAttribute('src')).toBe(false);
+  });
+});
+
+describe('buildContentPanel — html as a screen', () => {
+  const screenContent = {
+    type: 'html' as const,
+    screen_width: 480,
+    screen_height: 300,
+    value: '<p>page</p>',
+  };
+
+  it('wraps the page in a frame and a design-sized screen', () => {
+    const { el, screen } = buildContentPanel(screenContent, highlight);
+    expect(el.className).toContain('rdfa-content--screen');
+    expect(screen?.box).toEqual({ width: 480, height: 300 });
+    expect(screen?.inner.style.width).toBe('480px');
+    expect(screen?.inner.style.height).toBe('300px');
+    expect(screen?.inner.querySelector('.rdfa-content-html')?.innerHTML).toBe(
+      '<p>page</p>'
+    );
+  });
+
+  it('puts the address bar INSIDE the screen, so it scales with the page', () => {
+    const { el, screen } = buildContentPanel(
+      { ...screenContent, url: 'youtube.test' },
+      highlight
+    );
+    // Not a sibling of the frame: a simulated browser is one picture.
+    expect(el.querySelector(':scope > .rdfa-window-bar')).toBeNull();
+    expect(screen?.inner.firstElementChild?.className).toBe('rdfa-window-bar');
+  });
+
+  it('leaves an html panel with no design space flowing as before', () => {
+    const { el, screen } = buildContentPanel(
+      { type: 'html', value: '<p>a</p>' },
+      highlight
+    );
+    expect(screen).toBeUndefined();
+    expect(el.className).not.toContain('rdfa-content--screen');
+    expect(
+      el.querySelector('.rdfa-content-body.rdfa-content-html')
+    ).not.toBeNull();
+  });
+});
+
+describe('applyContentScreen', () => {
+  const screenContent = {
+    type: 'html' as const,
+    screen_width: 480,
+    screen_height: 300,
+    value: '<p>page</p>',
+  };
+
+  it('gives the frame the SCALED size and the screen the transform', () => {
+    const { screen } = buildContentPanel(screenContent, highlight);
+    applyContentScreen(screen!, { maxW: 240, maxH: 600 });
+    // The layout box tells the truth about what is painted, so a neighbour is
+    // never pushed away by space nothing occupies.
+    expect(screen!.frame.style.width).toBe('240px');
+    expect(screen!.frame.style.height).toBe('150px');
+    expect(screen!.inner.style.transform).toBe('scale(0.5)');
+    // The design size is untouched — it is what the markup is laid out against.
+    expect(screen!.inner.style.width).toBe('480px');
+  });
+
+  it('writes no transform at all at exactly 1', () => {
+    const { screen } = buildContentPanel(screenContent, highlight);
+    applyContentScreen(screen!, { maxW: 480, maxH: 300 });
+    expect(screen!.inner.style.transform).toBe('');
+    expect(screen!.frame.style.width).toBe('480px');
+  });
+
+  it('writes nothing when the allowance has not moved', () => {
+    const { screen } = buildContentPanel(screenContent, highlight);
+    applyContentScreen(screen!, { maxW: 240, maxH: 600 });
+    screen!.frame.style.width = '999px';
+    applyContentScreen(screen!, { maxW: 240, maxH: 600 });
+    expect(screen!.frame.style.width).toBe('999px');
+  });
+
+  it('rounds, so no scale is ever written in scientific notation', () => {
+    const { screen } = buildContentPanel(screenContent, highlight);
+    applyContentScreen(screen!, { maxW: 317, maxH: 900 });
+    expect(screen!.inner.style.transform).toBe('scale(0.66)');
+    expect(screen!.frame.style.width).toBe('316.8px');
   });
 });

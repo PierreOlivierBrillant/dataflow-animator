@@ -11,6 +11,7 @@ import {
   loadingExample,
   setContentExample,
   richContentExample,
+  screenExample,
   commentExample,
   setVisibleExample,
   setColorExample,
@@ -161,17 +162,19 @@ Mode `table` :
 }
 ```
 
-| Champ       | Modes concernés      | Rôle                                                    |
-| ----------- | -------------------- | ------------------------------------------------------- |
-| `type`      | tous                 | `code` \| `text` \| `image` \| `table` \| `html`.       |
-| `value`     | code/text/image/html | Texte source, chemin d'image, ou balisage.              |
-| `language`  | code                 | Langage de coloration (cf. `HighlightLanguage`).        |
-| `url`       | text/html            | Barre d'adresse de la fenêtre.                          |
-| `columns`   | table                | En-têtes de colonnes.                                   |
-| `rows_data` | table                | Lignes de données.                                      |
-| `frames`    | image                | Séquence d'images, jouée sur l'horloge de l'animation.  |
-| `fps`       | image                | Cadence de `frames` (12 par défaut, bornée 0,1–60).     |
-| `loop`      | image                | `false` retient la dernière image au lieu de reboucler. |
+| Champ           | Modes concernés      | Rôle                                                         |
+| --------------- | -------------------- | ------------------------------------------------------------ |
+| `type`          | tous                 | `code` \| `text` \| `image` \| `table` \| `html`.            |
+| `value`         | code/text/image/html | Texte source, chemin d'image, ou balisage.                   |
+| `language`      | code                 | Langage de coloration (cf. `HighlightLanguage`).             |
+| `url`           | text/html            | Barre d'adresse de la fenêtre.                               |
+| `columns`       | table                | En-têtes de colonnes.                                        |
+| `rows_data`     | table                | Lignes de données.                                           |
+| `screen_width`  | html                 | Largeur de conception en px — fait du panneau un écran.      |
+| `screen_height` | html                 | Hauteur de conception en px (défaut `screen_width` × 0,625). |
+| `frames`        | image                | Séquence d'images, jouée sur l'horloge de l'animation.       |
+| `fps`           | image                | Cadence de `frames` (12 par défaut, bornée 0,1–60).          |
+| `loop`          | image                | `false` retient la dernière image au lieu de reboucler.      |
 
 Les trois modes textuels, côte à côte (`code`, `text`, puis `table`) :
 
@@ -216,6 +219,47 @@ dans toute valeur.
 Contrairement à `text`, un panneau `html` n'affiche le chrome de navigateur **que
 si vous lui donnez une `url`** — un balisage riche est aussi souvent une légende
 ou une fiche qu'une page web.
+
+### `screen_width` — une page qui se met à l'échelle au lieu de se remettre en page
+
+Par défaut, un panneau riche se comporte comme un paragraphe : sa boîte est
+plafonnée par l'allocation du nœud et sa typographie garde la taille que lui
+donne la feuille de style — le même balisage devient donc une mise en page à deux
+colonnes sur un grand lecteur et une pile de lignes repliées sur un petit. Pour
+une **interface simulée**, c'est le mauvais comportement : la disposition EST le
+message, et un étudiant doit reconnaître le même écran à toutes les tailles.
+
+Renseignez `screen_width` et le panneau devient un **écran** : le balisage est
+mis en page une seule fois, dans cet espace de pixels, et le rendu ne change plus
+que l'ÉCHELLE.
+
+```ts
+content: {
+  type: 'html',
+  url: 'videos.example/watch?v=42',
+  screen_width: 480,   // l'espace de conception contre lequel on écrit
+  screen_height: 300,  // facultatif — par défaut 480 × 0,625, un écran 16:10
+  value: '<div style="display:flex">…</div>',
+}
+```
+
+Trois conséquences à connaître :
+
+- **La barre d'adresse passe à l'intérieur de l'écran**, donc elle se met à
+  l'échelle avec la page au lieu de rester à côté à la taille du lecteur — un
+  navigateur simulé est une seule image.
+- **La mise à l'échelle du lecteur s'arrête au bord de l'écran.** À l'intérieur,
+  `12px` vaut 12 pixels de conception, quelle que soit la taille de la fenêtre.
+- **Un écran est une boîte fixe** : ce qui ne rentre pas est rogné, exactement
+  comme un vrai écran rogne ce qui est sous la ligne de flottaison.
+
+Ci-dessous : une page dont la coquille ne bouge pas pendant que ses données
+arrivent. Les deux `set_content` portent `fade_in_ms: 0`, donc le basculement est
+instantané — et comme le balisage de la coquille est identique de part et
+d'autre, seule la région qui a changé semble changer. C'est ce qui le fait lire
+comme une application monopage plutôt que comme un rechargement.
+
+<DataFlowPlayer spec={screenExample} mode="auto" height={360} />
 
 ### `image` — une image fixe, ou une séquence animée
 

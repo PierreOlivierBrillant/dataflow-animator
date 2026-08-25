@@ -424,6 +424,19 @@ element, so it is what authors get instead. An unrecognised HTML element is
 unwrapped (its text survives); `<a>` is unwrapped for the same reason a node
 already has a `url` field.
 
+**`html` — a screen, when it declares one.** By default the panel flows like a
+paragraph: its box is capped by the node's allowance and its type keeps the
+stylesheet's size, so the same markup re-flows differently at different player
+sizes. `screen_width` (plus optional `screen_height`, defaulting to
+`screen_width × 0.625`) turns it into a fixed DESIGN SPACE: the markup is laid
+out once at that width and the renderer only changes the uniform SCALE
+(`min(maxW/w, maxH/h)`, from the node's `ContentLimit` — pure arithmetic, never
+a measurement). The arrangement is therefore identical at every size, which is
+what a simulated interface needs and a paragraph does not. The address bar moves
+INSIDE the screen so it scales with the page, the player's own
+`--rdfa-content-scale` is neutralised inside it, and what overflows the box is
+cropped.
+
 **`image` — a still, or a sequence.** `value` alone is a still image. `frames` is
 an ordered list of image sources played from the **animation's clock**: the frame
 on screen is `floor(elapsed × fps) mod frames.length`, a pure function of `t`

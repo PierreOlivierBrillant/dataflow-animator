@@ -343,6 +343,20 @@
             "https://app.example.com/login"
           ]
         },
+        "screen_width": {
+          "type": "number",
+          "description": "(`html` mode) Width, in px, of the DESIGN SPACE the markup is laid out in. Setting it turns the panel into a SCREEN: the layout is computed once at this width and then scaled uniformly to fit the room the node has, so the same arrangement is recognisable at every player size instead of re-flowing. Clamped to `[40, 4000]`.",
+          "examples": [
+            480
+          ]
+        },
+        "screen_height": {
+          "type": "number",
+          "description": "(`html` mode) Height of the design space, in px. Default: `screen_width × 0.625` — a 16:10 lid. A screen is a fixed box: what does not fit is cropped, as it is on a real one.",
+          "examples": [
+            300
+          ]
+        },
         "frames": {
           "type": "array",
           "items": {

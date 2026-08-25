@@ -531,6 +531,49 @@ describe('mountStage — set_content and comments', () => {
     expect(frameSrc(container)).toBe('f1.png');
   });
 
+  const screenSpec = {
+    timeline: [
+      {
+        type: 'set_content' as const,
+        object: 'a',
+        content: {
+          type: 'html' as const,
+          screen_width: 480,
+          screen_height: 300,
+          value: '<p>loaded</p>',
+        },
+        keep_until_end: true,
+      },
+    ],
+  };
+
+  it('scales a screen to the node`s allowance instead of re-flowing it', () => {
+    const { container } = mount(screenSpec, 500);
+    const inner = container.querySelector('.rdfa-screen') as HTMLElement;
+    const frame = container.querySelector('.rdfa-screen-frame') as HTMLElement;
+
+    // The markup is always laid out at the DESIGN size…
+    expect(inner.style.width).toBe('480px');
+    expect(inner.style.height).toBe('300px');
+    // …and only the scale follows the room the node has.
+    expect(inner.style.transform).toMatch(/^scale\(/);
+    // The frame carries the painted size, so neighbours are told the truth.
+    expect(parseFloat(frame.style.width)).toBeLessThan(480);
+    expect(
+      parseFloat(frame.style.width) / parseFloat(frame.style.height)
+    ).toBeCloseTo(480 / 300, 3);
+  });
+
+  it('lands a scrubbed screen on the same DOM as a fresh mount', () => {
+    const scrubbed = mount(screenSpec, 100);
+    scrubbed.handle.update(900);
+    const fresh = mount(screenSpec, 900);
+
+    expect(normalizeStageHtml(scrubbed.container)).toBe(
+      normalizeStageHtml(fresh.container)
+    );
+  });
+
   it('builds the panel INSIDE its node, not in the overlay', () => {
     const { container } = mount(contentSpec, 500);
 
