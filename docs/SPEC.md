@@ -318,7 +318,11 @@ node (`NODE_GAP`). See [`packages/core/src/engine/geometry.ts`](../packages/core
   anchoring. The terminal map per type lives in
   [`packages/core/src/engine/pins.ts`](../packages/core/src/engine/pins.ts);
   the anchor (position + outward normal) is computed by `pinAttach` in
-  `geometry.ts` and **rotates with the node** — so a vertical resistor
+  `geometry.ts`. Each map follows the DRAWING of its own symbol rather than a
+  shared skeleton: a bipolar transistor is drawn vertically, so its `collector` /
+  `emitter` leave through the top and bottom faces, while a MOS transistor's
+  channel terminals leave through the right one. The anchor **rotates with the
+  node** — so a vertical resistor
   (`rotation: 90`) has its `a` / `b` terminals top and bottom, and its wires leave
   vertically. Terminal endpoints are distinct points by construction, so the
   bidirectional/fan-out port spread does not apply to them.

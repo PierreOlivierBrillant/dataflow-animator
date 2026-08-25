@@ -46,6 +46,12 @@ const POLARIZED: Record<string, PinDef> = {
   b: EAST,
 };
 
+/** Collector / emitter of a bipolar transistor: the symbol is drawn VERTICALLY,
+ *  so both leave through the horizontal faces on the lead axis (x = 17/24), not
+ *  through the right face. */
+const BJT_COLLECTOR: PinDef = { x: 17 / 24, y: 0, nx: 0, ny: -1 };
+const BJT_EMITTER: PinDef = { x: 17 / 24, y: 1, nx: 0, ny: 1 };
+
 /** The two channel terminals of a MOS transistor, on the right face: the symbol
  *  is drawn to be read top-to-bottom, so these are the supply-side (`CH_HI`) and
  *  the other end (`CH_LO`) — which terminal each one IS depends on N vs P. */
@@ -141,21 +147,27 @@ export const COMPONENT_PINS: Partial<Record<NodeType, Record<string, PinDef>>> =
       s1: { x: 1, y: 0.2, nx: 1, ny: 0 },
       s2: { x: 1, y: 0.8, nx: 1, ny: 0 },
     },
+    // Bipolar transistors. The collector and emitter leave through the TOP and
+    // BOTTOM faces, at x = 17/24 — where `nodeIconShapes.ts` actually draws
+    // their leads (`M17 3V0`, `M17 21v3`). They used to be declared on the right
+    // face at 15 % / 85 % height, some 19 px away from the drawn lead on a 56 px
+    // symbol, with the wire leaving horizontally while the lead pointed up. No
+    // demo wires a bipolar, which is the only reason it never showed.
     transistor_npn: {
       base: WEST,
-      collector: { x: 1, y: 0.15, nx: 1, ny: 0 },
-      emitter: { x: 1, y: 0.85, nx: 1, ny: 0 },
+      collector: BJT_COLLECTOR,
+      emitter: BJT_EMITTER,
       b: WEST,
-      c: { x: 1, y: 0.15, nx: 1, ny: 0 },
-      e: { x: 1, y: 0.85, nx: 1, ny: 0 },
+      c: BJT_COLLECTOR,
+      e: BJT_EMITTER,
     },
     transistor_pnp: {
       base: WEST,
-      collector: { x: 1, y: 0.15, nx: 1, ny: 0 },
-      emitter: { x: 1, y: 0.85, nx: 1, ny: 0 },
+      collector: BJT_COLLECTOR,
+      emitter: BJT_EMITTER,
       b: WEST,
-      c: { x: 1, y: 0.15, nx: 1, ny: 0 },
-      e: { x: 1, y: 0.85, nx: 1, ny: 0 },
+      c: BJT_COLLECTOR,
+      e: BJT_EMITTER,
     },
     opamp: {
       in_plus: { x: 0, y: 0.72, nx: -1, ny: 0 },
@@ -164,11 +176,11 @@ export const COMPONENT_PINS: Partial<Record<NodeType, Record<string, PinDef>>> =
       '+': { x: 0, y: 0.72, nx: -1, ny: 0 },
       '-': { x: 0, y: 0.28, nx: -1, ny: 0 },
     },
-    // MOS transistors. Same terminal GEOMETRY as the bipolar pair above (gate
-    // west, drain/source right) so a diagram mixing the two keeps one skeleton;
-    // only the names differ. The bulk is deliberately absent: the symbol drawn
-    // is the 3-terminal one, and a pin with no lead under it would anchor a wire
-    // in mid-air.
+    // MOS transistors. Their channel terminals leave through the RIGHT face,
+    // not the horizontal ones the bipolar pair uses: the two symbols simply draw
+    // their leads differently, and each map follows its own drawing. The bulk is
+    // deliberately absent: the symbol drawn is the 3-terminal one, and a pin with
+    // no lead under it would anchor a wire in mid-air.
     // The two channel terminals are SWAPPED between N and P, which is not a
     // typo: in every CMOS schematic the pull-up's SOURCE faces the supply and
     // the pull-down's DRAIN faces the output. Naming them by position instead

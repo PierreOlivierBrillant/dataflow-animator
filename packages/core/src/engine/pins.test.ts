@@ -71,6 +71,31 @@ describe('resolvePin', () => {
     );
   });
 
+  it('puts a bipolar collector and emitter on the faces its leads exit', () => {
+    // The symbol is drawn vertically (`M17 3V0` up, `M17 21v3` down), so the two
+    // must leave through the TOP and BOTTOM faces. Declared on the right face
+    // instead, the wire left horizontally ~19 px away from the drawn lead.
+    for (const type of ['transistor_npn', 'transistor_pnp'] as const) {
+      const c = resolvePin(of(type), 'collector')!;
+      const e = resolvePin(of(type), 'emitter')!;
+
+      expect(c, type).toMatchObject({ y: 0, nx: 0, ny: -1 });
+      expect(e, type).toMatchObject({ y: 1, nx: 0, ny: 1 });
+      // Both ride the lead axis, so a wire in and a wire out line up.
+      expect(c.x).toBe(e.x);
+      expect(c.x).toBeCloseTo(17 / 24, 10);
+      expect(resolvePin(of(type), 'c')).toEqual(c);
+      expect(resolvePin(of(type), 'e')).toEqual(e);
+    }
+  });
+
+  it('keeps a MOS transistor on the RIGHT face, unlike the bipolar pair', () => {
+    // The two families draw their leads differently; each map follows its own
+    // drawing rather than a shared skeleton.
+    expect(resolvePin(of('mosfet_n'), 'drain')!.nx).toBe(1);
+    expect(resolvePin(of('mosfet_n'), 'source')!.nx).toBe(1);
+  });
+
   it('resolves the three transistor terminals distinctly', () => {
     const base = resolvePin(of('transistor_npn'), 'base');
     const collector = resolvePin(of('transistor_npn'), 'collector');

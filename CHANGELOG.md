@@ -115,6 +115,14 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Fixed
 
+- **A bipolar transistor's collector and emitter are where its leads are
+  drawn.** The symbol is drawn vertically — collector out of the top, emitter out
+  of the bottom — but the two terminals were declared on the RIGHT face at 15 %
+  and 85 % height, about 19 px away on a 56 px symbol, with the wire leaving
+  horizontally while the lead pointed up. No demo wires a bipolar, which is the
+  only reason it never showed. They now sit on the top and bottom faces, on the
+  lead axis, so a wire in and a wire out line up.
+
 - **Net tinting now covers every type that drives a net.** It was decided by
   `type.endsWith('_gate')`, which silently excluded anything that is not spelled
   like a gate — a flip-flop's `q` is as much a net driver as a NAND's `y` — and
