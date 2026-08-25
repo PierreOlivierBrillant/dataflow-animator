@@ -472,6 +472,14 @@ function PlaygroundContent() {
           <div className="flex-1 overflow-hidden relative">
             {spec ? (
               <DataFlowPlayer
+                // Picking another example is a different ANIMATION, not an edit
+                // of the current one: the key gives the player a fresh React
+                // instance, so it starts at 0 instead of resuming the previous
+                // example's instant and play state. Live edits to the JSON keep
+                // the same key on purpose — the binding carries the instant
+                // across that remount, which is what makes typing while
+                // scrubbing usable.
+                key={demoId}
                 spec={spec}
                 theme={theme}
                 mode="auto"
