@@ -40,7 +40,9 @@ const root = defs.DataFlowSpec;
 
 /** Échantillons soignés pour les panneaux et les formes (sinon `body` = le nom
  *  du type). Court par construction : le `body` d'une forme ne doit pas déborder. */
-const NODE_SAMPLES: Partial<Record<NodeType, Pick<Node, 'header' | 'body'>>> = {
+const NODE_SAMPLES: Partial<
+  Record<NodeType, Pick<Node, 'header' | 'body' | 'pins'>>
+> = {
   simple_node: { body: 'Worker' },
   complex_node: { header: 'POST /login', body: '200 OK' },
   square: { body: 'API' },
@@ -51,6 +53,14 @@ const NODE_SAMPLES: Partial<Record<NodeType, Pick<Node, 'header' | 'body'>>> = {
   height_rectangle: { body: 'Queue' },
   width_rectangle: { body: 'Bus' },
   star: { body: 'New' },
+  // The one type whose appearance comes from data the default sample cannot
+  // supply: with no `pins` a block is an empty box printing its own type name,
+  // which shows the reader nothing. Two inputs and an output is the smallest
+  // sample that reads as "a labelled box with named terminals".
+  block: {
+    body: 'ALU',
+    pins: [{ name: 'a' }, { name: 'b' }, { name: 'y', side: 'right' }],
+  },
 };
 
 function nodeSample(type: NodeType): Node {
