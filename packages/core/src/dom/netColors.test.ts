@@ -111,3 +111,34 @@ describe('netColorMap', () => {
     expect(map.get(`s${n}`)).toBe(NET_PALETTE[0]);
   });
 });
+
+describe('netColorMap — drivers beyond the gates', () => {
+  it('tints the net a flip-flop output drives', () => {
+    const s = spec({
+      direction: 'circuit',
+      nodes: [{ id: 'ff', type: 'd_flip_flop' }],
+      connections: [{ from: 'ff:q', to: 'out' }],
+    });
+
+    expect(netColorMap(s).get('ff')).toBe(NET_PALETTE[0]);
+  });
+
+  it('leaves a transmission gate and a MOSFET neutral', () => {
+    // `transmission_gate` ends in `_gate` but PASSES a net rather than driving
+    // one; a CMOS pull-up/pull-down pair SHARES its output node, so tinting per
+    // source node would paint one net in two colours.
+    const s = spec({
+      direction: 'circuit',
+      nodes: [
+        { id: 'tg', type: 'transmission_gate' },
+        { id: 'm1', type: 'mosfet_n' },
+      ],
+      connections: [
+        { from: 'tg:b', to: 'out' },
+        { from: 'm1:d', to: 'out' },
+      ],
+    });
+
+    expect(netColorMap(s).size).toBe(0);
+  });
+});

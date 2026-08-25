@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { nodeIconTypes, renderNodeIcon } from './nodeIcons';
 import { NODE_ICON_SHAPES } from './nodeIconShapes';
+import { COMPONENT_PINS } from '../../engine/pins';
 import type { NodeType } from '../../types';
 
 describe('renderNodeIcon — wrapper', () => {
@@ -107,6 +108,38 @@ describe('registry', () => {
   it('gives every pictogram at least one shape', () => {
     for (const [type, shapes] of Object.entries(NODE_ICON_SHAPES)) {
       expect(shapes?.length, `${type} is empty`).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe('functional-block designators', () => {
+  it('renders the label as text content, not as an attribute', () => {
+    const text = renderNodeIcon('half_adder').querySelector('text');
+
+    expect(text?.textContent).toBe('HA');
+  });
+
+  it('opts the glyph out of the inherited stroke', () => {
+    // The wrapper strokes every child with a 1.6-wide currentColor; on a glyph
+    // that paints a fat outline over its own counters and "HA" becomes a blob.
+    for (const type of ['d_flip_flop', 'mux_2to1', 'full_adder'] as const) {
+      const text = renderNodeIcon(type).querySelector('text')!;
+
+      expect(text.getAttribute('stroke'), type).toBe('none');
+      expect(text.getAttribute('fill'), type).toBe('currentColor');
+    }
+  });
+});
+
+describe('symbols with named terminals', () => {
+  it('draws a dedicated pictogram for every type declaring pins', () => {
+    // A type added to COMPONENT_PINS but not to the shape table falls back to a
+    // plain square, whose blank edges give the wire nothing to land on.
+    const fallback = '<rect x="4" y="4" width="16" height="16" rx="2"></rect>';
+    for (const type of Object.keys(COMPONENT_PINS) as NodeType[]) {
+      expect(renderNodeIcon(type).innerHTML, `${type} has no symbol`).not.toBe(
+        fallback
+      );
     }
   });
 });

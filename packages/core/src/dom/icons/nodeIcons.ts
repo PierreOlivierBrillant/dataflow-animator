@@ -35,7 +35,9 @@ function svg(shapes: IconShape[]): SVGElement {
       role: 'presentation',
       'aria-hidden': 'true',
     },
-    shapes.map((shape) => s(shape.tag, shape.attr))
+    shapes.map((shape) =>
+      s(shape.tag, shape.attr, shape.text ? [shape.text] : undefined)
+    )
   );
 }
 

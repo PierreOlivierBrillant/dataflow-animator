@@ -7,7 +7,7 @@ import type {
   PathShape,
   TreeSpec,
 } from '../types';
-import { hasPins, parseRef, refNode, resolvePin } from './pins';
+import { hasPins, hasUniformBody, parseRef, refNode, resolvePin } from './pins';
 
 /**
  * Spatial layout engine: calculates the position of each static node
@@ -902,14 +902,18 @@ const PIN_NUDGE_CAP = 0.35;
 function assignPinNudges(
   cols: string[][],
   slot: Map<string, number>,
-  typeOf: (id: string) => Node['type'],
+  nodeOf: (id: string) => Node | undefined,
   inEdges: Map<string, { from: string; fromPin?: string; toPin?: string }[]>
 ): Map<string, number> {
   const nudge = new Map<string, number>();
   // A terminal's height, signed from the node's CENTRE (a PinDef's `y` runs from
-  // the top edge), so it composes directly with a nudge.
+  // the top edge), so it composes directly with a nudge. `undefined` for a body
+  // that does not render at the library's one size ({@link hasUniformBody}): its
+  // fraction is not comparable with its partner's, so no nudge can be derived.
   const offset = (id: string, pin: string | undefined): number | undefined => {
-    const def = resolvePin(typeOf(id), pin);
+    const n = nodeOf(id);
+    if (!n || !hasUniformBody(n)) return undefined;
+    const def = resolvePin(n, pin);
     return def ? def.y - 0.5 : undefined;
   };
   for (const col of cols) {
@@ -970,10 +974,10 @@ function assignPadNudges(
   nodes: Node[],
   connections: Connection[]
 ): void {
-  const typeById = new Map(nodes.map((n) => [n.id, n.type]));
+  const nodeById = new Map(nodes.map((n) => [n.id, n]));
   for (const n of nodes) {
     // A pad = a node with no named terminals; its one port is its face centre.
-    if (hasPins(n.type) || !map[n.id]) continue;
+    if (hasPins(n) || !map[n.id]) continue;
     const wants: { d: number; ref: string }[] = [];
     for (const c of connections) {
       const rf = parseRef(c.from);
@@ -981,10 +985,12 @@ function assignPadNudges(
       const partner = rf.node === n.id ? rt : rt.node === n.id ? rf : undefined;
       if (!partner || partner.node === n.id) continue;
       const pm = map[partner.node];
-      const pt = typeById.get(partner.node);
-      // Same rail only: the nudge closes a sub-body gap, never a row.
-      if (!pm || !pt || Math.abs(pm.cy - map[n.id].cy) > SLOT_EPS) continue;
-      const def = resolvePin(pt, partner.pin);
+      const pn = nodeById.get(partner.node);
+      // Same rail only: the nudge closes a sub-body gap, never a row. A partner
+      // that sizes itself is skipped for the reason `hasUniformBody` documents.
+      if (!pm || !pn || Math.abs(pm.cy - map[n.id].cy) > SLOT_EPS) continue;
+      if (!hasUniformBody(pn)) continue;
+      const def = resolvePin(pn, partner.pin);
       if (!def) continue;
       wants.push({ d: (pm.pinNudge ?? 0) + (def.y - 0.5), ref: partner.node });
     }
@@ -1027,8 +1033,7 @@ function circuitDagLayout(
   const ids = nodes.map((n) => n.id);
   if (ids.length < 2) return null;
   const idSet = new Set(ids);
-  const typeById = new Map(nodes.map((n) => [n.id, n.type]));
-  const typeOf = (id: string): Node['type'] => typeById.get(id)!;
+  const nodeById = new Map(nodes.map((n) => [n.id, n]));
 
   const succ = new Map<string, string[]>();
   const pred = new Map<string, string[]>();
@@ -1197,7 +1202,12 @@ function circuitDagLayout(
       (id) => !pred.get(id)!.some(inComp) || !succ.get(id)!.some(inComp)
     );
     // Rails are final from here on: the sub-rail terminal correction can be read off.
-    const nudge = assignPinNudges(cols, slot, typeOf, inEdges);
+    const nudge = assignPinNudges(
+      cols,
+      slot,
+      (id) => nodeById.get(id),
+      inEdges
+    );
     const svals = cnodes.map((id) => slot.get(id)!);
     const smin = Math.min(...svals);
     const smax = Math.max(...svals);

@@ -44,6 +44,8 @@ import { halfSubtractorNand } from './demos/halfSubtractorNand';
 import { fullAdderNand } from './demos/fullAdderNand';
 import { fullSubtractorNand } from './demos/fullSubtractorNand';
 import { srLatch } from './demos/srLatch';
+import { cmosNand } from './demos/cmosNand';
+import { mux4to1 } from './demos/mux4to1';
 import { rcCircuit } from './demos/rcCircuit';
 
 /** Clé de catégorie (stable, indépendante de la langue). Les libellés affichés
@@ -1141,6 +1143,74 @@ export const demos: Demo[] = [
       ],
     },
     spec: srLatch,
+  },
+  {
+    id: 'cmosNand',
+    title: {
+      fr: 'Porte NAND en CMOS (4 transistors)',
+      en: 'CMOS NAND gate (4 transistors)',
+    },
+    description: {
+      fr: 'Ce qu’il y a DANS une porte NAND : deux pMOS en parallèle au-dessus, deux nMOS en série en dessous. Les transistors qui conduisent s’allument à chaque combinaison.',
+      en: 'What is INSIDE a NAND gate: two pMOS in parallel above, two nMOS in series below. The conducting transistors light up for each input combination.',
+    },
+    category: 'electronics',
+    tags: {
+      fr: [
+        'cmos',
+        'mosfet',
+        'transistor',
+        'nand',
+        'microélectronique',
+        'pull-up',
+        'pull-down',
+        'numérique',
+      ],
+      en: [
+        'cmos',
+        'mosfet',
+        'transistor',
+        'nand',
+        'microelectronics',
+        'pull-up',
+        'pull-down',
+        'digital',
+      ],
+    },
+    spec: cmosNand,
+  },
+  {
+    id: 'mux4to1',
+    title: {
+      fr: 'Multiplexeur 4:1 (boîtier générique)',
+      en: 'Multiplexer 4:1 (generic block)',
+    },
+    description: {
+      fr: 'Quatre entrées, deux bits de sélection, une sortie — et un boîtier dont les bornes sont déclarées dans la spec plutôt qu’un symbole par taille.',
+      en: 'Four inputs, two select bits, one output — a block whose terminals are declared in the spec rather than one symbol per size.',
+    },
+    category: 'electronics',
+    tags: {
+      fr: [
+        'multiplexeur',
+        'mux',
+        'sélection',
+        'boîtier',
+        'combinatoire',
+        'numérique',
+        'broches',
+      ],
+      en: [
+        'multiplexer',
+        'mux',
+        'select',
+        'block',
+        'combinational',
+        'digital',
+        'pins',
+      ],
+    },
+    spec: mux4to1,
   },
   {
     id: 'rcCircuit',

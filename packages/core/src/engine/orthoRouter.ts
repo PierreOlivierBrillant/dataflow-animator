@@ -64,6 +64,17 @@ export interface RouterObstacle {
  *  a point pad (junction/signal) sets it false — any direction is allowed. */
 interface RouterEndpoint {
   node: string;
+  /**
+   * Identity of the TERMINAL this end leaves from, distinguishing two pins of one
+   * node (a flip-flop's `q` and `qn`, a block's `y` and `z`). Defaults to
+   * {@link RouterEndpoint.node} — which is right for a face-anchored pad, whose
+   * wires do share one centred port.
+   *
+   * This is what "driver" means everywhere below. Keyed by node, two outputs of
+   * one component were merged onto their MEAN anchor and drawn as one branching
+   * trunk — asserting that Q and Q̄ are the same signal.
+   */
+  terminal?: string;
   point: Point;
   normal: Point;
   hardNormal: boolean;
@@ -73,6 +84,9 @@ interface RouterEndpoint {
    *  terminal point) or a lone wire leaves this false and keeps the merge no-op. */
   fanPort?: boolean;
 }
+
+/** The terminal a wire leaves from / arrives at — see {@link RouterEndpoint.terminal}. */
+const driverOf = (e: RouterEndpoint): string => e.terminal ?? e.node;
 
 export interface RouterWire {
   key: string;
@@ -363,7 +377,7 @@ export function routeOrthogonal(
     wires = wires.map((w) => ({ ...w, from: norm(w.from), to: norm(w.to) }));
   }
 
-  // Net-aware fan-out. Wires that leave the SAME driver (`from.node`) belong to
+  // Net-aware fan-out. Wires that leave the SAME driver ({@link driverOf}) belong to
   // one net (a signal pad or a gate output feeding several inputs). We give the
   // net a SINGLE source anchor — the mean of its members' anchors, all on the
   // driver's face — so it leaves from ONE point, and we route its wires
@@ -372,9 +386,9 @@ export function routeOrthogonal(
   // draws as one trunk that BRANCHES, not N parallel wires from N points.
   const byNet = new Map<string, RouterWire[]>();
   for (const w of wires) {
-    const list = byNet.get(w.from.node);
+    const list = byNet.get(driverOf(w.from));
     if (list) list.push(w);
-    else byNet.set(w.from.node, [w]);
+    else byNet.set(driverOf(w.from), [w]);
   }
   const ordered: RouterWire[] = [];
   for (const group of byNet.values()) {
@@ -396,7 +410,7 @@ export function routeOrthogonal(
   wires = ordered;
 
   // Two DIFFERENT groupings, and the difference matters — see {@link electricalNets}.
-  //   • DRIVER (`from.node`) — wires leaving the same terminal. They are one wire
+  //   • DRIVER ({@link driverOf}) — wires leaving the same TERMINAL. They are one wire
   //     that branches, so they share a trunk (× {@link TRUNK_SHARE}) and co-locate
   //     their splits (`fork`).
   //   • NET — the same circuit node, junction hops included. Nets must not share a
@@ -406,7 +420,7 @@ export function routeOrthogonal(
   const nets = electricalNets(wires);
   const netOfDriver = new Map<string, string>();
   for (const w of wires)
-    netOfDriver.set(w.from.node, nets.get(w.key) ?? w.from.node);
+    netOfDriver.set(driverOf(w.from), nets.get(w.key) ?? driverOf(w.from));
   const netAt = (driver: string): string => netOfDriver.get(driver) ?? driver;
 
   // Rects per component. `hard` BODY = a real component: always an obstacle,
@@ -766,7 +780,7 @@ export function routeOrthogonal(
   const routeWire = (
     wire: RouterWire
   ): { seq: [number, number][] | null; poly: Point[] } => {
-    const wireDriver = wire.from.node;
+    const wireDriver = driverOf(wire.from);
     const wireNet = netAt(wireDriver);
     const skip = new Set<string>([wire.from.node, wire.to.node]);
     // A POINT endpoint anchors at the node CENTRE (inside its body), so that
@@ -1015,7 +1029,7 @@ export function routeOrthogonal(
     results.set(wire.key, poly);
     if (seq) {
       paths.set(wire.key, seq);
-      markPath(seq, wire.from.node, 1);
+      markPath(seq, driverOf(wire.from), 1);
     }
   }
 
@@ -1053,7 +1067,7 @@ export function routeOrthogonal(
     for (const wire of wires) {
       const seq = paths.get(wire.key);
       if (!seq) continue; // diagonal elbow / unreachable: not on the grid
-      const net = wire.from.node;
+      const net = driverOf(wire.from);
       const prevPoly = results.get(wire.key)!;
       markPath(seq, net, -1);
       const retry = routeWire(wire);
@@ -1116,7 +1130,7 @@ const PIN_SWAP_PASSES = 4;
 /**
  * Which ELECTRICAL net each wire belongs to, as a wire-key → net-id map.
  *
- * A wire's driver (`from.node`) is not its net. A JUNCTION — a `point` contour — is
+ * A wire's driver ({@link driverOf}) is not its net. A JUNCTION — a `point` contour — is
  * ONE node of the circuit, so the hops that tap it (`jBR → jBL`, then `jBL → batt:-`)
  * are one net drawn in several pieces, not two neighbours to be kept apart. Every
  * rule here that asks "is this someone ELSE's wire?" — lane separation, crossings,
@@ -1145,7 +1159,7 @@ function electricalNets(wires: RouterWire[]): Map<string, string> {
   // is both cannot merge nets through the wrong relation.
   const first = new Map<string, string>();
   for (const w of wires) {
-    const sites = [w.from.node];
+    const sites = [driverOf(w.from)];
     if (!w.from.hardNormal) sites.push(`@${w.from.node}`);
     if (!w.to.hardNormal) sites.push(`@${w.to.node}`);
     for (const site of sites) {
@@ -1190,9 +1204,9 @@ function countStaggeredSplits(
   for (const w of wires) {
     const r = routes.get(w.key);
     if (!r || r.length < 3) continue; // a straight branch has no split point
-    const l = byDriver.get(w.from.node);
+    const l = byDriver.get(driverOf(w.from));
     if (l) l.push(r[1]);
-    else byDriver.set(w.from.node, [r[1]]);
+    else byDriver.set(driverOf(w.from), [r[1]]);
   }
   let n = 0;
   for (const [, pts] of byDriver) {

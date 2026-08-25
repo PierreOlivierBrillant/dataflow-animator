@@ -1013,7 +1013,7 @@ function App() {
             stops
           </span>
         </h1>
-        <nav>
+        <nav className="demo-nav">
           {Object.keys(catalog)
             .sort()
             .map((id) => (

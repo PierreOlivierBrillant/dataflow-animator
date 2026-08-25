@@ -2,6 +2,7 @@ import type { Highlighter, Node, ObjectContent } from '../types';
 import { isPanelNode, isShapeType, type ShapeType } from '../render/nodeKinds';
 import { nodeTint, type ColorOverride } from '../render/nodeColors';
 import type { ContentLimit } from '../engine/placements';
+import { blockGeometry } from '../engine/blockGeometry';
 import { escapeHtml } from '../highlight/highlight';
 import { h, pct, px, s, syncStyle, type Child } from './el';
 import {
@@ -102,6 +103,65 @@ function shapeGeometry(type: ShapeType): SVGElement {
   }
 }
 
+/**
+ * A `type: 'block'` node: a box that SIZES ITSELF from the terminals the spec
+ * declares on it.
+ *
+ * Every coordinate here comes from {@link blockGeometry} — the same call
+ * `resolvePin` answers the router with. The labels and the wires therefore
+ * cannot disagree: there is no second formula to keep in step, only one result
+ * read twice. The box is given its size in DESIGN px scaled by `--rdfa-scale`,
+ * like every other node visual, so a thumbnail stays a strict reduction.
+ */
+function buildBlock(object: Node): HTMLElement {
+  const geom = blockGeometry(object);
+  const scaled = (v: number): string => `calc(${v}px * var(--rdfa-scale, 1))`;
+  const children: Child[] = [
+    s(
+      'svg',
+      {
+        class: 'rdfa-block-bg',
+        viewBox: '0 0 100 100',
+        preserveAspectRatio: 'none',
+        role: 'presentation',
+        'aria-hidden': 'true',
+      },
+      [s('rect', { x: '1', y: '1', width: '98', height: '98', rx: '3' })]
+    ),
+  ];
+  for (const row of geom.rows) {
+    const label = h('span', {
+      class: `rdfa-block-pin rdfa-block-pin--${row.side}`,
+    });
+    // The along-face fraction IS the terminal's, so the printed name sits on the
+    // wire that carries it however the box was sized.
+    const at = pct(row.at);
+    if (row.side === 'left' || row.side === 'right') label.style.top = at;
+    else label.style.left = at;
+    appendRichText(label, row.label);
+    children.push(label);
+  }
+  if (object.body) {
+    const body = h('span', { class: 'rdfa-block-body' });
+    // Inset by the very bands the terminals were spread around, so the
+    // designator centres on what is LEFT of the box rather than on the box —
+    // which would print it straight over the pin names.
+    // Longhands, not the `padding` shorthand: jsdom's CSS parser drops a
+    // shorthand whose parts are `calc()`, so the whole inset would vanish in the
+    // one environment the unit tests can see it in.
+    body.style.paddingTop = scaled(geom.pad.top);
+    body.style.paddingRight = scaled(geom.pad.right);
+    body.style.paddingBottom = scaled(geom.pad.bottom);
+    body.style.paddingLeft = scaled(geom.pad.left);
+    appendRichText(body, object.body);
+    children.push(body);
+  }
+  const el = h('div', { class: 'rdfa-block' }, children);
+  el.style.width = scaled(geom.w);
+  el.style.height = scaled(geom.h);
+  return el;
+}
+
 /** Port of `ShapeNode`. */
 function buildShape(object: Node): HTMLElement {
   const type = object.type as ShapeType;
@@ -185,6 +245,7 @@ export function renderNodeVisual(
   if (isPanelNode(node.type))
     return buildPanel(node as PanelContent, options.highlight ?? escapeHtml);
   if (isShapeType(node.type)) return buildShape(node);
+  if (node.type === 'block') return buildBlock(node);
   if (node.type === 'signal') {
     // A labelled I/O pad for logic diagrams: the bit value sits in the centre.
     const val = options.signalValue ?? node.icon ?? '';

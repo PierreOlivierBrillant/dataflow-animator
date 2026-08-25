@@ -209,3 +209,87 @@ export const rotationExample: DataFlowSpec = {
     { type: 'rotate', object: 'spin', to: 360, duration: 700 },
   ],
 };
+
+/** Bloc fonctionnel à broches fixes : un multiplexeur 2:1, câblé par le NOM de
+ *  ses bornes. `sel` entre par le BAS, comme sur le symbole dessiné. */
+export const functionalBlockExample: DataFlowSpec = {
+  direction: 'circuit',
+  nodes: [
+    { id: 'i0', type: 'signal', x: 0.12, y: 0.28, text: 'A', icon: '1' },
+    { id: 'i1', type: 'signal', x: 0.12, y: 0.72, text: 'B', icon: '0' },
+    { id: 'm', type: 'mux_2to1', x: 0.55, y: 0.45, text: 'MUX 2:1' },
+    { id: 'sel', type: 'signal', x: 0.45, y: 0.86, text: 'S', icon: '0' },
+    { id: 'y', type: 'signal', x: 0.88, y: 0.45, text: 'Y', icon: '1' },
+  ],
+  connections: [
+    { from: 'i0', to: 'm:i0' },
+    { from: 'i1', to: 'm:i1' },
+    { from: 'sel', to: 'm:sel' },
+    { from: 'm:y', to: 'y' },
+  ],
+  packets: [],
+  timeline: [],
+};
+
+/** Inverseur CMOS : le pMOS tire vers VDD, le nMOS vers la masse. Les deux
+ *  terminaux de canal sont MIROIR entre N et P — `s` est en haut sur le pMOS,
+ *  `d` en haut sur le nMOS — de sorte que l'empilement se câble de haut en bas. */
+export const cmosInverterExample: DataFlowSpec = {
+  direction: 'circuit',
+  nodes: [
+    { id: 'in', type: 'signal', x: 0.14, y: 0.5, text: 'A', icon: '0' },
+    { id: 'vdd', type: 'junction', x: 0.62, y: 0.16, text: 'VDD' },
+    { id: 'P', type: 'mosfet_p', x: 0.5, y: 0.28, text: 'pMOS' },
+    { id: 'out', type: 'junction', x: 0.62, y: 0.45 },
+    { id: 'N', type: 'mosfet_n', x: 0.5, y: 0.62, text: 'nMOS' },
+    { id: 'gnd', type: 'ground', x: 0.62, y: 0.85 },
+    { id: 'y', type: 'signal', x: 0.88, y: 0.45, text: 'Y', icon: '1' },
+  ],
+  connections: [
+    { from: 'vdd', to: 'P:s' },
+    { from: 'P:d', to: 'out' },
+    { from: 'out', to: 'N:d' },
+    { from: 'N:s', to: 'gnd:a' },
+    { from: 'out', to: 'y' },
+    { from: 'in', to: 'P:g' },
+    { from: 'in', to: 'N:g' },
+  ],
+  packets: [],
+  timeline: [],
+};
+
+/** Boîtier générique (`type: 'block'`) : les bornes sont DÉCLARÉES, la boîte se
+ *  dimensionne dessus. Les quatre faces sont utilisées ici. */
+export const genericBlockExample: DataFlowSpec = {
+  direction: 'circuit',
+  nodes: [
+    { id: 'a', type: 'signal', x: 0.12, y: 0.3, text: 'A', icon: '1' },
+    { id: 'b', type: 'signal', x: 0.12, y: 0.62, text: 'B', icon: '0' },
+    { id: 'op', type: 'signal', x: 0.45, y: 0.14, text: 'OP', icon: '1' },
+    {
+      id: 'alu',
+      type: 'block',
+      x: 0.52,
+      y: 0.46,
+      body: 'ALU',
+      pins: [
+        { name: 'a', label: 'A' },
+        { name: 'b', label: 'B' },
+        { name: 'op', side: 'top', label: 'OP' },
+        { name: 'y', side: 'right', label: 'Y' },
+        { name: 'z', side: 'right', label: 'Z' },
+      ],
+    },
+    { id: 'y', type: 'signal', x: 0.88, y: 0.36, text: 'Y', icon: '1' },
+    { id: 'z', type: 'signal', x: 0.88, y: 0.68, text: 'Z', icon: '0' },
+  ],
+  connections: [
+    { from: 'a', to: 'alu:a' },
+    { from: 'b', to: 'alu:b' },
+    { from: 'op', to: 'alu:op' },
+    { from: 'alu:y', to: 'y' },
+    { from: 'alu:z', to: 'z' },
+  ],
+  packets: [],
+  timeline: [],
+};

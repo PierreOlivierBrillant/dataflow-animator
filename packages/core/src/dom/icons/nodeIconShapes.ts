@@ -2,9 +2,53 @@ import type { NodeType } from '../../types';
 
 /** One SVG element of a pictogram, in the shared 0..24 box. */
 export interface IconShape {
-  tag: 'rect' | 'path' | 'circle' | 'ellipse' | 'polygon';
+  tag: 'rect' | 'path' | 'circle' | 'ellipse' | 'polygon' | 'text';
   attr: Record<string, string>;
+  /** Text content — `text` shapes only, ignored by every other tag. */
+  text?: string;
 }
+
+/**
+ * Designator drawn inside a functional block ("D", "MUX", "FA"…).
+ *
+ * `stroke: none` is not decoration: the shared wrapper sets a 1.6-wide
+ * `currentColor` stroke that every child inherits, which on a glyph paints a
+ * fat outline over its own counters and turns a two-letter label into a blob.
+ * The size is passed per call because a three-letter designator has to shrink
+ * to fit the same 12-unit-wide box a one-letter one floats in.
+ */
+function label(text: string, size: number, x = 12, y = 12): IconShape {
+  return {
+    tag: 'text',
+    text,
+    attr: {
+      x: String(x),
+      y: String(y),
+      'font-size': String(size),
+      'font-weight': '600',
+      'text-anchor': 'middle',
+      'dominant-baseline': 'central',
+      fill: 'currentColor',
+      stroke: 'none',
+    },
+  };
+}
+
+/** Body of a fixed-pin functional block: a rounded box spanning the glyph, with
+ *  a 5-unit gutter on each side for the terminal stubs. The gutter is as narrow
+ *  as a lead can be and still read as a lead, because the box is what has to
+ *  hold a three-letter designator without crowding it. */
+const BLOCK_BODY: IconShape = {
+  tag: 'rect',
+  attr: { x: '5', y: '2.5', width: '14', height: '19', rx: '1' },
+};
+
+/** Edge-triggered clock input: the wedge notched into the block's left face, at
+ *  the height of the `clk` terminal. */
+const clockWedge = (y: number): IconShape => ({
+  tag: 'path',
+  attr: { d: `M5 ${y - 2.4}l3 2.4-3 2.4`, fill: 'none' },
+});
 
 /**
  * Node pictograms by `type`, as data.
@@ -195,6 +239,46 @@ export const NODE_ICON_SHAPES: Partial<Record<NodeType, IconShape[]>> = {
     { tag: 'path', attr: { d: 'M7 15l10 6M17 21v3' } },
     { tag: 'path', attr: { d: 'M10.4 15.1l-3.4 1.9 3.9 1' } },
   ],
+  // MOS transistors. The gate plate faces the channel's three segments, and the
+  // drain / source leads reach the RIGHT EDGE at the height `engine/pins.ts`
+  // declares — so the wire lands on the drawn lead rather than near it.
+  // N vs P is told apart by the gate BUBBLE ALONE — the convention CMOS logic
+  // diagrams use, and the only one that survives this size: a bulk arrow drawn
+  // on a 1.6-wide round-capped lead merges into it into a blob, and the reader
+  // is then told the two apart by a smudge.
+  // The channel's three segments are 2.8 long with 2.8 between them, NOT the
+  // even split the box invites: `stroke-linecap: round` grows every end by half
+  // the stroke, so a 1.1 gap closes to 0.3 and the channel reads as one solid
+  // bar. Any gap here must exceed the 1.6 stroke before it is a gap at all.
+  mosfet_n: [
+    { tag: 'path', attr: { d: 'M0 12h6' } },
+    { tag: 'path', attr: { d: 'M6.6 5v14' } },
+    { tag: 'path', attr: { d: 'M9.6 5.2v2.8M9.6 10.6v2.8M9.6 16v2.8' } },
+    { tag: 'path', attr: { d: 'M9.6 6.6h7.4V3.6H24', fill: 'none' } },
+    { tag: 'path', attr: { d: 'M9.6 17.4h7.4v3H24', fill: 'none' } },
+  ],
+  mosfet_p: [
+    { tag: 'path', attr: { d: 'M0 12h3.4' } },
+    { tag: 'circle', attr: { cx: '5', cy: '12', r: '1.6' } },
+    { tag: 'path', attr: { d: 'M6.6 12h0.8' } },
+    { tag: 'path', attr: { d: 'M7.4 5v14' } },
+    { tag: 'path', attr: { d: 'M10.4 5.2v2.8M10.4 10.6v2.8M10.4 16v2.8' } },
+    { tag: 'path', attr: { d: 'M10.4 6.6h6.6V3.6H24', fill: 'none' } },
+    { tag: 'path', attr: { d: 'M10.4 17.4h6.6v3H24', fill: 'none' } },
+  ],
+  // CMOS pass gate: two opposed triangles (the signal crosses either way), the
+  // nMOS control on top and the pMOS one below, bubbled. Both triangles opt out
+  // of the fill — the crossing outlines ARE the symbol.
+  transmission_gate: [
+    { tag: 'path', attr: { d: 'M0 12h6M18 12h6' } },
+    { tag: 'path', attr: { d: 'M6 7.5v9l12-4.5z', fill: 'none' } },
+    { tag: 'path', attr: { d: 'M18 7.5v9L6 12z', fill: 'none' } },
+    // The two outlines cross at (12, 9.75) and (12, 14.25); each control lead
+    // stops THERE, so neither runs across the body it controls.
+    { tag: 'path', attr: { d: 'M12 0v9.7' } },
+    { tag: 'path', attr: { d: 'M12 24v-6.6' } },
+    { tag: 'circle', attr: { cx: '12', cy: '15.8', r: '1.5' } },
+  ],
   opamp: [
     { tag: 'path', attr: { d: 'M0 7h6M0 17h6M20 12h4' } },
     { tag: 'path', attr: { d: 'M6 2v20l14-10z' } },
@@ -282,5 +366,88 @@ export const NODE_ICON_SHAPES: Partial<Record<NodeType, IconShape[]>> = {
     { tag: 'path', attr: { d: 'M6 4q4 8 0 15q10-1 14-7q-4-6-14-8z' } },
     { tag: 'path', attr: { d: 'M3 4q4 8 0 15', fill: 'none' } },
     { tag: 'circle', attr: { cx: '21.5', cy: '12', r: '1.8' } },
+  ],
+  // Three-input gates: the SAME bodies as their two-input siblings, with the
+  // inputs re-spread to quarter heights. Each lead stops where the body's own
+  // outline is at that height — flat at x = 6 for the AND family, further right
+  // on the OR family's curved back (x = 7 at mid-height, ~5.9 at the quarters),
+  // so no lead pokes through the body it feeds.
+  and3_gate: [
+    { tag: 'path', attr: { d: 'M0 6h6M0 12h6M0 18h6M19 12h5' } },
+    { tag: 'path', attr: { d: 'M6 4h5a8 8 0 0 1 0 16h-5z' } },
+  ],
+  nand3_gate: [
+    { tag: 'path', attr: { d: 'M0 6h6M0 12h6M0 18h6M22.6 12h1.4' } },
+    { tag: 'path', attr: { d: 'M6 4h5a8 8 0 0 1 0 16h-5z' } },
+    { tag: 'circle', attr: { cx: '20.8', cy: '12', r: '1.8' } },
+  ],
+  or3_gate: [
+    { tag: 'path', attr: { d: 'M0 6h5.9M0 12h7M0 18h5.9M20 12h4' } },
+    { tag: 'path', attr: { d: 'M5 4q4 8 0 16q10-1 15-8q-5-7-15-8z' } },
+  ],
+  nor3_gate: [
+    { tag: 'path', attr: { d: 'M0 6h5.9M0 12h7M0 18h5.5M22 12h2' } },
+    { tag: 'path', attr: { d: 'M5 4q4 8 0 15q10-1 14-7q-4-6-14-8z' } },
+    { tag: 'circle', attr: { cx: '20.5', cy: '12', r: '1.8' } },
+  ],
+  xor3_gate: [
+    { tag: 'path', attr: { d: 'M0 6h6M0 12h8M0 18h6M21 12h3' } },
+    { tag: 'path', attr: { d: 'M6 4q4 8 0 16q10-1 15-8q-5-7-15-8z' } },
+    { tag: 'path', attr: { d: 'M3 4q4 8 0 16', fill: 'none' } },
+  ],
+  // ─── Fixed-pin functional blocks ────────────────────────────────────────────
+  // Drawn as a labelled box rather than as their internal gates: that IS the
+  // point of the family — a block you place without redrawing what is inside it.
+  // The stub heights are the terminal heights from `engine/pins.ts` scaled into
+  // this 0..24 box (0.28 → 6.7, 0.72 → 17.3, 0.22 → 5.3, 0.78 → 18.7).
+  d_flip_flop: [
+    { tag: 'path', attr: { d: 'M0 6.7h5M0 17.3h5M19 6.7h5M19 17.3h5' } },
+    BLOCK_BODY,
+    clockWedge(17.3),
+    label('D', 8),
+  ],
+  // The wedge sits at MID-height here (the clock is the middle input), which is
+  // exactly where a centred designator would be: the label is pushed right of
+  // it rather than shrunk, so it stays the same size as its siblings'.
+  jk_flip_flop: [
+    { tag: 'path', attr: { d: 'M0 5.3h5M0 12h5M0 18.7h5M19 6.7h5M19 17.3h5' } },
+    BLOCK_BODY,
+    clockWedge(12),
+    label('JK', 6.5, 13.5),
+  ],
+  t_flip_flop: [
+    { tag: 'path', attr: { d: 'M0 6.7h5M0 17.3h5M19 6.7h5M19 17.3h5' } },
+    BLOCK_BODY,
+    clockWedge(17.3),
+    label('T', 8),
+  ],
+  // No wedge: a latch is level-sensitive, so marking it edge-triggered would be
+  // a lie told by the symbol.
+  sr_latch: [
+    { tag: 'path', attr: { d: 'M0 6.7h5M0 17.3h5M19 6.7h5M19 17.3h5' } },
+    BLOCK_BODY,
+    label('SR', 6.5),
+  ],
+  // (De)multiplexers taper toward the side that carries the single line, and the
+  // select enters from below through the short edge.
+  mux_2to1: [
+    { tag: 'path', attr: { d: 'M0 6.7h5M0 17.3h5M19 12h5M12 24v-5' } },
+    { tag: 'path', attr: { d: 'M5 2.5l14 5v9l-14 5z' } },
+    label('MUX', 4.2),
+  ],
+  demux_1to2: [
+    { tag: 'path', attr: { d: 'M0 12h5M19 6.7h5M19 17.3h5M12 24v-5' } },
+    { tag: 'path', attr: { d: 'M5 7.5l14-5v19l-14-5z' } },
+    label('DMX', 4.2),
+  ],
+  half_adder: [
+    { tag: 'path', attr: { d: 'M0 6.7h5M0 17.3h5M19 6.7h5M19 17.3h5' } },
+    BLOCK_BODY,
+    label('HA', 7),
+  ],
+  full_adder: [
+    { tag: 'path', attr: { d: 'M0 5.3h5M0 12h5M0 18.7h5M19 6.7h5M19 17.3h5' } },
+    BLOCK_BODY,
+    label('FA', 7),
   ],
 };

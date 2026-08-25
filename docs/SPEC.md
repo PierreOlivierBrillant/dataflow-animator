@@ -168,10 +168,35 @@ and a family of **electrical component** symbols (`resistor`, `potentiometer`,
 `ac_source`, `current_source`, `diode`, `led`, `transistor_npn`, `transistor_pnp`,
 `opamp`, `switch`, `push_button`, `lamp`, `motor`, `buzzer`, `ground`, `junction`,
 `signal` (a labelled logic I/O pad showing a bit, updated by `set_icon` and lit by
-`set_color`), `ammeter`, `voltmeter`, `antenna`, `transformer`, plus **digital logic gates**
+`set_color`), `ammeter`, `voltmeter`, `antenna`, `transformer`, `mosfet_n`,
+`mosfet_p` (`gate` / `drain` / `source` — the two channel terminals are mirrored
+between N and P so a CMOS pull-up and pull-down stack wire top-to-bottom) and
+`transmission_gate`, plus **digital logic gates**
 `and_gate`, `or_gate`, `not_gate`, `nand_gate`, `nor_gate`, `xor_gate`,
 `xnor_gate`, `buffer_gate` — inputs `a` / `b` on the left, output `y` on the
-right). Component symbols expose **named terminals** (see [§4](#4-routing-and-collision-prevention));
+right — their **three-input** counterparts `and3_gate`, `or3_gate`, `nand3_gate`,
+`nor3_gate`, `xor3_gate` (inputs `a` / `b` / `c`), and a family of **fixed-pin
+functional blocks** drawn as a labelled box rather than as the gates inside it:
+`d_flip_flop`, `jk_flip_flop`, `t_flip_flop`, `sr_latch` (outputs `q` / `qn`),
+`mux_2to1`, `demux_1to2` (select line entering from below) and `half_adder`,
+`full_adder` (sum on the upper output row, carry on the lower).
+Only blocks whose terminal COUNT is fixed belong to that family. A parametric one
+— an N-bit register, a 4:1 mux, an n→2ⁿ decoder, an ALU — is `type: 'block'`
+instead: a **generic box whose terminals are declared by {@link Node.pins}**
+(`{ name, side?, label? }`, `side` defaulting to `'left'`). Terminals of one face
+are spread evenly over it in declaration order, and the box SIZES ITSELF from
+them — taller with the busiest of the left/right faces, wider with the longest
+labels and the `body` designator.
+
+The size and every terminal fraction come from one pure function,
+[`engine/blockGeometry.ts`](../packages/core/src/engine/blockGeometry.ts), which
+both the renderer and `resolvePin` read: a label and the wire that lands on it
+cannot drift apart, because there is no second formula. Nothing is measured from
+the DOM, so a block's geometry is known before mount and identical under SSR. A
+block is excluded from the layout's lead-straightening nudges (`hasUniformBody`):
+those compare terminal offsets as fractions of each body, which is only sound
+while every symbol renders at one size.
+Component symbols expose **named terminals** (see [§4](#4-routing-and-collision-prevention));
 `switch` / `push_button` carry a `closed` state animated by the [`toggle` action](#5-animation-engine-and-actions).
 Any node may also set `value` + `unit` to build its label (`"10 kΩ"`), combined
 with `text` if both are present (`"R1 · 10 kΩ"`).
@@ -297,6 +322,13 @@ node (`NODE_GAP`). See [`packages/core/src/engine/geometry.ts`](../packages/core
   (`rotation: 90`) has its `a` / `b` terminals top and bottom, and its wires leave
   vertically. Terminal endpoints are distinct points by construction, so the
   bidirectional/fan-out port spread does not apply to them.
+
+- **Net tinting is driven by an explicit list of logic drivers**, not by a name
+  test: `isLogicDriver` in `pins.ts` names every type whose output defines a net
+  (the gates, the `signal` pad, the flip-flops, the mux and the adders). A
+  `transmission_gate` PASSES a net rather than driving one, and the transistors of
+  a CMOS gate SHARE one output node, so neither tints — tinting per source node
+  would paint one net in several colours.
 
 ## 5. Animation engine and actions
 

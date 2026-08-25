@@ -7,9 +7,52 @@ here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 2.1.0 — 2026-08-24
+## Unreleased
 
 ### Added
+
+- **Sixteen microelectronics symbols**, all with named terminals. Three MOS
+  parts — `mosfet_n`, `mosfet_p` and the CMOS pass gate `transmission_gate` —
+  so a logic gate can be drawn as the transistors it is actually made of. Five
+  three-input gates — `and3_gate`, `or3_gate`, `nand3_gate`, `nor3_gate`,
+  `xor3_gate` — with inputs `a` / `b` / `c`, the middle one at mid-height so a
+  straight wire into it needs no bend. And eight **functional blocks**, drawn as
+  a labelled box rather than as the gates inside them: `d_flip_flop`,
+  `jk_flip_flop`, `t_flip_flop`, `sr_latch` (outputs `q` / `qn`), `mux_2to1`,
+  `demux_1to2` (select line entering from below), `half_adder` and `full_adder`.
+
+  A pMOS's `source` is its UPPER terminal while an nMOS's `drain` is — mirrored
+  on purpose, because that is what lets a CMOS pull-up and pull-down stack be
+  wired straight down the page instead of routing back around itself.
+
+  Only blocks whose terminal COUNT is fixed are modelled. A parametric one — an
+  N-bit register, a 4:1 multiplexer, an n→2ⁿ decoder — would need one type per
+  size, and belongs to a future block whose pins are declared in the spec.
+
+- **`type: 'block'` — a functional block whose terminals are declared in the
+  spec.** The fixed-pin symbols cover what never varies; a 4:1 multiplexer, an
+  n→2ⁿ decoder, an N-bit register or an ALU each have a different terminal count,
+  and one node type per size is not a catalogue that ends. A block takes a
+  `pins` list — `{ name, side?, label? }`, `side` one of `left` (the default),
+  `right`, `top`, `bottom` — spreads each face's terminals evenly in declaration
+  order, and **sizes its box from them**: taller with the busiest vertical face,
+  wider with the longest labels and the `body` designator.
+
+  The size and every terminal position come from a single pure function that
+  both the renderer and the wire router read, so a printed pin name and the wire
+  that lands on it cannot drift apart. Nothing is measured from the DOM, so the
+  geometry is known before mount and identical under SSR.
+
+  A block does not take part in the circuit layout's lead-straightening nudges:
+  those compare terminal offsets as fractions of each body, which only holds
+  while every symbol renders at one size. The router draws the steps instead.
+
+- **A new gallery demo, "Multiplexer 4:1"**, stepping through the four select
+  values and lighting the one input path that reaches the output.
+
+- **A new gallery demo, "CMOS NAND gate"**: the same NAND the rest of the
+  electronics demos are built from, drawn as its four transistors, lighting up
+  the ones that conduct for each of the four input combinations.
 
 - **A `content` / `set_content` panel can now be rich HTML.** A new content
   `type: 'html'` renders the markup in `value` — headings, lists, tables,
@@ -69,6 +112,14 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   two-word panel the ceiling of a paragraph. An `image` carrying `frames` is
   given the time its sequence needs to play through once, instead of the flat
   beat a still gets.
+
+### Fixed
+
+- **Net tinting now covers every type that drives a net.** It was decided by
+  `type.endsWith('_gate')`, which silently excluded anything that is not spelled
+  like a gate — a flip-flop's `q` is as much a net driver as a NAND's `y` — and
+  would have wrongly included `transmission_gate`, which passes a net rather
+  than driving one. The rule is now an explicit list.
 
 ## 2.0.0 — 2026-08-24
 
