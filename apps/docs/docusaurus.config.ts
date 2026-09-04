@@ -261,7 +261,7 @@ const config = {
       // The IDENTIFIER of the index in the Algolia dashboard, not a displayed
       // title: it kept the site's former name on purpose. Renaming it here
       // without renaming the index there points search at nothing.
-      indexName: 'React Dataflow Animator documentation website',
+      indexName: 'Dataflow Animator documentation website',
       searchPagePath: 'search',
       contextualSearch: true,
     },
