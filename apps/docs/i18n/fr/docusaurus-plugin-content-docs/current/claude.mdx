@@ -1,0 +1,98 @@
+---
+title: Générer avec Claude
+slug: /claude
+---
+
+Décrivez une animation avec vos mots — « montre comment une requête DNS résout
+`www.example.com` », « anime une insertion AVL qui déclenche une double
+rotation » — et laissez [Claude](https://claude.ai) écrire la spec. Trois
+façons, de la plus rapide à la plus intégrée. Toutes trois s'appuient sur le
+même matériel, reconstruit à partir du JSON Schema et de la
+[galerie de démos](/examples) à chaque publication du site : il ne décrit
+jamais un champ que le moteur n'accepte plus.
+
+## Depuis le playground : « Demander à Claude »
+
+Rien à installer.
+
+1. Ouvrez le [playground](/playground) et cliquez sur **Demander à Claude**.
+2. Décrivez l'animation. Cochez **Partir de la spec actuellement dans
+   l'éditeur** pour que Claude modifie votre travail en cours au lieu de
+   repartir de zéro.
+3. Cliquez sur **Copier le prompt**, puis sur **Ouvrir claude.ai**, collez
+   (Ctrl+V / ⌘V) et envoyez.
+4. Collez dans l'éditeur du playground le JSON renvoyé par Claude : il est
+   validé au collage et joué aussitôt.
+
+Le prompt transporte tout le contexte d'écriture — le guide, la référence des
+champs, les bornes des composants électriques et sept exemples de la galerie —
+c'est pourquoi il passe par le presse-papiers plutôt que par un lien.
+
+## Le skill Claude
+
+Pour un usage régulier, installez le skill une fois pour toutes : Claude connaît
+alors le format dans chaque conversation, **valide lui-même sa spec** avec un
+script fourni, et répond avec un **lien qui ouvre l'animation** dans le
+playground.
+
+[Télécharger le skill](pathname:///claude/dataflow-animator-skill.zip) (un zip
+contenant un dossier `dataflow-animator/`).
+
+- **claude.ai** (et l'application de bureau Claude) : Paramètres → Capacités →
+  Skills → téléversez le zip. Les skills exigent que **l'exécution de code et la
+  création de fichiers** soient activées sur la même page de paramètres.
+- **Claude Code** : décompressez-le dans votre dossier de skills personnels, ou
+  dans le `.claude/skills/` d'un projet pour le partager avec son équipe.
+
+```bash
+unzip dataflow-animator-skill.zip -d ~/.claude/skills/
+```
+
+Il suffit ensuite de demander : _« Anime un flux OAuth 2.0 avec code
+d'autorisation »_. Claude lit le guide, choisit les exemples les plus proches,
+écrit la spec, relance le validateur jusqu'à ce qu'il ne signale plus rien, et
+répond avec le lien du playground et le JSON. Recollez un lien du playground
+dans la conversation pour que Claude modifie exactement cette spec.
+
+Contenu du skill :
+
+| Chemin                        | Contenu                                                                         |
+| ----------------------------- | ------------------------------------------------------------------------------- |
+| `SKILL.md`                    | La démarche que suit Claude                                                     |
+| `reference/guide.md`          | Comment écrire une bonne animation, et les erreurs à éviter                     |
+| `reference/types.md`          | Tous les champs de la spec, générés depuis le JSON Schema                       |
+| `reference/pins.md`           | Les noms de bornes `"nœud:borne"` de chaque composant électrique                |
+| `examples/`                   | Toutes les démos de la galerie en JSON, avec un index par disposition et action |
+| `scripts/validate.mjs`        | Vérifie le schéma, les références et les bornes, avec suggestions de correction |
+| `scripts/playground-link.mjs` | Spec → lien du playground, et l'inverse (`--decode`)                            |
+
+Les scripts n'ont besoin que de Node.js 18 ou plus récent — aucune
+installation, aucun accès réseau.
+
+Les fichiers du skill sont en anglais, comme le format lui-même ; Claude écrit
+le texte visible de l'animation dans la langue de votre demande.
+
+## Pour tout assistant : `llms.txt`
+
+Le site publie le même matériel au format [llms.txt](https://llmstxt.org), pour
+tout assistant ou outil capable de lire une URL :
+
+- [`/llms.txt`](pathname:///llms.txt) — un index : le guide, la référence, les
+  bornes, chaque exemple, le skill ;
+- [`/llms-full.txt`](pathname:///llms-full.txt) — tout en un seul fichier.
+
+## Liens partageables
+
+Le bouton **Partager** du playground copie un lien qui transporte la spec
+elle-même, dans le fragment de l'URL :
+
+```text
+https://pierreolivierbrillant.github.io/dataflow-animator/playground/#spec=<jeton>
+```
+
+Le jeton est le JSON minifié, compressé en DEFLATE brut et encodé en base64url —
+environ 1 Ko pour une animation typique. Comme c'est un fragment, il n'est
+jamais envoyé au serveur : ouvrir le lien charge la spec entièrement dans votre
+navigateur. Le script `playground-link.mjs` du skill produit exactement ces
+liens : c'est ce qui permet à Claude de répondre avec une animation qui s'ouvre
+en un clic.

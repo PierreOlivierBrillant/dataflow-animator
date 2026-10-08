@@ -1,10 +1,19 @@
-/**
- * TypeScript types of the DataFlow specification.
- * The JSON Schema (`schema.ts`, exposed by the API Doc page) is GENERATED from these types
- * via `ts-json-schema-generator` (`generate:schema` script). Do not edit the schema
- * manually — modify here then regenerate.
- */
+// TypeScript types of the DataFlow specification.
+// The JSON Schema (`schema.ts`, exposed by the API Doc page) is GENERATED from these types
+// via `ts-json-schema-generator` (`generate:schema` script). Do not edit the schema
+// manually — modify here then regenerate.
+//
+// A line comment, not a JSDoc block: the generator attaches a leading `/** */`
+// to the first declaration below, so this header used to ship in the published
+// schema as the DESCRIPTION OF `Direction`.
 
+/**
+ * How nodes are placed: along a flow (`left-to-right`, `right-to-left`,
+ * `top-to-bottom`, `bottom-to-top`, positioned by `lane`), on a ring around the
+ * `main` node (`circular`), as an auto-placed arbitrary graph (`graph`), as a
+ * binary tree (`tree`, driven by the `tree` block) or as an electrical
+ * schematic (`circuit`).
+ */
 export type Direction =
   | 'left-to-right'
   | 'right-to-left'
@@ -311,23 +320,25 @@ export interface Node {
    */
   align_with?: string;
   /**
-   * (`graph`) Horizontal position as a fraction of the Stage, from 0 (left edge)
-   * to 1 (right edge). Used **only** when `direction` is `'graph'`. **Optional:**
-   * omit it and the node is placed AUTOMATICALLY (the layout minimizes edge
-   * crossings). Provide it to **pin** the node as a fixed anchor the
-   * auto-placement of the other nodes routes around — handy to fix a source, a
-   * target, or the overall orientation. Ignored by every other direction (which
-   * derive positions from `lane` / `main` / the tree).
+   * (`graph`, `circuit`) Horizontal position as a fraction of the Stage, from 0
+   * (left edge) to 1 (right edge). Used **only** when `direction` is `'graph'`
+   * or `'circuit'`. **Optional:** omit it and the node is placed AUTOMATICALLY
+   * (in `graph`, the layout minimizes edge crossings; in `circuit`, a single loop
+   * or a feed-forward logic network is auto-arranged). Provide it to **pin** the
+   * node as a fixed anchor — handy to fix a source, a target, or the overall
+   * orientation, and required for a `circuit` that is neither a loop nor
+   * feed-forward. Ignored by every other direction (which derive positions from
+   * `lane` / `main` / the tree).
    * @minimum 0
    * @maximum 1
    * @example 0.25
    */
   x?: number;
   /**
-   * (`graph`) Vertical position as a fraction of the Stage, from 0 (top edge) to
-   * 1 (bottom edge). Companion of {@link Node.x}: used only when `direction` is
-   * `'graph'`, omit for automatic placement, provide to pin the node. Ignored
-   * otherwise.
+   * (`graph`, `circuit`) Vertical position as a fraction of the Stage, from 0
+   * (top edge) to 1 (bottom edge). Companion of {@link Node.x}: used only when
+   * `direction` is `'graph'` or `'circuit'`, omit for automatic placement,
+   * provide to pin the node. Ignored otherwise.
    * @minimum 0
    * @maximum 1
    * @example 0.8
@@ -1094,12 +1105,13 @@ export interface DataFlowSpec {
    * `tree` modes you provide **no coordinates** — the engine arranges nodes from
    * `lane` / `main` / the {@link TreeSpec}. Default: 'left-to-right'. Use `'tree'`
    * to lay out a binary tree (in-order rank → horizontal, depth → vertical) and
-   * enable the {@link RotateSubtreeAction}. Use `'graph'` to place nodes yourself
-   * via their `x` / `y` (free 2D layout) — the escape hatch for an arbitrary
-   * graph (Dijkstra, A\*, minimum spanning tree…). Use `'circuit'` for an
-   * electrical schematic: nodes placed by `x` / `y` on a grid, `connections`
-   * drawn as orthogonal **wires** (no arrow head) by default, and edges anchored
-   * on the components' **named terminals** (`"node:pin"`).
+   * enable the {@link RotateSubtreeAction}. Use `'graph'` for an arbitrary graph
+   * (Dijkstra, A\*, minimum spanning tree…): nodes are auto-placed to minimize
+   * edge crossings, and a node MAY pin itself with `x` / `y`. Use `'circuit'`
+   * for an electrical schematic: `connections` drawn as orthogonal **wires** (no
+   * arrow head) by default, edges anchored on the components' **named
+   * terminals** (`"node:pin"`); a single loop or a feed-forward logic network is
+   * auto-placed, anything else is positioned with `x` / `y`.
    */
   direction?: Direction;
   /**

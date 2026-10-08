@@ -7,3 +7,6 @@ coverage
 package-lock.json
 packages/core/src/schema.generated.json
 apps/docs/static/schema.json
+apps/docs/static/llms.txt
+apps/docs/static/llms-full.txt
+apps/docs/static/claude/

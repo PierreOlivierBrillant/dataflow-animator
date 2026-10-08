@@ -211,6 +211,11 @@ export const fr = {
         desc: ' — démarrer en 5 lignes, dans votre framework.',
       },
       {
+        to: '/docs/claude',
+        label: 'Générer avec Claude',
+        desc: ' — décrire une animation avec ses mots et obtenir une spec prête à jouer.',
+      },
+      {
         to: '/docs/reference/packages',
         label: 'Paquets et liaisons',
         desc: ' — React, Angular, élément personnalisé, ou le cœur seul.',
@@ -333,6 +338,38 @@ export const fr = {
       'Éditeur de la spécification JSON. Appuyez sur Échap puis Tab pour sortir de l’éditeur.',
     invalidJson: 'JSON invalide :',
     emptyState: "Entrez une spec JSON valide pour voir l'animation.",
+    share: 'Partager',
+    shareHint: 'Copier un lien qui ouvre exactement cette spec',
+    shareCopied: 'Lien copié',
+    customSpec: 'Spec partagée',
+    badLink: 'Ce lien ne contient pas de spec lisible.',
+    askClaude: 'Demander à Claude',
+    askClaudeHint: 'Générer une spec avec Claude',
+    claude: {
+      title: 'Générer une animation avec Claude',
+      intro:
+        "Décrivez ce que vous voulez animer. Le bouton copie un prompt qui apprend le format de spec à Claude avec de vrais exemples ; collez-le dans une nouvelle conversation Claude, puis collez dans l'éditeur le JSON qu'il renvoie.",
+      requestLabel: "Que doit montrer l'animation ?",
+      requestPlaceholder:
+        "ex. : comment une requête DNS résout www.example.com, étape par étape, du navigateur jusqu'au serveur faisant autorité.",
+      defaultRequest:
+        'Propose une animation de ton choix qui met le format en valeur.',
+      includeCurrent: "Partir de la spec actuellement dans l'éditeur",
+      startFromCurrent:
+        'Pars de cette spec, que je modifie dans le playground, et change-la selon ma demande :',
+      copyPrompt: 'Copier le prompt',
+      openClaude: 'Ouvrir claude.ai',
+      copied:
+        "Prompt copié. Ouvrez claude.ai, collez-le (Ctrl+V / ⌘V) et envoyez — puis collez dans l'éditeur le JSON renvoyé par Claude.",
+      copyFailed:
+        "Le prompt n'a pas pu être copié. Rechargez la page et réessayez, ou utilisez le skill ci-dessous.",
+      skillTitle: "Vous l'utilisez souvent ? Installez le skill Claude",
+      skillBody:
+        "Le skill donne durablement à Claude les mêmes connaissances, plus un validateur et un générateur de liens : Claude vérifie sa propre spec et répond avec un lien qui l'ouvre ici même. Téléversez le zip dans claude.ai (Paramètres → Capacités → Skills), ou décompressez-le dans ~/.claude/skills/ pour Claude Code.",
+      skillDownload: 'Télécharger le skill (.zip)',
+      learnMore: 'Comment ça marche',
+      close: 'Fermer',
+    },
     // The playground's schema errors. `validateSpec` holds the English
     // defaults and takes these as overrides, key by key — same contract as the
     // player's `labels`, and for the same reason: both locales render the same

@@ -5,3 +5,9 @@ node_modules
 # Copié depuis packages/core/src/schema.generated.json
 # au build/dev (voir scripts/copy-schema.mjs) — généré, pas committé.
 static/schema.json
+
+# Written by scripts/build-claude-kit.mjs at build/dev from claude-kit/, the
+# gallery demos and the schema — generated, not committed.
+static/llms.txt
+static/llms-full.txt
+static/claude/

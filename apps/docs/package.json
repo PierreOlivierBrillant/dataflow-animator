@@ -4,10 +4,11 @@
   "version": "1.0.0",
   "scripts": {
     "copy:schema": "node scripts/copy-schema.mjs",
-    "prebuild": "npm run copy:schema",
+    "build:claude-kit": "node scripts/build-claude-kit.mjs",
+    "prebuild": "npm run copy:schema && npm run build:claude-kit",
     "build": "docusaurus build",
     "clear": "docusaurus clear",
-    "predev": "npm run copy:schema",
+    "predev": "npm run copy:schema && npm run build:claude-kit",
     "dev": "docusaurus start",
     "serve": "docusaurus serve",
     "test": "vitest run"

@@ -12,8 +12,27 @@ import { demos, demosById, getSpec, pickLocale } from '../site-content/demos';
 import { useLocale, useTranslation } from '../i18n';
 import type { SpecError } from '../site-content/validateSpec';
 import { motion } from 'motion/react';
-import { Copy, Check, AlertCircle, ChevronDown, WrapText } from 'lucide-react';
+import {
+  Copy,
+  Check,
+  AlertCircle,
+  ChevronDown,
+  WrapText,
+  Link2,
+  Sparkles,
+} from 'lucide-react';
 import Editor, { type Monaco, type OnMount } from '@monaco-editor/react';
+import {
+  decodeSpecToken,
+  encodeSpecToken,
+  readSpecToken,
+  SPEC_FRAGMENT_KEY,
+} from '../claude-kit/playgroundLink';
+import { AskClaudeDialog } from '../components/AskClaudeDialog';
+
+/** The template-select value of a spec that came from a `#spec=` link rather
+ *  than from the gallery. Not a demo id, so it never lands in `?demo=`. */
+const SHARED_SPEC_ID = '#shared';
 
 // ─── Monaco cross-reference markers ──────────────────────────────────────────
 
@@ -95,6 +114,8 @@ function PlaygroundContent() {
 
   const [schemaErrors, setSchemaErrors] = useState<SpecError[]>([]);
   const [copied, setCopied] = useState(false);
+  const [shared, setShared] = useState(false);
+  const [askOpen, setAskOpen] = useState(false);
 
   const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
   const monacoRef = useRef<Monaco | null>(null);
@@ -110,16 +131,38 @@ function PlaygroundContent() {
   // false during SSR and initial client render — set to true after hydration
   const [mounted, setMounted] = useState(false);
 
-  // On mount: mark hydration done and sync state to ?demo= URL parameter
+  // On mount: mark hydration done, then load the spec the URL names — a
+  // shared `#spec=` link first (it is the more specific of the two), else the
+  // ?demo= parameter.
   useEffect(() => {
     setMounted(true);
+    const token = readSpecToken(window.location.hash);
+    if (token) {
+      setDemoId(SHARED_SPEC_ID);
+      setSpec(null);
+      setJsonText('');
+      decodeSpecToken(token).then(
+        (json) => {
+          let text = json;
+          try {
+            text = JSON.stringify(JSON.parse(json), null, 2);
+          } catch {
+            // Not JSON: shown as-is, and the parse error bar says why.
+          }
+          setJsonText(text);
+        },
+        () => setParseError(t.playground.badLink)
+      );
+      return;
+    }
     const id = new URLSearchParams(window.location.search).get('demo');
     if (id && demosById[id] && id !== demos[0].id) {
       setDemoId(id);
       setJsonText(JSON.stringify(getSpec(demosById[id], locale), null, 2));
       setSpec(getSpec(demosById[id], locale));
     }
-  }, [locale]);
+    // `t` is a module-level dictionary picked by locale: a stable reference.
+  }, [locale, t.playground.badLink]);
 
   // Sync URL when demoId changes — skip the initial mount to avoid
   // overwriting a ?demo= param before the URL-reading effect above has run.
@@ -129,8 +172,12 @@ function PlaygroundContent() {
       didSyncUrlRef.current = true;
       return;
     }
+    if (demoId === SHARED_SPEC_ID) return;
     const url = new URL(window.location.href);
     url.searchParams.set('demo', demoId);
+    // Picking a gallery demo leaves the shared spec: a stale #spec= would
+    // win over ?demo= on reload.
+    url.hash = '';
     window.history.replaceState({}, '', url);
   }, [demoId]);
 
@@ -195,6 +242,25 @@ function PlaygroundContent() {
     try {
       setJsonText(JSON.stringify(JSON.parse(jsonText), null, 2));
     } catch {}
+  };
+
+  // The link is also written to the address bar, so the visitor can bookmark
+  // it or copy it from there.
+  const handleShare = async () => {
+    let minified: string;
+    try {
+      minified = JSON.stringify(JSON.parse(jsonText));
+    } catch {
+      return;
+    }
+    const token = await encodeSpecToken(minified);
+    const url = new URL(window.location.href);
+    url.searchParams.delete('demo');
+    url.hash = `${SPEC_FRAGMENT_KEY}=${token}`;
+    window.history.replaceState({}, '', url);
+    await navigator.clipboard.writeText(url.toString());
+    setShared(true);
+    setTimeout(() => setShared(false), 2000);
   };
 
   const handleCopy = () => {
@@ -274,6 +340,11 @@ function PlaygroundContent() {
                 onChange={(e) => handleTemplateChange(e.target.value)}
                 className="appearance-none pl-3 pr-7 py-1.5 rounded-lg text-xs cursor-pointer outline-none bg-slate-900/[0.04] dark:bg-white/[.06] border border-slate-900/[0.1] dark:border-white/[.09] text-slate-700 dark:text-white/75 font-sans"
               >
+                {demoId === SHARED_SPEC_ID && (
+                  <option value={SHARED_SPEC_ID}>
+                    {t.playground.customSpec}
+                  </option>
+                )}
                 {demos.map((demo) => (
                   <option key={demo.id} value={demo.id}>
                     {pickLocale(demo.title, locale)}
@@ -340,6 +411,27 @@ function PlaygroundContent() {
                 className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/30"
               />
             </div>
+
+            {/* Share: a link carrying the spec itself (#spec=…) */}
+            <button
+              onClick={handleShare}
+              disabled={parseError !== null}
+              title={t.playground.shareHint}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs transition-colors cursor-pointer bg-slate-900/[0.04] dark:bg-white/[.04] border border-slate-900/[0.08] dark:border-white/[.08] font-sans ${shared ? 'text-emerald-600 dark:text-[#34d399]' : 'text-slate-600 dark:text-white/50'}`}
+            >
+              {shared ? <Check size={11} /> : <Link2 size={11} />}
+              {shared ? t.playground.shareCopied : t.playground.share}
+            </button>
+
+            {/* Ask Claude */}
+            <button
+              onClick={() => setAskOpen(true)}
+              title={t.playground.askClaudeHint}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs transition-colors cursor-pointer bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/30 text-violet-700 dark:text-violet-300 font-sans"
+            >
+              <Sparkles size={11} />
+              {t.playground.askClaude}
+            </button>
 
             {/* Copy */}
             <button
@@ -519,6 +611,11 @@ function PlaygroundContent() {
           )}
         </div>
       </div>
+      <AskClaudeDialog
+        open={askOpen}
+        onClose={() => setAskOpen(false)}
+        currentSpec={jsonText}
+      />
     </main>
   );
 }

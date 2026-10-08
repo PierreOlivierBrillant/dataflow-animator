@@ -189,6 +189,11 @@ export const en: Messages = {
         desc: ' — get started in 5 lines, in your framework.',
       },
       {
+        to: '/docs/claude',
+        label: 'Generating with Claude',
+        desc: ' — describe an animation in plain words and get a ready-to-play spec.',
+      },
+      {
         to: '/docs/reference/packages',
         label: 'Packages and bindings',
         desc: ' — React, Angular, the custom element, or the core on its own.',
@@ -305,6 +310,38 @@ export const en: Messages = {
       'JSON specification editor. Press Escape then Tab to leave the editor.',
     invalidJson: 'Invalid JSON:',
     emptyState: 'Enter a valid JSON spec to see the animation.',
+    share: 'Share',
+    shareHint: 'Copy a link that opens this exact spec',
+    shareCopied: 'Link copied',
+    customSpec: 'Shared spec',
+    badLink: 'This link does not contain a readable spec.',
+    askClaude: 'Ask Claude',
+    askClaudeHint: 'Generate a spec with Claude',
+    claude: {
+      title: 'Generate an animation with Claude',
+      intro:
+        'Describe what you want to animate. The button copies a prompt that teaches Claude the spec format with real examples; paste it into a new Claude conversation, then paste the JSON it returns into the editor.',
+      requestLabel: 'What should the animation show?',
+      requestPlaceholder:
+        'e.g. How a DNS lookup resolves www.example.com, step by step, from the browser to the authoritative server.',
+      defaultRequest:
+        'Suggest an animation of your choice that shows off the format.',
+      includeCurrent: 'Start from the spec currently in the editor',
+      startFromCurrent:
+        'Start from this spec, which I am editing in the playground, and change it as requested:',
+      copyPrompt: 'Copy the prompt',
+      openClaude: 'Open claude.ai',
+      copied:
+        'Prompt copied. Open claude.ai, paste it (Ctrl+V / ⌘V) and send — then paste the JSON Claude returns into the editor.',
+      copyFailed:
+        'The prompt could not be copied. Reload the page and try again, or use the skill below.',
+      skillTitle: 'Use it often? Install the Claude skill',
+      skillBody:
+        'The skill gives Claude the same knowledge permanently, plus a validator and a link generator: Claude checks its own spec and answers with a link that opens it right here. Upload the zip in claude.ai (Settings → Capabilities → Skills), or unzip it into ~/.claude/skills/ for Claude Code.',
+      skillDownload: 'Download the skill (.zip)',
+      learnMore: 'How it works',
+      close: 'Close',
+    },
     // Identical to `validateSpec`'s own English defaults — passed anyway, so
     // the playground stays locale-agnostic (one code path for both languages).
     specErrors: {

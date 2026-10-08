@@ -1,0 +1,90 @@
+---
+title: Generating with Claude
+slug: /claude
+---
+
+Describe an animation in plain words — "show how a DNS lookup resolves
+`www.example.com`", "animate an AVL insertion that triggers a double rotation" —
+and let [Claude](https://claude.ai) write the spec. Three ways, from the
+quickest to the most integrated. All three rely on the same material, rebuilt
+from the JSON Schema and the [demo gallery](/examples) every time the site is
+published, so it never describes a field the engine no longer accepts.
+
+## From the playground: "Ask Claude"
+
+Nothing to install.
+
+1. Open the [playground](/playground) and click **Ask Claude**.
+2. Describe the animation. Tick **Start from the spec currently in the editor**
+   to have Claude modify what you are working on instead of starting over.
+3. Click **Copy the prompt**, then **Open claude.ai**, paste (Ctrl+V / ⌘V) and
+   send.
+4. Paste the JSON Claude returns into the playground editor: it validates as
+   you paste and plays immediately.
+
+The prompt carries the whole authoring context — the guide, the field
+reference, the circuit terminals and seven gallery examples — which is why it
+goes through the clipboard rather than a link.
+
+## The Claude skill
+
+For regular use, install the skill once: Claude then knows the format in every
+conversation, **validates its own spec** with a bundled script, and answers
+with a **link that opens the animation** in the playground.
+
+[Download the skill](pathname:///claude/dataflow-animator-skill.zip) (a zip of
+a `dataflow-animator/` folder).
+
+- **claude.ai** (and the Claude desktop app): Settings → Capabilities → Skills →
+  upload the zip. Skills need **Code execution and file creation** to be
+  enabled in the same settings page.
+- **Claude Code**: unzip it into your personal skills folder, or into a
+  project's `.claude/skills/` to share it with that project's team.
+
+```bash
+unzip dataflow-animator-skill.zip -d ~/.claude/skills/
+```
+
+Then simply ask: _"Animate an OAuth 2.0 authorization code flow"_. Claude
+reads the guide, picks the closest examples, writes the spec, runs the
+validator until it is clean, and replies with the playground link and the JSON.
+Paste a playground link back into the conversation to have Claude modify that
+exact spec.
+
+What the skill contains:
+
+| Path                          | Content                                                                |
+| ----------------------------- | ---------------------------------------------------------------------- |
+| `SKILL.md`                    | The workflow Claude follows                                            |
+| `reference/guide.md`          | How to write a good animation, and the mistakes to avoid               |
+| `reference/types.md`          | Every field of the spec, generated from the JSON Schema                |
+| `reference/pins.md`           | The `"node:pin"` terminal names of every circuit component             |
+| `examples/`                   | All gallery demos as JSON, with an index by layout and action          |
+| `scripts/validate.mjs`        | Schema, cross-reference and terminal checks, with "did you mean" hints |
+| `scripts/playground-link.mjs` | Spec → playground link, and back (`--decode`)                          |
+
+The scripts need Node.js 18 or later and nothing else — no install, no network.
+
+## For any assistant: `llms.txt`
+
+The site publishes the same material in the [llms.txt](https://llmstxt.org)
+format, for any assistant or tool that can read a URL:
+
+- [`/llms.txt`](pathname:///llms.txt) — an index: the guide, the reference, the
+  terminals, every example, the skill;
+- [`/llms-full.txt`](pathname:///llms-full.txt) — everything in a single file.
+
+## Shareable links
+
+The playground's **Share** button copies a link that carries the spec itself, in
+the URL fragment:
+
+```text
+https://pierreolivierbrillant.github.io/dataflow-animator/playground/#spec=<token>
+```
+
+The token is the minified JSON, compressed with raw DEFLATE and encoded in
+base64url — about 1 KB for a typical animation. Being a fragment, it is never
+sent to the server: opening the link loads the spec entirely in your browser.
+The skill's `playground-link.mjs` produces exactly these links, which is how
+Claude can answer with an animation you open in one click.

@@ -3,6 +3,7 @@ const sidebars = {
     // The `menu-icon-*` classes draw a pictogram through a CSS mask (see custom.css).
     { type: 'doc', id: 'intro', className: 'menu-icon-intro' },
     { type: 'doc', id: 'installation', className: 'menu-icon-installation' },
+    { type: 'doc', id: 'claude', className: 'menu-icon-claude' },
     {
       type: 'category',
       label: 'Concepts',
