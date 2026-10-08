@@ -9,6 +9,13 @@ const validate = ajv.compile(dataFlowSchema);
 export interface SpecError {
   path: string;
   message: string;
+  /**
+   * What KIND of error this is, independent of its wording. A caller that
+   * reacts to one kind (the playground puts an inline marker on unknown ids)
+   * must test this, never the message: the message is localized, so matching
+   * its text works in exactly one language.
+   */
+  kind?: 'unknown-ref';
 }
 
 /**
@@ -307,6 +314,7 @@ function checkRef(
     .join(', ');
   ctx.errors.push({
     path,
+    kind: 'unknown-ref',
     message: list
       ? ctx.messages.unknownId(value, list)
       : ctx.messages.unknownIdNoList(value),

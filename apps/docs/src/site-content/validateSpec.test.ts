@@ -3,6 +3,7 @@ import { validateSpec } from './validateSpec';
 import { clientServer } from './demos/clientServer';
 import { demos, getSpec } from './demos';
 import { fr } from '../i18n/fr';
+import { en } from '../i18n/en';
 import type { Locale } from '../i18n/translations';
 
 // Since the site went bilingual, a demo spec is a builder `(locale) => spec`,
@@ -268,8 +269,8 @@ describe('validateSpec — cross-reference validation', () => {
   });
 
   it('reports no reference error for the clientServer spec', () => {
-    const refErrors = validateSpec(baseSpec).filter((e) =>
-      e.message.startsWith('unknown ID')
+    const refErrors = validateSpec(baseSpec).filter(
+      (e) => e.kind === 'unknown-ref'
     );
     expect(refErrors).toEqual([]);
   });
@@ -298,6 +299,29 @@ describe('validateSpec — localised wording', () => {
     expect(unknownRef!.message).toMatch(/ID inconnu/);
     expect(unknownRef!.message).toContain('"ghost_node"');
   });
+
+  // The playground's inline markers select unknown-id errors by `kind`. They
+  // used to match the message's text — French — so on the English site no
+  // marker ever appeared. The kind must not depend on the wording at all.
+  it.each([
+    ['en', en.playground.specErrors],
+    ['fr', fr.playground.specErrors],
+  ] as const)(
+    'tags unknown references with a locale-independent kind (%s)',
+    (_, messages) => {
+      const spec = {
+        ...baseSpec,
+        nodes: [{ type: 'laptop', lane: 1 }],
+        connections: [{ from: 'ghost', to: 'api' }],
+      };
+      const errors = validateSpec(spec, messages);
+      const refs = errors.filter((e) => e.kind === 'unknown-ref');
+      expect(refs.map((e) => e.path)).toContain('/connections/0/from');
+      // Schema errors (here, the missing node id) carry no kind.
+      const missing = errors.find((e) => e.path.startsWith('/nodes'));
+      expect(missing!.kind).toBeUndefined();
+    }
+  );
 
   it('falls back to English for any key the caller leaves out', () => {
     const spec = { ...baseSpec, nodes: [{ type: 'laptop', lane: 1 }] };

@@ -56,7 +56,7 @@ function setMonacoRefMarkers(
   if (!model) return;
 
   const markers = errors
-    .filter((e) => e.message.startsWith('ID inconnu'))
+    .filter((e) => e.kind === 'unknown-ref')
     .flatMap((err) => {
       const segments = err.path.split('/').filter(Boolean);
       if (segments.length === 0) return [];
