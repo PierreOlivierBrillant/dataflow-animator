@@ -649,6 +649,20 @@ footer__link-item > svg {
   color: white !important;
   box-shadow: 0 0 16px rgba(124, 58, 237, 0.5) !important;
   border-radius: 8px !important;
+  transition:
+    filter 0.15s,
+    box-shadow 0.15s;
+}
+/* The play button needs a hover of its own: without it the generic
+   `.rdfa-btn:hover` rules below reach it — in light mode
+   `[data-theme='light'] .rdfa-btn:hover` (same specificity, declared later)
+   turns the icon black on the violet gradient, and in dark mode the gradient
+   wins over the hover background so nothing visibly changes. A gradient cannot
+   be transitioned, hence brightness + glow rather than a second gradient. */
+.rdfa-controls .rdfa-btn:nth-child(2):hover {
+  color: white !important;
+  filter: brightness(1.12);
+  box-shadow: 0 0 22px rgba(168, 85, 247, 0.7) !important;
 }
 .rdfa-timeline-fill,
 .rdfa-timeline-thumb {
