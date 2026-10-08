@@ -129,6 +129,13 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   would have wrongly included `transmission_gate`, which passes a net rather
   than driving one. The rule is now an explicit list.
 
+- **The control buttons' hover is visible in every palette and mode.** It
+  painted the button with `--rdfa-bg`, which sits within a few levels of the
+  bar's `--rdfa-surface` — in the default dark palette `#0b1120` on `#111827`,
+  so hovering changed next to nothing. The hover is now the text colour at 10 %,
+  which contrasts with the bar by construction, and a disabled button no longer
+  reacts to the pointer.
+
 ## 2.0.0 — 2026-08-24
 
 ### Changed

@@ -1505,8 +1505,13 @@
     color 0.15s;
 }
 
-.rdfa-btn:hover {
-  background: var(--rdfa-bg);
+/* Tinted from the text colour rather than borrowed from another surface token:
+   `--rdfa-bg` used to sit 1–2 % away from the bar's `--rdfa-surface` (dark
+   default: #0b1120 on #111827), so the hover was all but invisible, and how
+   far apart the two tokens landed varied per palette. The text colour contrasts
+   with the bar by construction, in every palette and both modes. */
+.rdfa-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--rdfa-text) 10%, transparent);
 }
 
 .rdfa-btn:focus-visible {
