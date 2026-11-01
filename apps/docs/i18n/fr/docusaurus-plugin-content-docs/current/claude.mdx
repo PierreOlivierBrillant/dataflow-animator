@@ -35,7 +35,7 @@ alors le format dans chaque conversation, **valide lui-même sa spec** avec un
 script fourni, et répond avec un **lien qui ouvre l'animation** dans le
 playground.
 
-### En plugin (recommandé)
+### Installation
 
 Le skill est publié comme plugin, dans une marketplace qui n'est autre que le
 dépôt GitHub du projet. Rien à télécharger, et les mises à jour suivent le
@@ -59,20 +59,6 @@ projet.
 Pour récupérer une version plus récente : **Rechercher des mises à jour** sur la
 page du plugin dans claude.ai, ou `/plugin marketplace update dataflow-animator`
 dans Claude Code.
-
-### En zip
-
-[Télécharger le skill](pathname:///claude/dataflow-animator-skill.zip) (un zip
-contenant un dossier `dataflow-animator/`, identique à celui du plugin).
-
-- **claude.ai** (et l'application de bureau Claude) : Personnaliser → Skills →
-  téléversez le zip.
-- **Claude Code** : décompressez-le dans votre dossier de skills personnels, ou
-  dans le `.claude/skills/` d'un projet pour le partager avec son équipe.
-
-```bash
-unzip dataflow-animator-skill.zip -d ~/.claude/skills/
-```
 
 ### Utilisation
 
@@ -109,7 +95,7 @@ Le site publie le même matériel au format [llms.txt](https://llmstxt.org), pou
 tout assistant ou outil capable de lire une URL :
 
 - [`/llms.txt`](pathname:///llms.txt) — un index : le guide, la référence, les
-  bornes, chaque exemple, le skill ;
+  bornes, chaque exemple, le plugin ;
 - [`/llms-full.txt`](pathname:///llms-full.txt) — tout en un seul fichier.
 
 ## Liens partageables

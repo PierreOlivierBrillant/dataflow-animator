@@ -6,14 +6,12 @@ import {
   CORE_EXAMPLE_IDS,
   type KitExample,
 } from './examples';
-import { createZip } from './zip';
 
 /**
  * Assembles everything the site publishes for language models, from ONE set of
  * sources:
  *
- * - the Claude skill (a zip to upload to claude.ai, or to unzip into
- *   `~/.claude/skills/`), and the same folder unzipped for the Claude plugin;
+ * - the Claude skill folder, which the Claude plugin commits;
  * - `llms.txt` (an index, per llmstxt.org) and `llms-full.txt` (the whole
  *   authoring context in one file);
  * - `claude/prompt.md`, what the playground's "Ask Claude" button copies.
@@ -40,12 +38,11 @@ export interface KitInputs {
 export interface KitFile {
   /** Relative to the site's `static/` directory. */
   path: string;
-  content: string | Uint8Array;
+  content: string;
 }
 
 /** The folder name a skill installs under; also its `name:` in SKILL.md. */
 export const SKILL_NAME = 'dataflow-animator';
-export const SKILL_ZIP_PATH = `claude/${SKILL_NAME}-skill.zip`;
 export const PROMPT_PATH = 'claude/prompt.md';
 /** The GitHub repository whose root holds `.claude-plugin/marketplace.json`. */
 const PLUGIN_MARKETPLACE = 'PierreOlivierBrillant/dataflow-animator';
@@ -99,7 +96,6 @@ function llmsTxt(siteUrl: string, examples: KitExample[]): string {
     '## Tools',
     '',
     `- Claude plugin: add the marketplace \`${PLUGIN_MARKETPLACE}\` (claude.ai: Customize → Plugins → Add marketplace; Claude Code: \`/plugin marketplace add ${PLUGIN_MARKETPLACE}\`), then install \`${SKILL_NAME}\``,
-    `- [Claude skill](${docs(SKILL_ZIP_PATH)}): the same skill as a zip, to upload to claude.ai (Customize → Skills) or unzip into \`~/.claude/skills/\``,
     `- [Playground](${docs('playground/')}): live editor and player`,
     '',
     '## Optional',
@@ -170,18 +166,22 @@ function promptMd(siteUrl: string, full: string): string {
   ].join('\n');
 }
 
-/** The skill folder's files, relative to the folder. */
-function skillFiles(
-  inputs: KitInputs,
-  examples: KitExample[],
-  types: string,
-  pins: string
-): KitFile[] {
+/**
+ * The skill folder's files, relative to the folder: what the Claude plugin
+ * (`plugins/dataflow-animator/`) commits under `skills/dataflow-animator/`.
+ * A marketplace is read from a git repository, so unlike everything else here
+ * this copy cannot stay a build output.
+ */
+export function buildSkill(inputs: KitInputs): KitFile[] {
+  const examples = buildExamples();
   return [
     { path: 'SKILL.md', content: inputs.skill },
     { path: 'reference/guide.md', content: inputs.guide },
-    { path: 'reference/types.md', content: types },
-    { path: 'reference/pins.md', content: pins },
+    { path: 'reference/types.md', content: schemaToReference(inputs.schema) },
+    {
+      path: 'reference/pins.md',
+      content: pinsToReference(inputs.componentPins),
+    },
     {
       path: 'reference/pins.json',
       content: json(pinNames(inputs.componentPins)),
@@ -199,21 +199,6 @@ function skillFiles(
   ];
 }
 
-/**
- * The same skill folder the zip carries, unzipped: what the Claude plugin
- * (`plugins/dataflow-animator/`) commits under `skills/dataflow-animator/`.
- * A marketplace is read from a git repository, so unlike everything else here
- * this copy cannot stay a build output.
- */
-export function buildSkill(inputs: KitInputs): KitFile[] {
-  return skillFiles(
-    inputs,
-    buildExamples(),
-    schemaToReference(inputs.schema),
-    pinsToReference(inputs.componentPins)
-  );
-}
-
 export function buildKit(inputs: KitInputs): KitFile[] {
   const examples = buildExamples();
   const types = schemaToReference(inputs.schema);
@@ -224,13 +209,6 @@ export function buildKit(inputs: KitInputs): KitFile[] {
     return ex;
   });
   const full = llmsFull(inputs.guide, types, pins, core);
-
-  const zip = createZip(
-    skillFiles(inputs, examples, types, pins).map((f) => ({
-      path: `${SKILL_NAME}/${f.path}`,
-      content: f.content,
-    }))
-  );
 
   return [
     { path: 'llms.txt', content: llmsTxt(inputs.siteUrl, examples) },
@@ -243,6 +221,5 @@ export function buildKit(inputs: KitInputs): KitFile[] {
       path: `claude/examples/${ex.id}.json`,
       content: json(ex.spec),
     })),
-    { path: SKILL_ZIP_PATH, content: zip },
   ];
 }

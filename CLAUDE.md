@@ -294,7 +294,7 @@ Pitfalls already encountered in this repo — check them when you touch the affe
 
 - **The Claude plugin commits a GENERATED copy of the skill**: `plugins/dataflow-animator/skills/`
   is what `buildSkill` (`apps/docs/src/claude-kit/kit.ts`) produces from the schema, the pins and
-  the gallery demos — the same folder the site's zip carries. It is committed because a plugin
+  the gallery demos — the ONLY way the skill is distributed. It is committed because a plugin
   marketplace (`.claude-plugin/marketplace.json`, read by `/plugin marketplace add` and by
   claude.ai's "Add marketplace") is fetched from git, not from the site. Editing a demo, the
   schema or `claude-kit/` therefore means `npm run generate:claude-plugin`; `check:claude-plugin`

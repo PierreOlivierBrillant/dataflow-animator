@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from '@docusaurus/Link';
 import useBaseUrl from '@docusaurus/useBaseUrl';
-import { Check, Copy, Download, ExternalLink, Sparkles, X } from 'lucide-react';
+import { Check, Copy, ExternalLink, Sparkles, X } from 'lucide-react';
 import { useTranslation } from '../i18n';
 
 /**
@@ -38,7 +38,6 @@ export function AskClaudeDialog({
   const dialogRef = useRef<HTMLDialogElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const promptUrl = useBaseUrl('/claude/prompt.md');
-  const skillUrl = useBaseUrl('/claude/dataflow-animator-skill.zip');
   const [context, setContext] = useState<string | null>(null);
   const [request, setRequest] = useState('');
   const [includeCurrent, setIncludeCurrent] = useState(false);
@@ -209,19 +208,9 @@ export function AskClaudeDialog({
           {c.skillTitle}
         </h3>
         <p className="text-[13px] leading-relaxed mb-3">{c.skillBody}</p>
-        <div className="flex flex-wrap items-center gap-3">
-          <a
-            href={skillUrl}
-            download
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] no-underline bg-slate-900/[0.05] dark:bg-white/[.06] border border-slate-900/[0.1] dark:border-white/[.1] text-slate-700 dark:text-white/80 hover:border-violet-500"
-          >
-            <Download size={13} />
-            {c.skillDownload}
-          </a>
-          <Link to="/docs/claude" className="text-[13px]">
-            {c.learnMore}
-          </Link>
-        </div>
+        <Link to="/docs/claude" className="text-[13px]">
+          {c.learnMore}
+        </Link>
       </div>
     </dialog>
   );

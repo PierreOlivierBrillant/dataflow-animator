@@ -365,8 +365,7 @@ export const fr = {
         "Le prompt n'a pas pu être copié. Rechargez la page et réessayez, ou utilisez le skill ci-dessous.",
       skillTitle: "Vous l'utilisez souvent ? Installez le skill Claude",
       skillBody:
-        "Le skill donne durablement à Claude les mêmes connaissances, plus un validateur et un générateur de liens : Claude vérifie sa propre spec et répond avec un lien qui l'ouvre ici même. Ajoutez-le comme plugin depuis la marketplace PierreOlivierBrillant/dataflow-animator (claude.ai : Personnaliser → Plugins → Ajouter une marketplace), ou téléchargez le zip.",
-      skillDownload: 'Télécharger le skill (.zip)',
+        "Le skill donne durablement à Claude les mêmes connaissances, plus un validateur et un générateur de liens : Claude vérifie sa propre spec et répond avec un lien qui l'ouvre ici même. Ajoutez-le comme plugin depuis la marketplace PierreOlivierBrillant/dataflow-animator (claude.ai : Personnaliser → Plugins → Ajouter une marketplace).",
       learnMore: 'Comment ça marche',
       close: 'Fermer',
     },

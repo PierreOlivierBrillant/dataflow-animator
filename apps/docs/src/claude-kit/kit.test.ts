@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
-import { crc32 as zlibCrc32 } from 'node:zlib';
 import { dataFlowSchema } from '@dataflow-animator/react';
 import { COMPONENT_PINS } from '../../../../packages/core/src/engine/pins';
 import {
@@ -8,7 +7,6 @@ import {
   buildSkill,
   PROMPT_PATH,
   SKILL_NAME,
-  SKILL_ZIP_PATH,
   type KitInputs,
 } from './kit';
 import { CORE_EXAMPLE_IDS } from './examples';
@@ -31,57 +29,19 @@ const inputs: KitInputs = {
   siteUrl: 'https://example.test/site/',
 };
 const files = buildKit(inputs);
-const file = (path: string) => {
+const text = (path: string) => {
   const f = files.find((x) => x.path === path);
   if (!f) throw new Error(`no ${path} in the kit`);
   return f.content;
 };
-const text = (path: string) => {
-  const content = file(path);
-  if (typeof content !== 'string') throw new Error(`${path} is binary`);
-  return content;
-};
-
-/** Reads a STORED zip back: its central directory, then each entry. */
-function unzip(bytes: Uint8Array): Map<string, string> {
-  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  const end = bytes.length - 22;
-  expect(view.getUint32(end, true)).toBe(0x06054b50);
-  const count = view.getUint16(end + 10, true);
-  let at = view.getUint32(end + 16, true);
-  const out = new Map<string, string>();
-  const decoder = new TextDecoder();
-  for (let i = 0; i < count; i++) {
-    expect(view.getUint32(at, true)).toBe(0x02014b50);
-    const crc = view.getUint32(at + 16, true);
-    const size = view.getUint32(at + 20, true);
-    const nameLength = view.getUint16(at + 28, true);
-    const offset = view.getUint32(at + 42, true);
-    const name = decoder.decode(bytes.subarray(at + 46, at + 46 + nameLength));
-    const dataStart = offset + 30 + view.getUint16(offset + 26, true);
-    const data = bytes.subarray(dataStart, dataStart + size);
-    // An independent CRC (Node's zlib), not the writer's own table.
-    expect(zlibCrc32(data)).toBe(crc);
-    out.set(name, decoder.decode(data));
-    at += 46 + nameLength;
-  }
-  return out;
-}
 
 describe('Claude kit', () => {
-  const zip = file(SKILL_ZIP_PATH);
-  if (!(zip instanceof Uint8Array)) throw new Error('the skill must be a zip');
-  const entries = unzip(zip);
-
-  it('packs the skill as ONE folder named after the skill', () => {
-    for (const name of entries.keys()) {
-      expect(name.startsWith(`${SKILL_NAME}/`)).toBe(true);
-    }
-    expect(entries.has(`${SKILL_NAME}/SKILL.md`)).toBe(true);
-  });
+  const skillFiles = new Map(
+    buildSkill(inputs).map((f) => [f.path, f.content])
+  );
 
   it('declares a SKILL.md frontmatter claude.ai accepts', () => {
-    const skill = entries.get(`${SKILL_NAME}/SKILL.md`) ?? '';
+    const skill = skillFiles.get('SKILL.md') ?? '';
     const front = /^---\n([\s\S]*?)\n---\n/.exec(skill)?.[1] ?? '';
     const name = /^name: (.+)$/m.exec(front)?.[1];
     const description = /^description: (.+)$/m.exec(front)?.[1] ?? '';
@@ -92,21 +52,21 @@ describe('Claude kit', () => {
   });
 
   it('ships every file SKILL.md points at', () => {
-    const skill = entries.get(`${SKILL_NAME}/SKILL.md`) ?? '';
+    const skill = skillFiles.get('SKILL.md') ?? '';
     const referenced =
       skill.match(/`((?:reference|examples|scripts)\/[\w.-]+)`/g) ?? [];
     expect(referenced.length).toBeGreaterThan(0);
     for (const ref of referenced) {
       const path = ref.slice(1, -1);
       if (path.includes('<id>')) continue;
-      expect(entries.has(`${SKILL_NAME}/${path}`), path).toBe(true);
+      expect(skillFiles.has(path), path).toBe(true);
     }
   });
 
   it('carries every gallery demo as a parseable example, and indexes it', () => {
-    const index = entries.get(`${SKILL_NAME}/examples/INDEX.md`) ?? '';
+    const index = skillFiles.get('examples/INDEX.md') ?? '';
     for (const demo of demos) {
-      const json = entries.get(`${SKILL_NAME}/examples/${demo.id}.json`);
+      const json = skillFiles.get(`examples/${demo.id}.json`);
       expect(json, demo.id).toBeDefined();
       expect(() => JSON.parse(json ?? '')).not.toThrow();
       expect(index).toContain(`\`${demo.id}\``);
@@ -158,26 +118,6 @@ describe('Claude kit', () => {
       // Pages and the schema are served by the site itself, not by the kit.
       if (link.endsWith('/') || link === 'schema.json') continue;
       expect(published.has(link), link).toBe(true);
-    }
-  });
-
-  it('is deterministic: the same inputs give the same zip, byte for byte', () => {
-    const again = buildKit(inputs).find(
-      (f) => f.path === SKILL_ZIP_PATH
-    )?.content;
-    expect(again).toEqual(zip);
-  });
-
-  it('gives the plugin exactly the folder the zip carries', () => {
-    const skill = buildSkill(inputs);
-    expect(skill.map((f) => `${SKILL_NAME}/${f.path}`).sort()).toEqual(
-      [...entries.keys()].sort()
-    );
-    const decoder = new TextDecoder();
-    for (const f of skill) {
-      const content =
-        typeof f.content === 'string' ? f.content : decoder.decode(f.content);
-      expect(entries.get(`${SKILL_NAME}/${f.path}`)).toBe(content);
     }
   });
 });

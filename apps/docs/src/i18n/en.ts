@@ -337,8 +337,7 @@ export const en: Messages = {
         'The prompt could not be copied. Reload the page and try again, or use the skill below.',
       skillTitle: 'Use it often? Install the Claude skill',
       skillBody:
-        'The skill gives Claude the same knowledge permanently, plus a validator and a link generator: Claude checks its own spec and answers with a link that opens it right here. Add it as a plugin from the marketplace PierreOlivierBrillant/dataflow-animator (claude.ai: Customize → Plugins → Add marketplace), or download the zip.',
-      skillDownload: 'Download the skill (.zip)',
+        'The skill gives Claude the same knowledge permanently, plus a validator and a link generator: Claude checks its own spec and answers with a link that opens it right here. Add it as a plugin from the marketplace PierreOlivierBrillant/dataflow-animator (claude.ai: Customize → Plugins → Add marketplace).',
       learnMore: 'How it works',
       close: 'Close',
     },
