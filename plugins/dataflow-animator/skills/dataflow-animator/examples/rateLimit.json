@@ -1,0 +1,485 @@
+{
+  "direction": "left-to-right",
+  "nodes": [
+    {
+      "id": "attacker",
+      "type": "eve",
+      "text": "Attacker",
+      "lane": 1
+    },
+    {
+      "id": "user",
+      "type": "user",
+      "text": "Legitimate user",
+      "lane": 1
+    },
+    {
+      "id": "proxy",
+      "type": "server",
+      "text": "🛡️ Reverse proxy",
+      "icon": "nginx",
+      "lane": 2
+    },
+    {
+      "id": "app",
+      "type": "server",
+      "text": "App server",
+      "icon": "node",
+      "lane": 3
+    }
+  ],
+  "connections": [
+    {
+      "from": "user",
+      "to": "proxy",
+      "style": "dotted",
+      "arrow_head": "both"
+    },
+    {
+      "from": "attacker",
+      "to": "proxy",
+      "style": "dotted",
+      "arrow_head": "both"
+    },
+    {
+      "from": "proxy",
+      "to": "app",
+      "style": "dotted",
+      "arrow_head": "both"
+    }
+  ],
+  "packets": [
+    {
+      "id": "f0",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "f1",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "f2",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "f3",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "f4",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "f5",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "f6",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "f7",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "f8",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "f9",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "f10",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "f11",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "f12",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "f13",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "f14",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "f15",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "r0",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "429 Too Many"
+      }
+    },
+    {
+      "id": "r1",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "429 Too Many"
+      }
+    },
+    {
+      "id": "r2",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "429 Too Many"
+      }
+    },
+    {
+      "id": "r3",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "429 Too Many"
+      }
+    },
+    {
+      "id": "legit",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /home"
+      }
+    },
+    {
+      "id": "fwd",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /home"
+      }
+    },
+    {
+      "id": "resp",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "200 OK"
+      }
+    },
+    {
+      "id": "resp2",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "200 OK"
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "type": "comment",
+      "text": "A reverse proxy caps how many requests each IP may send. Past the limit, it answers 429 itself — the backend never sees the flood."
+    },
+    {
+      "type": "comment",
+      "object": "attacker",
+      "text": "The attacker floods from a single IP: every request lands on the proxy."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "move",
+          "object": "f0",
+          "from": "attacker",
+          "to": "proxy",
+          "delay_ms": 0,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "f1",
+          "from": "attacker",
+          "to": "proxy",
+          "delay_ms": 45,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "f2",
+          "from": "attacker",
+          "to": "proxy",
+          "delay_ms": 90,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "f3",
+          "from": "attacker",
+          "to": "proxy",
+          "delay_ms": 135,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "f4",
+          "from": "attacker",
+          "to": "proxy",
+          "delay_ms": 180,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "f5",
+          "from": "attacker",
+          "to": "proxy",
+          "delay_ms": 225,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "f6",
+          "from": "attacker",
+          "to": "proxy",
+          "delay_ms": 270,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "f7",
+          "from": "attacker",
+          "to": "proxy",
+          "delay_ms": 315,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "f8",
+          "from": "attacker",
+          "to": "proxy",
+          "delay_ms": 360,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "f9",
+          "from": "attacker",
+          "to": "proxy",
+          "delay_ms": 405,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "f10",
+          "from": "attacker",
+          "to": "proxy",
+          "delay_ms": 450,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "f11",
+          "from": "attacker",
+          "to": "proxy",
+          "delay_ms": 495,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "f12",
+          "from": "attacker",
+          "to": "proxy",
+          "delay_ms": 540,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "f13",
+          "from": "attacker",
+          "to": "proxy",
+          "delay_ms": 585,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "f14",
+          "from": "attacker",
+          "to": "proxy",
+          "delay_ms": 630,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "f15",
+          "from": "attacker",
+          "to": "proxy",
+          "delay_ms": 675,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "loading",
+          "object": "proxy",
+          "keep_until": "limited"
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "object": "proxy",
+      "text": "Same source IP, over the quota: the proxy drops the excess and replies 429 Too Many Requests."
+    },
+    {
+      "id": "limited",
+      "type": "set_content",
+      "object": "proxy",
+      "content": {
+        "type": "text",
+        "value": "🛡️ 429\nrate-limited"
+      },
+      "keep_until": "served"
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "move",
+          "object": "r0",
+          "from": "proxy",
+          "to": "attacker",
+          "delay_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "r1",
+          "from": "proxy",
+          "to": "attacker",
+          "delay_ms": 120,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "r2",
+          "from": "proxy",
+          "to": "attacker",
+          "delay_ms": 240,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "r3",
+          "from": "proxy",
+          "to": "attacker",
+          "delay_ms": 360,
+          "fade_out_ms": 120
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "object": "app",
+      "text": "The backend stays healthy: the flood was stopped at the edge, it never reached the app."
+    },
+    {
+      "type": "comment",
+      "object": "user",
+      "text": "The legitimate user, well under the limit, is still served normally during the attack."
+    },
+    {
+      "type": "move",
+      "object": "legit",
+      "from": "user",
+      "to": "proxy"
+    },
+    {
+      "type": "move",
+      "object": "fwd",
+      "from": "proxy",
+      "to": "app",
+      "duration": 700
+    },
+    {
+      "type": "loading",
+      "id": "appwork",
+      "object": "app",
+      "duration": 600
+    },
+    {
+      "type": "move",
+      "object": "resp",
+      "from": "app",
+      "to": "proxy",
+      "wait_for": "appwork"
+    },
+    {
+      "id": "served",
+      "type": "move",
+      "object": "resp2",
+      "from": "proxy",
+      "to": "user"
+    },
+    {
+      "type": "comment",
+      "text": "Per-IP rate limiting absorbs a single-source flood. Its weak spot: an attack spread over thousands of IPs, each below the quota — that is the job of an upstream scrubbing layer."
+    }
+  ]
+}

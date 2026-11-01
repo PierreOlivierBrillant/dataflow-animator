@@ -32,18 +32,46 @@ For regular use, install the skill once: Claude then knows the format in every
 conversation, **validates its own spec** with a bundled script, and answers
 with a **link that opens the animation** in the playground.
 
-[Download the skill](pathname:///claude/dataflow-animator-skill.zip) (a zip of
-a `dataflow-animator/` folder).
+### As a plugin (recommended)
 
-- **claude.ai** (and the Claude desktop app): Settings → Capabilities → Skills →
-  upload the zip. Skills need **Code execution and file creation** to be
-  enabled in the same settings page.
+The skill is published as a plugin, in a marketplace that is this project's
+GitHub repository. Nothing to download, and updates follow the project.
+
+- **claude.ai** (and the Claude desktop app): Customize → Plugins → Add → **Add
+  marketplace**, enter `PierreOlivierBrillant/dataflow-animator`, then add the
+  **DataFlow Animator** plugin. It is saved to your account, so Claude Code
+  signed in to the same account gets it too.
+- **Claude Code**:
+
+```bash
+/plugin marketplace add PierreOlivierBrillant/dataflow-animator
+```
+
+```bash
+/plugin install dataflow-animator@dataflow-animator
+```
+
+To pick up a newer version, use **Check for updates** on the plugin's page in
+claude.ai, or `/plugin marketplace update dataflow-animator` in Claude Code.
+
+### As a zip
+
+[Download the skill](pathname:///claude/dataflow-animator-skill.zip) (a zip of
+a `dataflow-animator/` folder, identical to the plugin's).
+
+- **claude.ai** (and the Claude desktop app): Customize → Skills → upload the
+  zip.
 - **Claude Code**: unzip it into your personal skills folder, or into a
   project's `.claude/skills/` to share it with that project's team.
 
 ```bash
 unzip dataflow-animator-skill.zip -d ~/.claude/skills/
 ```
+
+### Using it
+
+On claude.ai, the skill's scripts run in Claude's code execution environment,
+which must be enabled (Settings → Capabilities).
 
 Then simply ask: _"Animate an OAuth 2.0 authorization code flow"_. Claude
 reads the guide, picks the closest examples, writes the spec, runs the

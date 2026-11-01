@@ -1,0 +1,299 @@
+{
+  "resistor": [
+    "a",
+    "b"
+  ],
+  "potentiometer": [
+    "a",
+    "b",
+    "wiper",
+    "w"
+  ],
+  "capacitor": [
+    "a",
+    "b"
+  ],
+  "polarized_capacitor": [
+    "-",
+    "+",
+    "a",
+    "b"
+  ],
+  "inductor": [
+    "a",
+    "b"
+  ],
+  "fuse": [
+    "a",
+    "b"
+  ],
+  "diode": [
+    "a",
+    "b",
+    "anode",
+    "cathode"
+  ],
+  "led": [
+    "a",
+    "b",
+    "anode",
+    "cathode"
+  ],
+  "lamp": [
+    "a",
+    "b"
+  ],
+  "motor": [
+    "a",
+    "b"
+  ],
+  "buzzer": [
+    "-",
+    "+",
+    "a",
+    "b"
+  ],
+  "ammeter": [
+    "a",
+    "b"
+  ],
+  "voltmeter": [
+    "a",
+    "b"
+  ],
+  "switch": [
+    "a",
+    "b"
+  ],
+  "push_button": [
+    "a",
+    "b"
+  ],
+  "battery": [
+    "-",
+    "+",
+    "a",
+    "b"
+  ],
+  "dc_source": [
+    "-",
+    "+",
+    "a",
+    "b"
+  ],
+  "ac_source": [
+    "a",
+    "b"
+  ],
+  "current_source": [
+    "-",
+    "+",
+    "a",
+    "b"
+  ],
+  "transformer": [
+    "p1",
+    "p2",
+    "s1",
+    "s2"
+  ],
+  "transistor_npn": [
+    "base",
+    "collector",
+    "emitter",
+    "b",
+    "c",
+    "e"
+  ],
+  "transistor_pnp": [
+    "base",
+    "collector",
+    "emitter",
+    "b",
+    "c",
+    "e"
+  ],
+  "opamp": [
+    "in_plus",
+    "in_minus",
+    "out",
+    "+",
+    "-"
+  ],
+  "mosfet_n": [
+    "gate",
+    "drain",
+    "source",
+    "g",
+    "d",
+    "s"
+  ],
+  "mosfet_p": [
+    "gate",
+    "source",
+    "drain",
+    "g",
+    "s",
+    "d"
+  ],
+  "transmission_gate": [
+    "a",
+    "in",
+    "b",
+    "out",
+    "en",
+    "enb"
+  ],
+  "and_gate": [
+    "a",
+    "b",
+    "y",
+    "out"
+  ],
+  "or_gate": [
+    "a",
+    "b",
+    "y",
+    "out"
+  ],
+  "nand_gate": [
+    "a",
+    "b",
+    "y",
+    "out"
+  ],
+  "nor_gate": [
+    "a",
+    "b",
+    "y",
+    "out"
+  ],
+  "xor_gate": [
+    "a",
+    "b",
+    "y",
+    "out"
+  ],
+  "xnor_gate": [
+    "a",
+    "b",
+    "y",
+    "out"
+  ],
+  "not_gate": [
+    "a",
+    "in",
+    "y",
+    "out"
+  ],
+  "buffer_gate": [
+    "a",
+    "in",
+    "y",
+    "out"
+  ],
+  "and3_gate": [
+    "a",
+    "b",
+    "c",
+    "y",
+    "out"
+  ],
+  "or3_gate": [
+    "a",
+    "b",
+    "c",
+    "y",
+    "out"
+  ],
+  "nand3_gate": [
+    "a",
+    "b",
+    "c",
+    "y",
+    "out"
+  ],
+  "nor3_gate": [
+    "a",
+    "b",
+    "c",
+    "y",
+    "out"
+  ],
+  "xor3_gate": [
+    "a",
+    "b",
+    "c",
+    "y",
+    "out"
+  ],
+  "d_flip_flop": [
+    "d",
+    "clk",
+    "q",
+    "qn",
+    "q_bar"
+  ],
+  "jk_flip_flop": [
+    "j",
+    "clk",
+    "k",
+    "q",
+    "qn",
+    "q_bar"
+  ],
+  "t_flip_flop": [
+    "t",
+    "clk",
+    "q",
+    "qn",
+    "q_bar"
+  ],
+  "sr_latch": [
+    "s",
+    "r",
+    "q",
+    "qn",
+    "q_bar"
+  ],
+  "mux_2to1": [
+    "i0",
+    "i1",
+    "sel",
+    "s",
+    "y",
+    "out"
+  ],
+  "demux_1to2": [
+    "i",
+    "in",
+    "sel",
+    "s",
+    "y0",
+    "y1"
+  ],
+  "half_adder": [
+    "a",
+    "b",
+    "s",
+    "sum",
+    "c",
+    "cout"
+  ],
+  "full_adder": [
+    "a",
+    "b",
+    "cin",
+    "s",
+    "sum",
+    "cout"
+  ],
+  "ground": [
+    "a",
+    "t"
+  ],
+  "antenna": [
+    "a",
+    "t"
+  ]
+}

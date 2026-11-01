@@ -1,0 +1,177 @@
+{
+  "direction": "circuit",
+  "nodes": [
+    {
+      "id": "battery",
+      "type": "battery",
+      "x": 0.13,
+      "y": 0.5,
+      "text": "Battery",
+      "value": 9,
+      "unit": "V"
+    },
+    {
+      "id": "jS",
+      "type": "junction",
+      "x": 0.34,
+      "y": 0.5
+    },
+    {
+      "id": "R1",
+      "type": "resistor",
+      "x": 0.52,
+      "y": 0.26,
+      "value": 220,
+      "unit": "Ω"
+    },
+    {
+      "id": "led1",
+      "type": "led",
+      "x": 0.72,
+      "y": 0.26,
+      "text": "LED 1"
+    },
+    {
+      "id": "R2",
+      "type": "resistor",
+      "x": 0.52,
+      "y": 0.74,
+      "value": 220,
+      "unit": "Ω"
+    },
+    {
+      "id": "led2",
+      "type": "led",
+      "x": 0.72,
+      "y": 0.74,
+      "text": "LED 2"
+    },
+    {
+      "id": "jJ",
+      "type": "junction",
+      "x": 0.88,
+      "y": 0.5
+    },
+    {
+      "id": "jBR",
+      "type": "junction",
+      "x": 0.88,
+      "y": 0.92
+    },
+    {
+      "id": "jBL",
+      "type": "junction",
+      "x": 0.1,
+      "y": 0.92
+    }
+  ],
+  "connections": [
+    {
+      "from": "battery:+",
+      "to": "jS"
+    },
+    {
+      "from": "jS",
+      "to": "R1:a"
+    },
+    {
+      "from": "R1:b",
+      "to": "led1:a"
+    },
+    {
+      "from": "led1:b",
+      "to": "jJ"
+    },
+    {
+      "from": "jS",
+      "to": "R2:a"
+    },
+    {
+      "from": "R2:b",
+      "to": "led2:a"
+    },
+    {
+      "from": "led2:b",
+      "to": "jJ"
+    },
+    {
+      "from": "jJ",
+      "to": "jBR"
+    },
+    {
+      "from": "jBR",
+      "to": "jBL"
+    },
+    {
+      "from": "jBL",
+      "to": "battery:-"
+    }
+  ],
+  "packets": [],
+  "timeline": [
+    {
+      "type": "comment",
+      "text": "Two branches in parallel, each a 220 Ω resistor in series with an LED. The battery feeds both at once, so the full 9 V is across EACH branch."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "flow",
+          "route": [
+            "battery:+",
+            "jS",
+            "R1:a",
+            "R1:b",
+            "led1:a",
+            "led1:b",
+            "jJ",
+            "jBR",
+            "jBL",
+            "battery:-"
+          ],
+          "color": "#f59e0b",
+          "count": 6,
+          "keep_until_end": true
+        },
+        {
+          "type": "flow",
+          "route": [
+            "battery:+",
+            "jS",
+            "R2:a",
+            "R2:b",
+            "led2:a",
+            "led2:b",
+            "jJ",
+            "jBR",
+            "jBL",
+            "battery:-"
+          ],
+          "color": "#f59e0b",
+          "count": 6,
+          "keep_until_end": true
+        },
+        {
+          "type": "highlight",
+          "object": "led1",
+          "keep_until_end": true
+        },
+        {
+          "type": "highlight",
+          "object": "led2",
+          "keep_until_end": true
+        },
+        {
+          "type": "comment",
+          "text": "The current splits at the top junction and flows through both branches; each resistor limits its LED’s current. The branches recombine before returning to the battery — so the trunk current is the SUM of the two.",
+          "keep_until_end": true
+        }
+      ]
+    },
+    {
+      "type": "wait",
+      "duration": 3000
+    }
+  ]
+}

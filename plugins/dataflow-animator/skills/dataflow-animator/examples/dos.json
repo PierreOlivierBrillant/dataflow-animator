@@ -1,0 +1,407 @@
+{
+  "direction": "left-to-right",
+  "nodes": [
+    {
+      "id": "attacker",
+      "type": "eve",
+      "text": "Attacker",
+      "lane": 1
+    },
+    {
+      "id": "user",
+      "type": "user",
+      "text": "Legitimate user",
+      "lane": 1
+    },
+    {
+      "id": "server",
+      "type": "server",
+      "text": "Web server",
+      "icon": "nginx",
+      "lane": 2
+    }
+  ],
+  "connections": [
+    {
+      "from": "user",
+      "to": "server",
+      "style": "dotted",
+      "arrow_head": "both"
+    },
+    {
+      "from": "attacker",
+      "to": "server",
+      "style": "dotted"
+    }
+  ],
+  "packets": [
+    {
+      "id": "f0",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "f1",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "f2",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "f3",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "f4",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "f5",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "f6",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "f7",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "f8",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "f9",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "f10",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "f11",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "f12",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "f13",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "f14",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "f15",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "legit",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /home"
+      }
+    },
+    {
+      "id": "resp",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "200 OK"
+      }
+    },
+    {
+      "id": "legit2",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /home"
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "type": "comment",
+      "object": "user",
+      "text": "Normally, the server answers each request in a few ms."
+    },
+    {
+      "type": "move",
+      "object": "legit",
+      "from": "user",
+      "to": "server"
+    },
+    {
+      "type": "loading",
+      "id": "work",
+      "object": "server",
+      "duration": 700
+    },
+    {
+      "type": "move",
+      "object": "resp",
+      "from": "server",
+      "to": "user",
+      "wait_for": "work"
+    },
+    {
+      "type": "comment",
+      "object": "user",
+      "text": "Served ✅"
+    },
+    {
+      "type": "comment",
+      "object": "attacker",
+      "text": "The attacker launches a flood: thousands of requests per second from a single machine."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "move",
+          "object": "f0",
+          "from": "attacker",
+          "to": "server",
+          "delay_ms": 0,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "f1",
+          "from": "attacker",
+          "to": "server",
+          "delay_ms": 45,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "f2",
+          "from": "attacker",
+          "to": "server",
+          "delay_ms": 90,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "f3",
+          "from": "attacker",
+          "to": "server",
+          "delay_ms": 135,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "f4",
+          "from": "attacker",
+          "to": "server",
+          "delay_ms": 180,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "f5",
+          "from": "attacker",
+          "to": "server",
+          "delay_ms": 225,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "f6",
+          "from": "attacker",
+          "to": "server",
+          "delay_ms": 270,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "f7",
+          "from": "attacker",
+          "to": "server",
+          "delay_ms": 315,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "f8",
+          "from": "attacker",
+          "to": "server",
+          "delay_ms": 360,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "f9",
+          "from": "attacker",
+          "to": "server",
+          "delay_ms": 405,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "f10",
+          "from": "attacker",
+          "to": "server",
+          "delay_ms": 450,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "f11",
+          "from": "attacker",
+          "to": "server",
+          "delay_ms": 495,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "f12",
+          "from": "attacker",
+          "to": "server",
+          "delay_ms": 540,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "f13",
+          "from": "attacker",
+          "to": "server",
+          "delay_ms": 585,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "f14",
+          "from": "attacker",
+          "to": "server",
+          "delay_ms": 630,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "f15",
+          "from": "attacker",
+          "to": "server",
+          "delay_ms": 675,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "loading",
+          "object": "server",
+          "keep_until": "down"
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "object": "server",
+      "text": "The request queue overflows: CPU and sockets are exhausted, the server can no longer keep up."
+    },
+    {
+      "id": "down",
+      "type": "set_content",
+      "object": "server",
+      "content": {
+        "type": "text",
+        "value": "🛑 503\nService unavailable"
+      },
+      "keep_until_end": true
+    },
+    {
+      "type": "comment",
+      "object": "user",
+      "text": "The legitimate user no longer gets any answer: the service is denied."
+    },
+    {
+      "type": "move",
+      "object": "legit2",
+      "from": "user",
+      "to": "server"
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "loading",
+          "object": "user"
+        },
+        {
+          "type": "comment",
+          "object": "user",
+          "text": "⏳ Timeout…",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "text": "All the traffic comes from a single IP: it can be identified and blocked. That is the weakness this attack — and the strength of a DDoS."
+    }
+  ]
+}

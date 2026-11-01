@@ -1,0 +1,268 @@
+{
+  "direction": "left-to-right",
+  "nodes": [
+    {
+      "id": "bob_device",
+      "type": "bob",
+      "text": "Bob (sender)",
+      "lane": 1,
+      "align_with": "app_server"
+    },
+    {
+      "id": "alice_device",
+      "type": "alice",
+      "text": "Alice (recipient)",
+      "lane": 3,
+      "align_with": "app_server"
+    },
+    {
+      "id": "token_db",
+      "type": "database",
+      "text": "Tokens DB",
+      "icon": "postgres",
+      "lane": 2
+    },
+    {
+      "id": "app_server",
+      "type": "server",
+      "text": "Application Server",
+      "icon": "api",
+      "lane": 2,
+      "background_color": "#3b82f6"
+    },
+    {
+      "id": "fcm",
+      "type": "cloud",
+      "text": "FCM Server (Firebase)",
+      "icon": "firebase",
+      "lane": 2,
+      "background_color": "#f59e0b"
+    }
+  ],
+  "packets": [
+    {
+      "id": "register_token",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "POST /api/devices",
+        "body": {
+          "type": "text",
+          "value": "{\n  \"userId\": \"alice\",\n  \"fcmToken\": \"dQw4-eY1...kZ9\"\n}",
+          "language": "json"
+        }
+      }
+    },
+    {
+      "id": "store_token",
+      "kind": "sql_request",
+      "request_content": "INSERT INTO device_tokens (user_id, token)\nVALUES ('alice', 'dQw4-eY1...kZ9');"
+    },
+    {
+      "id": "send_message",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "POST /api/messages",
+        "body": {
+          "type": "text",
+          "value": "{\n  \"to\": \"alice\",\n  \"text\": \"Hi Alice!\"\n}",
+          "language": "json"
+        }
+      }
+    },
+    {
+      "id": "lookup_token",
+      "kind": "sql_request",
+      "request_content": "SELECT token FROM device_tokens\nWHERE user_id = 'alice';"
+    },
+    {
+      "id": "token_result",
+      "kind": "sql_response",
+      "response_content": {
+        "rows": 1,
+        "header": "1 row",
+        "body": {
+          "type": "table",
+          "columns": [
+            "token"
+          ],
+          "rows_data": [
+            [
+              "dQw4-eY1...kZ9"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "fcm_request",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "POST fcm/send",
+        "body": {
+          "type": "text",
+          "value": "{\n  \"token\": \"dQw4-eY1...kZ9\",\n  \"notification\": {\n    \"title\": \"Bob\",\n    \"body\": \"Hi Alice!\"\n  }\n}",
+          "language": "json"
+        }
+      }
+    },
+    {
+      "id": "push_notification",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "Push (data)",
+        "body": {
+          "type": "text",
+          "value": "🔔 Bob: Hi Alice!"
+        }
+      }
+    }
+  ],
+  "connections": [
+    {
+      "from": "bob_device",
+      "to": "app_server",
+      "style": "solid",
+      "text": "HTTPS"
+    },
+    {
+      "from": "app_server",
+      "to": "token_db",
+      "style": "solid",
+      "text": "SQL"
+    },
+    {
+      "from": "app_server",
+      "to": "fcm",
+      "style": "solid",
+      "text": "HTTPS"
+    },
+    {
+      "from": "fcm",
+      "to": "alice_device",
+      "style": "dashed",
+      "text": "push"
+    },
+    {
+      "from": "alice_device",
+      "to": "app_server",
+      "style": "dotted",
+      "arrow_head": "forward",
+      "text": "registration"
+    }
+  ],
+  "zones": [
+    {
+      "id": "zone_backend",
+      "contains": [
+        "app_server",
+        "token_db",
+        "fcm"
+      ],
+      "color": "steelblue",
+      "label": "Infrastructure"
+    }
+  ],
+  "timeline": [
+    {
+      "type": "comment",
+      "text": "Phase 1 — Token registration. First and foremost, Alice's device must make its FCM token known to the application server."
+    },
+    {
+      "type": "comment",
+      "object": "alice_device",
+      "text": "Upon app launch, Alice gets a unique token from FCM."
+    },
+    {
+      "type": "move",
+      "object": "register_token",
+      "from": "alice_device",
+      "to": "app_server"
+    },
+    {
+      "type": "comment",
+      "object": "app_server",
+      "text": "The server receives the token and associates it with user \"alice\"."
+    },
+    {
+      "type": "move",
+      "object": "store_token",
+      "from": "app_server",
+      "to": "token_db"
+    },
+    {
+      "type": "loading",
+      "object": "token_db"
+    },
+    {
+      "type": "comment",
+      "object": "token_db",
+      "text": "The token is now persistently stored, ready to be used."
+    },
+    {
+      "type": "comment",
+      "text": "Phase 2 — Bob sends a message to Alice."
+    },
+    {
+      "type": "move",
+      "object": "send_message",
+      "from": "bob_device",
+      "to": "app_server"
+    },
+    {
+      "type": "comment",
+      "object": "app_server",
+      "text": "The server must find the token of Alice's device to reach her."
+    },
+    {
+      "type": "move",
+      "object": "lookup_token",
+      "from": "app_server",
+      "to": "token_db"
+    },
+    {
+      "type": "loading",
+      "object": "token_db"
+    },
+    {
+      "type": "move",
+      "object": "token_result",
+      "from": "token_db",
+      "to": "app_server"
+    },
+    {
+      "type": "comment",
+      "object": "app_server",
+      "text": "With the token in hand, the server prepares the request to FCM."
+    },
+    {
+      "type": "comment",
+      "text": "Phase 3 — Routing via the FCM server."
+    },
+    {
+      "type": "move",
+      "object": "fcm_request",
+      "from": "app_server",
+      "to": "fcm"
+    },
+    {
+      "type": "loading",
+      "object": "fcm"
+    },
+    {
+      "type": "comment",
+      "object": "fcm",
+      "text": "FCM identifies the device using the token and pushes the notification — even if Alice's app is closed."
+    },
+    {
+      "type": "move",
+      "object": "push_notification",
+      "from": "fcm",
+      "to": "alice_device"
+    },
+    {
+      "type": "comment",
+      "object": "alice_device",
+      "text": "Alice receives the notification: \"🔔 Bob: Hi Alice!\""
+    }
+  ]
+}

@@ -1,0 +1,232 @@
+{
+  "direction": "left-to-right",
+  "nodes": [
+    {
+      "id": "user",
+      "type": "user",
+      "text": "User",
+      "lane": 1
+    },
+    {
+      "id": "app",
+      "type": "server",
+      "text": "Application",
+      "icon": "react",
+      "lane": 2
+    },
+    {
+      "id": "idp",
+      "type": "server",
+      "text": "Authorization Server",
+      "icon": "OIDC",
+      "lane": 3
+    },
+    {
+      "id": "api",
+      "type": "server",
+      "text": "Resource API",
+      "icon": "node",
+      "lane": 3
+    }
+  ],
+  "connections": [
+    {
+      "from": "user",
+      "to": "app",
+      "style": "dotted"
+    },
+    {
+      "from": "app",
+      "to": "idp",
+      "style": "dotted"
+    },
+    {
+      "from": "app",
+      "to": "api",
+      "style": "dotted"
+    }
+  ],
+  "packets": [
+    {
+      "id": "login",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "Login"
+      }
+    },
+    {
+      "id": "redirect",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "302 → /authorize",
+        "body": {
+          "type": "text",
+          "value": "client_id, scope, state"
+        }
+      }
+    },
+    {
+      "id": "consent",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "I authorize ✅"
+      }
+    },
+    {
+      "id": "code",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "302 → /callback",
+        "body": {
+          "type": "text",
+          "value": "code=AUTH_CODE"
+        }
+      }
+    },
+    {
+      "id": "exchange",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "POST /token",
+        "body": {
+          "type": "text",
+          "value": "code + client_secret"
+        }
+      }
+    },
+    {
+      "id": "token",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "200 OK",
+        "body": {
+          "type": "text",
+          "value": "access_token (JWT)"
+        }
+      }
+    },
+    {
+      "id": "call",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /me",
+        "body": {
+          "type": "text",
+          "value": "Bearer access_token"
+        }
+      }
+    },
+    {
+      "id": "profile",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "200 OK",
+        "body": {
+          "type": "text",
+          "value": "{ \"name\": \"Alice\" }"
+        }
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "type": "comment",
+      "object": "user",
+      "text": "1. The user clicks on \"Login\""
+    },
+    {
+      "type": "move",
+      "object": "login",
+      "from": "user",
+      "to": "app"
+    },
+    {
+      "type": "comment",
+      "object": "app",
+      "text": "2. The app redirects the browser to the authorization server"
+    },
+    {
+      "type": "move",
+      "object": "redirect",
+      "from": "app",
+      "to": "idp"
+    },
+    {
+      "type": "comment",
+      "object": "idp",
+      "text": "3. The user authenticates and grants the requested permissions"
+    },
+    {
+      "type": "move",
+      "object": "consent",
+      "from": "user",
+      "to": "idp"
+    },
+    {
+      "type": "comment",
+      "object": "idp",
+      "text": "4. The server returns a one-time authorization code"
+    },
+    {
+      "type": "move",
+      "object": "code",
+      "from": "idp",
+      "to": "app",
+      "duration": 1300
+    },
+    {
+      "type": "comment",
+      "object": "app",
+      "text": "5. Back channel: the app exchanges the code for a token (with its secret)"
+    },
+    {
+      "type": "move",
+      "object": "exchange",
+      "from": "app",
+      "to": "idp"
+    },
+    {
+      "type": "loading",
+      "id": "mint",
+      "object": "idp",
+      "duration": 1000
+    },
+    {
+      "type": "move",
+      "object": "token",
+      "from": "idp",
+      "to": "app",
+      "wait_for": "mint"
+    },
+    {
+      "type": "comment",
+      "object": "app",
+      "text": "6. With the access token, the app calls the resource API"
+    },
+    {
+      "type": "move",
+      "object": "call",
+      "from": "app",
+      "to": "api",
+      "duration": 1300
+    },
+    {
+      "type": "loading",
+      "id": "check",
+      "object": "api",
+      "duration": 900
+    },
+    {
+      "type": "move",
+      "object": "profile",
+      "from": "api",
+      "to": "app",
+      "wait_for": "check"
+    },
+    {
+      "type": "comment",
+      "object": "app",
+      "text": "Profile obtained, user logged in 🎉"
+    }
+  ]
+}

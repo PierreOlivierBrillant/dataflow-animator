@@ -1,0 +1,209 @@
+{
+  "direction": "left-to-right",
+  "nodes": [
+    {
+      "id": "dev",
+      "type": "laptop",
+      "text": "Developer",
+      "icon": "git",
+      "lane": 1
+    },
+    {
+      "id": "repo",
+      "type": "server",
+      "text": "Remote repo",
+      "icon": "git",
+      "lane": 2
+    },
+    {
+      "id": "ci",
+      "type": "server",
+      "text": "CI Runner",
+      "icon": "docker",
+      "lane": 3
+    },
+    {
+      "id": "registry",
+      "type": "database",
+      "text": "Image registry",
+      "icon": "docker",
+      "lane": 4
+    },
+    {
+      "id": "prod",
+      "type": "cloud",
+      "text": "Production",
+      "icon": "aws",
+      "lane": 5
+    }
+  ],
+  "zones": [
+    {
+      "contains": [
+        "ci",
+        "registry"
+      ],
+      "color": "#7c3aed",
+      "label": "Automated pipeline"
+    }
+  ],
+  "connections": [
+    {
+      "from": "dev",
+      "to": "repo",
+      "style": "dotted"
+    },
+    {
+      "from": "repo",
+      "to": "ci",
+      "style": "dotted"
+    },
+    {
+      "from": "ci",
+      "to": "registry",
+      "style": "dotted"
+    },
+    {
+      "from": "registry",
+      "to": "prod",
+      "style": "dotted"
+    }
+  ],
+  "packets": [
+    {
+      "id": "push",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "git push",
+        "body": {
+          "type": "text",
+          "value": "feat: new page"
+        }
+      }
+    },
+    {
+      "id": "hook",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "webhook",
+        "body": {
+          "type": "text",
+          "value": "push on main"
+        }
+      }
+    },
+    {
+      "id": "image",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "docker push",
+        "body": {
+          "type": "text",
+          "value": "app:1.4.0"
+        }
+      }
+    },
+    {
+      "id": "deploy",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "deployment",
+        "body": {
+          "type": "text",
+          "value": "pull app:1.4.0"
+        }
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "type": "comment",
+      "object": "dev",
+      "text": "1. The developer pushes their branch"
+    },
+    {
+      "type": "set_content",
+      "object": "dev",
+      "content": {
+        "type": "code",
+        "language": "bash",
+        "value": "$ git push origin main"
+      },
+      "keep_until": "hookstep"
+    },
+    {
+      "type": "move",
+      "object": "push",
+      "from": "dev",
+      "to": "repo",
+      "duration": 1300
+    },
+    {
+      "type": "comment",
+      "object": "repo",
+      "text": "2. The push on main triggers the pipeline (webhook)"
+    },
+    {
+      "type": "move",
+      "id": "hookstep",
+      "object": "hook",
+      "from": "repo",
+      "to": "ci"
+    },
+    {
+      "type": "comment",
+      "object": "ci",
+      "text": "3. The runner installs dependencies and runs tests"
+    },
+    {
+      "type": "loading",
+      "object": "ci",
+      "duration": 1400
+    },
+    {
+      "type": "set_content",
+      "object": "ci",
+      "content": {
+        "type": "code",
+        "language": "bash",
+        "value": "✓ 128 tests passed\n✓ build successful"
+      },
+      "keep_until": "deploystep"
+    },
+    {
+      "type": "comment",
+      "object": "ci",
+      "text": "4. Build the Docker image, then publish to the registry"
+    },
+    {
+      "type": "move",
+      "object": "image",
+      "from": "ci",
+      "to": "registry"
+    },
+    {
+      "type": "comment",
+      "object": "registry",
+      "text": "5. Deploy the new image to production"
+    },
+    {
+      "type": "move",
+      "id": "deploystep",
+      "object": "deploy",
+      "from": "registry",
+      "to": "prod"
+    },
+    {
+      "type": "loading",
+      "id": "rollout",
+      "object": "prod",
+      "duration": 1200
+    },
+    {
+      "type": "comment",
+      "object": "prod",
+      "text": "Version 1.4.0 online 🚀",
+      "wait_for": "rollout"
+    }
+  ]
+}

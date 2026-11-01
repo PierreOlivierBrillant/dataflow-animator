@@ -1,0 +1,16 @@
+{
+  "name": "dataflow-animator",
+  "owner": {
+    "name": "PierreOlivierBrillant",
+    "url": "https://github.com/PierreOlivierBrillant"
+  },
+  "description": "The DataFlow Animator plugin: lets Claude write, validate and share animated data-flow diagrams.",
+  "plugins": [
+    {
+      "name": "dataflow-animator",
+      "source": "./plugins/dataflow-animator",
+      "description": "Writes DataFlow Animator specs (protocols, architectures, algorithms, circuits), validates them, and answers with a link that plays the animation in the online playground.",
+      "category": "visualization"
+    }
+  ]
+}

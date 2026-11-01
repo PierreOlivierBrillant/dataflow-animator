@@ -1,0 +1,159 @@
+{
+  "direction": "left-to-right",
+  "nodes": [
+    {
+      "id": "browser",
+      "type": "laptop",
+      "text": "Browser",
+      "icon": "chrome",
+      "lane": 1
+    },
+    {
+      "id": "api",
+      "type": "server",
+      "text": "Web server",
+      "icon": "dotnet",
+      "lane": 2
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "text": "Database",
+      "icon": "mssql",
+      "lane": 3
+    }
+  ],
+  "connections": [
+    {
+      "from": "browser",
+      "to": "api",
+      "arrow_head": "both",
+      "style": "dashed"
+    },
+    {
+      "from": "api",
+      "to": "db",
+      "arrow_head": "both",
+      "style": "dashed"
+    }
+  ],
+  "packets": [
+    {
+      "id": "req",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /users\nAccept: application/json"
+      }
+    },
+    {
+      "id": "sql",
+      "kind": "sql_request",
+      "request_content": "SELECT * FROM users"
+    },
+    {
+      "id": "rows",
+      "kind": "sql_response",
+      "response_content": {
+        "header": "2 rows",
+        "body": {
+          "type": "table",
+          "columns": [
+            "id",
+            "name"
+          ],
+          "rows_data": [
+            [
+              1,
+              "Alice"
+            ],
+            [
+              2,
+              "Bob"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "res",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "200 OK",
+        "body": {
+          "type": "text",
+          "value": "<div>\n  <h2>Alice</h2>\n  <h2>Bob</h2>\n</div>",
+          "language": "html"
+        }
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "type": "comment",
+      "object": "browser",
+      "text": "The user opens the page; the HTTP request is sent to the server"
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "move",
+          "object": "req",
+          "from": "browser",
+          "to": "api"
+        },
+        {
+          "type": "loading",
+          "object": "browser",
+          "keep_until": "display_html"
+        }
+      ]
+    },
+    {
+      "id": "dbwork",
+      "type": "move",
+      "object": "sql",
+      "from": "api",
+      "to": "db"
+    },
+    {
+      "type": "move",
+      "object": "rows",
+      "from": "db",
+      "to": "api",
+      "wait_for": "dbwork"
+    },
+    {
+      "type": "move",
+      "object": "res",
+      "from": "api",
+      "to": "browser"
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "id": "display_html",
+          "type": "set_content",
+          "object": "browser",
+          "keep_until_end": true,
+          "content": {
+            "url": "example.com/users",
+            "type": "text",
+            "value": "Alice\nBob"
+          }
+        },
+        {
+          "type": "comment",
+          "object": "browser",
+          "text": "Page rendered 🎉",
+          "keep_until_end": true
+        }
+      ]
+    },
+    {
+      "type": "wait",
+      "delay_ms": 1000
+    }
+  ]
+}

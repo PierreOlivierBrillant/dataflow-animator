@@ -1,0 +1,500 @@
+{
+  "direction": "graph",
+  "nodes": [
+    {
+      "id": "r0c0",
+      "type": "circle",
+      "body": "",
+      "x": 0.12,
+      "y": 0.2
+    },
+    {
+      "id": "r0c1",
+      "type": "circle",
+      "body": "",
+      "x": 0.37333333333333335,
+      "y": 0.2,
+      "background_color": "#334155",
+      "border_color": "#334155"
+    },
+    {
+      "id": "r0c2",
+      "type": "circle",
+      "body": "",
+      "x": 0.6266666666666667,
+      "y": 0.2
+    },
+    {
+      "id": "r0c3",
+      "type": "circle",
+      "body": "",
+      "x": 0.8800000000000001,
+      "y": 0.2
+    },
+    {
+      "id": "r1c0",
+      "type": "circle",
+      "body": "S",
+      "x": 0.12,
+      "y": 0.5
+    },
+    {
+      "id": "r1c1",
+      "type": "circle",
+      "body": "",
+      "x": 0.37333333333333335,
+      "y": 0.5,
+      "background_color": "#334155",
+      "border_color": "#334155"
+    },
+    {
+      "id": "r1c2",
+      "type": "circle",
+      "body": "",
+      "x": 0.6266666666666667,
+      "y": 0.5
+    },
+    {
+      "id": "r1c3",
+      "type": "circle",
+      "body": "G",
+      "x": 0.8800000000000001,
+      "y": 0.5
+    },
+    {
+      "id": "r2c0",
+      "type": "circle",
+      "body": "",
+      "x": 0.12,
+      "y": 0.8
+    },
+    {
+      "id": "r2c1",
+      "type": "circle",
+      "body": "",
+      "x": 0.37333333333333335,
+      "y": 0.8
+    },
+    {
+      "id": "r2c2",
+      "type": "circle",
+      "body": "",
+      "x": 0.6266666666666667,
+      "y": 0.8
+    },
+    {
+      "id": "r2c3",
+      "type": "circle",
+      "body": "",
+      "x": 0.8800000000000001,
+      "y": 0.8
+    }
+  ],
+  "connections": [
+    {
+      "id": "v00",
+      "from": "r0c0",
+      "to": "r1c0",
+      "text": "1",
+      "path": "straight",
+      "arrow_head": "none"
+    },
+    {
+      "id": "h02",
+      "from": "r0c2",
+      "to": "r0c3",
+      "text": "1",
+      "path": "straight",
+      "arrow_head": "none"
+    },
+    {
+      "id": "v02",
+      "from": "r0c2",
+      "to": "r1c2",
+      "text": "1",
+      "path": "straight",
+      "arrow_head": "none"
+    },
+    {
+      "id": "v03",
+      "from": "r0c3",
+      "to": "r1c3",
+      "text": "1",
+      "path": "straight",
+      "arrow_head": "none"
+    },
+    {
+      "id": "v10",
+      "from": "r1c0",
+      "to": "r2c0",
+      "text": "1",
+      "path": "straight",
+      "arrow_head": "none"
+    },
+    {
+      "id": "h12",
+      "from": "r1c2",
+      "to": "r1c3",
+      "text": "1",
+      "path": "straight",
+      "arrow_head": "none"
+    },
+    {
+      "id": "v12",
+      "from": "r1c2",
+      "to": "r2c2",
+      "text": "1",
+      "path": "straight",
+      "arrow_head": "none"
+    },
+    {
+      "id": "v13",
+      "from": "r1c3",
+      "to": "r2c3",
+      "text": "1",
+      "path": "straight",
+      "arrow_head": "none"
+    },
+    {
+      "id": "h20",
+      "from": "r2c0",
+      "to": "r2c1",
+      "text": "1",
+      "path": "straight",
+      "arrow_head": "none"
+    },
+    {
+      "id": "h21",
+      "from": "r2c1",
+      "to": "r2c2",
+      "text": "1",
+      "path": "straight",
+      "arrow_head": "none"
+    },
+    {
+      "id": "h22",
+      "from": "r2c2",
+      "to": "r2c3",
+      "text": "1",
+      "path": "straight",
+      "arrow_head": "none"
+    }
+  ],
+  "packets": [],
+  "timeline": [
+    {
+      "type": "comment",
+      "text": "A* explores a grid from S to G, each move costing 1. It ranks open cells by f = g + h — cost so far plus the Manhattan distance still to go — and expands the smallest f. The dark cells are walls."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_color",
+          "object": "r1c0",
+          "background_color": "#0d9488",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "r1c0",
+          "icon": "3"
+        },
+        {
+          "type": "parallel",
+          "actions": [
+            {
+              "type": "set_color",
+              "object": "r0c0",
+              "background_color": "#b45309",
+              "text_color": "white"
+            },
+            {
+              "type": "set_icon",
+              "object": "r0c0",
+              "icon": "5"
+            }
+          ]
+        },
+        {
+          "type": "parallel",
+          "actions": [
+            {
+              "type": "set_color",
+              "object": "r2c0",
+              "background_color": "#b45309",
+              "text_color": "white"
+            },
+            {
+              "type": "set_icon",
+              "object": "r2c0",
+              "icon": "5"
+            }
+          ]
+        },
+        {
+          "type": "comment",
+          "object": "r1c0",
+          "text": "Open S: g=0, h=3, f=3. Expand it. The two neighbours get f=5; the wall in column 1 blocks the straight route.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_color",
+          "object": "r2c0",
+          "background_color": "#0d9488",
+          "text_color": "white"
+        },
+        {
+          "type": "parallel",
+          "actions": [
+            {
+              "type": "set_color",
+              "object": "r2c1",
+              "background_color": "#b45309",
+              "text_color": "white"
+            },
+            {
+              "type": "set_icon",
+              "object": "r2c1",
+              "icon": "5"
+            }
+          ]
+        },
+        {
+          "type": "comment",
+          "object": "r2c0",
+          "text": "The frontier ties at f=5. Take the cell skirting the wall (bottom row) and expand it: it opens the next cell, again f=5.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_color",
+          "object": "r2c1",
+          "background_color": "#0d9488",
+          "text_color": "white"
+        },
+        {
+          "type": "parallel",
+          "actions": [
+            {
+              "type": "set_color",
+              "object": "r2c2",
+              "background_color": "#b45309",
+              "text_color": "white"
+            },
+            {
+              "type": "set_icon",
+              "object": "r2c2",
+              "icon": "5"
+            }
+          ]
+        },
+        {
+          "type": "comment",
+          "object": "r2c1",
+          "text": "Expand, f=5. g grows by 1, h shrinks by 1 — f stays 5 all along the detour.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_color",
+          "object": "r2c2",
+          "background_color": "#0d9488",
+          "text_color": "white"
+        },
+        {
+          "type": "parallel",
+          "actions": [
+            {
+              "type": "set_color",
+              "object": "r2c3",
+              "background_color": "#b45309",
+              "text_color": "white"
+            },
+            {
+              "type": "set_icon",
+              "object": "r2c3",
+              "icon": "5"
+            }
+          ]
+        },
+        {
+          "type": "parallel",
+          "actions": [
+            {
+              "type": "set_color",
+              "object": "r1c2",
+              "background_color": "#b45309",
+              "text_color": "white"
+            },
+            {
+              "type": "set_icon",
+              "object": "r1c2",
+              "icon": "5"
+            }
+          ]
+        },
+        {
+          "type": "comment",
+          "object": "r2c2",
+          "text": "Expand, f=5. It opens two cells at f=5, including the way back up toward G.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_color",
+          "object": "r1c2",
+          "background_color": "#0d9488",
+          "text_color": "white"
+        },
+        {
+          "type": "parallel",
+          "actions": [
+            {
+              "type": "set_color",
+              "object": "r1c3",
+              "background_color": "#b45309",
+              "text_color": "white"
+            },
+            {
+              "type": "set_icon",
+              "object": "r1c3",
+              "icon": "5"
+            }
+          ]
+        },
+        {
+          "type": "parallel",
+          "actions": [
+            {
+              "type": "set_color",
+              "object": "r0c2",
+              "background_color": "#b45309",
+              "text_color": "white"
+            },
+            {
+              "type": "set_icon",
+              "object": "r0c2",
+              "icon": "7"
+            }
+          ]
+        },
+        {
+          "type": "comment",
+          "object": "r1c2",
+          "text": "Expand, f=5. G is now reachable at f=5. The cell above has f=7 (it points away from G).",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_color",
+          "object": "r1c3",
+          "background_color": "#0d9488",
+          "text_color": "white"
+        },
+        {
+          "type": "comment",
+          "object": "r1c3",
+          "text": "G leaves the frontier with f=5 → shortest path found, length 5.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_color",
+          "object": "r1c0",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "r2c0",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "r2c1",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "r2c2",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "r1c2",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "r1c3",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "v10",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "h20",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "h21",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "v12",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "h12",
+          "color": "#16a34a"
+        },
+        {
+          "type": "comment",
+          "text": "Path around the wall, length 5. A* expanded just 6 cells and left the f=5 and f=7 cells unexpanded — the heuristic kept it aimed at G, where Dijkstra would have flooded outward.",
+          "keep_until_end": true
+        }
+      ]
+    },
+    {
+      "type": "wait",
+      "duration": 1800
+    }
+  ]
+}

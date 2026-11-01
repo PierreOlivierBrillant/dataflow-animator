@@ -13,7 +13,7 @@ import { createZip } from './zip';
  * sources:
  *
  * - the Claude skill (a zip to upload to claude.ai, or to unzip into
- *   `~/.claude/skills/`);
+ *   `~/.claude/skills/`), and the same folder unzipped for the Claude plugin;
  * - `llms.txt` (an index, per llmstxt.org) and `llms-full.txt` (the whole
  *   authoring context in one file);
  * - `claude/prompt.md`, what the playground's "Ask Claude" button copies.
@@ -47,6 +47,8 @@ export interface KitFile {
 export const SKILL_NAME = 'dataflow-animator';
 export const SKILL_ZIP_PATH = `claude/${SKILL_NAME}-skill.zip`;
 export const PROMPT_PATH = 'claude/prompt.md';
+/** The GitHub repository whose root holds `.claude-plugin/marketplace.json`. */
+const PLUGIN_MARKETPLACE = 'PierreOlivierBrillant/dataflow-animator';
 
 function json(value: unknown): string {
   return JSON.stringify(value, null, 2) + '\n';
@@ -96,7 +98,8 @@ function llmsTxt(siteUrl: string, examples: KitExample[]): string {
     '',
     '## Tools',
     '',
-    `- [Claude skill](${docs(SKILL_ZIP_PATH)}): upload to claude.ai (Settings → Capabilities → Skills) or unzip into \`~/.claude/skills/\``,
+    `- Claude plugin: add the marketplace \`${PLUGIN_MARKETPLACE}\` (claude.ai: Customize → Plugins → Add marketplace; Claude Code: \`/plugin marketplace add ${PLUGIN_MARKETPLACE}\`), then install \`${SKILL_NAME}\``,
+    `- [Claude skill](${docs(SKILL_ZIP_PATH)}): the same skill as a zip, to upload to claude.ai (Customize → Skills) or unzip into \`~/.claude/skills/\``,
     `- [Playground](${docs('playground/')}): live editor and player`,
     '',
     '## Optional',
@@ -167,18 +170,14 @@ function promptMd(siteUrl: string, full: string): string {
   ].join('\n');
 }
 
-export function buildKit(inputs: KitInputs): KitFile[] {
-  const examples = buildExamples();
-  const types = schemaToReference(inputs.schema);
-  const pins = pinsToReference(inputs.componentPins);
-  const core = CORE_EXAMPLE_IDS.map((id) => {
-    const ex = examples.find((e) => e.id === id);
-    if (!ex) throw new Error(`CORE_EXAMPLE_IDS: no demo "${id}"`);
-    return ex;
-  });
-  const full = llmsFull(inputs.guide, types, pins, core);
-
-  const skillFiles: KitFile[] = [
+/** The skill folder's files, relative to the folder. */
+function skillFiles(
+  inputs: KitInputs,
+  examples: KitExample[],
+  types: string,
+  pins: string
+): KitFile[] {
+  return [
     { path: 'SKILL.md', content: inputs.skill },
     { path: 'reference/guide.md', content: inputs.guide },
     { path: 'reference/types.md', content: types },
@@ -198,8 +197,36 @@ export function buildKit(inputs: KitInputs): KitFile[] {
       content,
     })),
   ];
+}
+
+/**
+ * The same skill folder the zip carries, unzipped: what the Claude plugin
+ * (`plugins/dataflow-animator/`) commits under `skills/dataflow-animator/`.
+ * A marketplace is read from a git repository, so unlike everything else here
+ * this copy cannot stay a build output.
+ */
+export function buildSkill(inputs: KitInputs): KitFile[] {
+  return skillFiles(
+    inputs,
+    buildExamples(),
+    schemaToReference(inputs.schema),
+    pinsToReference(inputs.componentPins)
+  );
+}
+
+export function buildKit(inputs: KitInputs): KitFile[] {
+  const examples = buildExamples();
+  const types = schemaToReference(inputs.schema);
+  const pins = pinsToReference(inputs.componentPins);
+  const core = CORE_EXAMPLE_IDS.map((id) => {
+    const ex = examples.find((e) => e.id === id);
+    if (!ex) throw new Error(`CORE_EXAMPLE_IDS: no demo "${id}"`);
+    return ex;
+  });
+  const full = llmsFull(inputs.guide, types, pins, core);
+
   const zip = createZip(
-    skillFiles.map((f) => ({
+    skillFiles(inputs, examples, types, pins).map((f) => ({
       path: `${SKILL_NAME}/${f.path}`,
       content: f.content,
     }))

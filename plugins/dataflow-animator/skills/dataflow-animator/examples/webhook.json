@@ -1,0 +1,180 @@
+{
+  "direction": "left-to-right",
+  "nodes": [
+    {
+      "id": "provider",
+      "type": "cloud",
+      "text": "Provider Service",
+      "lane": 1
+    },
+    {
+      "id": "app",
+      "type": "server",
+      "text": "Your Endpoint",
+      "icon": "node",
+      "lane": 2
+    }
+  ],
+  "connections": [
+    {
+      "from": "provider",
+      "to": "app",
+      "style": "dotted"
+    }
+  ],
+  "packets": [
+    {
+      "id": "evt1",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "POST /webhook",
+        "body": {
+          "type": "text",
+          "value": "invoice.paid · try 1"
+        }
+      }
+    },
+    {
+      "id": "err1",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "503 Service Unavailable"
+      }
+    },
+    {
+      "id": "evt2",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "POST /webhook",
+        "body": {
+          "type": "text",
+          "value": "invoice.paid · try 2"
+        }
+      }
+    },
+    {
+      "id": "err2",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "500 Internal Error"
+      }
+    },
+    {
+      "id": "evt3",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "POST /webhook",
+        "body": {
+          "type": "text",
+          "value": "invoice.paid · try 3"
+        }
+      }
+    },
+    {
+      "id": "ok",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "200 OK ✅"
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "type": "comment",
+      "object": "provider",
+      "text": "An event just happened: the provider attempts to deliver it."
+    },
+    {
+      "type": "comment",
+      "object": "provider",
+      "text": "Attempt 1"
+    },
+    {
+      "type": "move",
+      "object": "evt1",
+      "from": "provider",
+      "to": "app"
+    },
+    {
+      "type": "set_content",
+      "object": "app",
+      "content": {
+        "type": "text",
+        "value": "🛑 service down"
+      },
+      "keep_until": "recover"
+    },
+    {
+      "type": "move",
+      "object": "err1",
+      "from": "app",
+      "to": "provider"
+    },
+    {
+      "type": "comment",
+      "object": "provider",
+      "text": "Failure (503). The provider waits before retrying (back-off)."
+    },
+    {
+      "type": "comment",
+      "object": "provider",
+      "text": "Attempt 2 (after ~1s)"
+    },
+    {
+      "type": "move",
+      "object": "evt2",
+      "from": "provider",
+      "to": "app"
+    },
+    {
+      "type": "move",
+      "object": "err2",
+      "from": "app",
+      "to": "provider"
+    },
+    {
+      "type": "comment",
+      "object": "provider",
+      "text": "Failed again (500). Doubling the wait time."
+    },
+    {
+      "type": "set_content",
+      "id": "recover",
+      "object": "app",
+      "content": {
+        "type": "text",
+        "value": "🟢 service restored"
+      },
+      "keep_until_end": true
+    },
+    {
+      "type": "comment",
+      "object": "provider",
+      "text": "Attempt 3 (after ~2s) — this time the endpoint replies"
+    },
+    {
+      "type": "move",
+      "object": "evt3",
+      "from": "provider",
+      "to": "app"
+    },
+    {
+      "type": "loading",
+      "id": "process",
+      "object": "app",
+      "duration": 900
+    },
+    {
+      "type": "move",
+      "object": "ok",
+      "from": "app",
+      "to": "provider",
+      "wait_for": "process"
+    },
+    {
+      "type": "comment",
+      "object": "provider",
+      "text": "200 OK received: delivery marked as successful ✅"
+    }
+  ]
+}

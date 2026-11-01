@@ -1,0 +1,238 @@
+{
+  "direction": "tree",
+  "tree": {
+    "root": "50",
+    "children": {
+      "20": {
+        "left": "10"
+      },
+      "30": {
+        "left": "20",
+        "right": "40"
+      },
+      "50": {
+        "left": "30",
+        "right": "70"
+      }
+    }
+  },
+  "nodes": [
+    {
+      "id": "50",
+      "type": "circle",
+      "body": "50",
+      "background_color": "steelblue",
+      "text_color": "white"
+    },
+    {
+      "id": "30",
+      "type": "circle",
+      "body": "30",
+      "background_color": "steelblue",
+      "text_color": "white"
+    },
+    {
+      "id": "70",
+      "type": "circle",
+      "body": "70",
+      "background_color": "steelblue",
+      "text_color": "white"
+    },
+    {
+      "id": "20",
+      "type": "circle",
+      "body": "20",
+      "background_color": "steelblue",
+      "text_color": "white"
+    },
+    {
+      "id": "40",
+      "type": "circle",
+      "body": "40",
+      "background_color": "steelblue",
+      "text_color": "white"
+    },
+    {
+      "id": "10",
+      "type": "circle",
+      "body": "10",
+      "background_color": "seagreen",
+      "text_color": "white",
+      "visible": false
+    }
+  ],
+  "packets": [
+    {
+      "id": "k",
+      "kind": "subicon",
+      "icon": "10"
+    }
+  ],
+  "timeline": [
+    {
+      "type": "comment",
+      "text": "A balanced AVL tree: every node’s balance factor (left height − right height) is in [−1, +1]."
+    },
+    {
+      "type": "comment",
+      "object": "50",
+      "text": "Let’s insert the key 10. Like in any BST, we route it down from the root."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "move",
+          "object": "k",
+          "from": "50",
+          "to": "30",
+          "duration": 900
+        },
+        {
+          "type": "comment",
+          "object": "50",
+          "text": "10 < 50 → go into the LEFT subtree",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "move",
+          "object": "k",
+          "from": "30",
+          "to": "20",
+          "duration": 900
+        },
+        {
+          "type": "comment",
+          "object": "30",
+          "text": "10 < 30 → go LEFT again",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "object": "20",
+      "text": "10 < 20 → and 20’s left child is empty: this is the spot"
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_visible",
+          "object": "10",
+          "visible": true,
+          "duration": 500
+        },
+        {
+          "type": "comment",
+          "object": "20",
+          "text": "10 is placed at the empty spot…",
+          "duration": 1500
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "object": "10",
+      "text": "…then linked to its parent 20 (the green node)."
+    },
+    {
+      "type": "comment",
+      "text": "After an insertion we walk back UP to the root, checking each balance factor."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "highlight",
+          "object": "20",
+          "duration": 2000
+        },
+        {
+          "type": "comment",
+          "object": "20",
+          "text": "20: left height 1, right height 0 → factor +1. Still OK.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "highlight",
+          "object": "30",
+          "duration": 2000
+        },
+        {
+          "type": "comment",
+          "object": "30",
+          "text": "30: left height 2, right height 1 → factor +1. Still OK.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "highlight",
+          "object": "50",
+          "duration": 2400
+        },
+        {
+          "type": "comment",
+          "object": "50",
+          "text": "50: left height 3, right height 1 → factor +2. UNBALANCED!",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "object": "50",
+      "text": "It is the left-left case. We right-rotate around 50 — watch exactly who moves where."
+    },
+    {
+      "type": "comment",
+      "object": "30",
+      "text": "1) 30, the LEFT child of 50, moves UP and becomes the new root."
+    },
+    {
+      "type": "comment",
+      "object": "50",
+      "text": "2) 50 moves DOWN and becomes the RIGHT child of 30."
+    },
+    {
+      "type": "comment",
+      "object": "40",
+      "text": "3) 40, which was 30’s RIGHT child, slides over to become 50’s LEFT child."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "rotate_subtree",
+          "object": "50",
+          "rotation": "right"
+        },
+        {
+          "type": "comment",
+          "text": "Now the nodes glide into those new positions.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "object": "30",
+      "text": "Balanced again ✓ Every factor is back in [−1, +1], and the tree is one level shorter.",
+      "keep_until_end": true
+    }
+  ]
+}

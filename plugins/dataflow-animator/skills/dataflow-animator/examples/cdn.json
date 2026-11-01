@@ -1,0 +1,193 @@
+{
+  "direction": "left-to-right",
+  "nodes": [
+    {
+      "id": "user",
+      "type": "user",
+      "text": "Visitor",
+      "lane": 1
+    },
+    {
+      "id": "edge",
+      "type": "server",
+      "text": "Edge Node (CDN)",
+      "icon": "cloud",
+      "lane": 2
+    },
+    {
+      "id": "origin",
+      "type": "server",
+      "text": "Origin Server",
+      "icon": "nginx",
+      "lane": 3
+    }
+  ],
+  "connections": [
+    {
+      "from": "user",
+      "to": "edge",
+      "style": "dotted"
+    },
+    {
+      "from": "edge",
+      "to": "origin",
+      "style": "dotted"
+    }
+  ],
+  "packets": [
+    {
+      "id": "req1",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /logo.png"
+      }
+    },
+    {
+      "id": "pull",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /logo.png",
+        "body": {
+          "type": "text",
+          "value": "fill cache"
+        }
+      }
+    },
+    {
+      "id": "fromOrigin",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "200 OK",
+        "body": {
+          "type": "text",
+          "value": "logo.png + Cache-Control"
+        }
+      }
+    },
+    {
+      "id": "res1",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "200 OK (MISS)",
+        "body": {
+          "type": "text",
+          "value": "logo.png"
+        }
+      }
+    },
+    {
+      "id": "req2",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /logo.png"
+      }
+    },
+    {
+      "id": "res2",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "200 OK (HIT) ⚡",
+        "body": {
+          "type": "text",
+          "value": "logo.png — served from edge"
+        }
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "type": "comment",
+      "text": "First visitor: the resource is not yet cached near them."
+    },
+    {
+      "type": "move",
+      "object": "req1",
+      "from": "user",
+      "to": "edge"
+    },
+    {
+      "type": "set_content",
+      "object": "edge",
+      "content": {
+        "type": "text",
+        "value": "❌ cache MISS"
+      },
+      "keep_until": "store"
+    },
+    {
+      "type": "comment",
+      "object": "edge",
+      "text": "1. Cache MISS → the edge fetches the resource from the origin"
+    },
+    {
+      "type": "move",
+      "object": "pull",
+      "from": "edge",
+      "to": "origin"
+    },
+    {
+      "type": "loading",
+      "id": "gen",
+      "object": "origin",
+      "duration": 1100
+    },
+    {
+      "type": "move",
+      "object": "fromOrigin",
+      "from": "origin",
+      "to": "edge",
+      "wait_for": "gen"
+    },
+    {
+      "type": "set_content",
+      "id": "store",
+      "object": "edge",
+      "content": {
+        "type": "text",
+        "value": "💾 cached (TTL 24h)"
+      },
+      "keep_until_end": true
+    },
+    {
+      "type": "comment",
+      "object": "edge",
+      "text": "2. The edge stores the copy then responds to the visitor"
+    },
+    {
+      "type": "move",
+      "object": "res1",
+      "from": "edge",
+      "to": "user"
+    },
+    {
+      "type": "wait",
+      "duration": 1400
+    },
+    {
+      "type": "comment",
+      "text": "Later, a second visitor requests the exact same resource..."
+    },
+    {
+      "type": "move",
+      "object": "req2",
+      "from": "user",
+      "to": "edge"
+    },
+    {
+      "type": "comment",
+      "object": "edge",
+      "text": "3. Cache HIT ⚡ → immediate response, without touching origin"
+    },
+    {
+      "type": "move",
+      "object": "res2",
+      "from": "edge",
+      "to": "user"
+    },
+    {
+      "type": "comment",
+      "object": "user",
+      "text": "Latency reduced: the whole point of a CDN ✅"
+    }
+  ]
+}

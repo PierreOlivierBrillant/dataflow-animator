@@ -1,0 +1,230 @@
+{
+  "direction": "left-to-right",
+  "nodes": [
+    {
+      "id": "producer",
+      "type": "server",
+      "text": "Producer",
+      "icon": "node",
+      "lane": 1
+    },
+    {
+      "id": "broker",
+      "type": "server",
+      "text": "Broker (queue)",
+      "icon": "MQ",
+      "lane": 2
+    },
+    {
+      "id": "c1",
+      "type": "server",
+      "text": "Worker A",
+      "icon": "python",
+      "lane": 3
+    },
+    {
+      "id": "c2",
+      "type": "server",
+      "text": "Worker B",
+      "icon": "python",
+      "lane": 3
+    },
+    {
+      "id": "c3",
+      "type": "server",
+      "text": "Worker C",
+      "icon": "python",
+      "lane": 3
+    }
+  ],
+  "connections": [
+    {
+      "from": "producer",
+      "to": "broker",
+      "style": "animated"
+    },
+    {
+      "from": "broker",
+      "to": "c1",
+      "style": "dotted"
+    },
+    {
+      "from": "broker",
+      "to": "c2",
+      "style": "dotted"
+    },
+    {
+      "from": "broker",
+      "to": "c3",
+      "style": "dotted"
+    }
+  ],
+  "packets": [
+    {
+      "id": "pub",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "publish",
+        "body": {
+          "type": "text",
+          "value": "order.created #4815"
+        }
+      }
+    },
+    {
+      "id": "d1",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "deliver",
+        "body": {
+          "type": "text",
+          "value": "order.created #4815"
+        }
+      }
+    },
+    {
+      "id": "d2",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "deliver",
+        "body": {
+          "type": "text",
+          "value": "order.created #4815"
+        }
+      }
+    },
+    {
+      "id": "d3",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "deliver",
+        "body": {
+          "type": "text",
+          "value": "order.created #4815"
+        }
+      }
+    },
+    {
+      "id": "ack1",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "ack ✅"
+      }
+    },
+    {
+      "id": "ack2",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "ack ✅"
+      }
+    },
+    {
+      "id": "ack3",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "ack ✅"
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "type": "comment",
+      "object": "producer",
+      "text": "1. The producer publishes an event, then moves on (asynchronous)"
+    },
+    {
+      "type": "move",
+      "object": "pub",
+      "from": "producer",
+      "to": "broker"
+    },
+    {
+      "type": "set_content",
+      "object": "broker",
+      "content": {
+        "type": "text",
+        "value": "📥 1 message in queue"
+      },
+      "keep_until": "fanout"
+    },
+    {
+      "type": "comment",
+      "object": "broker",
+      "text": "2. The broker stores the message until workers are ready"
+    },
+    {
+      "type": "loading",
+      "object": "broker",
+      "duration": 1000
+    },
+    {
+      "type": "comment",
+      "object": "broker",
+      "text": "3. Fan-out to all subscribers, slightly staggered"
+    },
+    {
+      "type": "parallel",
+      "id": "fanout",
+      "actions": [
+        {
+          "type": "move",
+          "object": "d1",
+          "from": "broker",
+          "to": "c1"
+        },
+        {
+          "type": "move",
+          "object": "d2",
+          "from": "broker",
+          "to": "c2",
+          "delay_ms": 250
+        },
+        {
+          "type": "move",
+          "object": "d3",
+          "from": "broker",
+          "to": "c3",
+          "delay_ms": 500
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "text": "4. Each worker processes then acknowledges; the message leaves the queue only when acked."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "move",
+          "object": "ack1",
+          "from": "c1",
+          "to": "broker"
+        },
+        {
+          "type": "move",
+          "object": "ack2",
+          "from": "c2",
+          "to": "broker",
+          "delay_ms": 300
+        },
+        {
+          "type": "move",
+          "object": "ack3",
+          "from": "c3",
+          "to": "broker",
+          "delay_ms": 600
+        }
+      ]
+    },
+    {
+      "type": "set_content",
+      "object": "broker",
+      "content": {
+        "type": "text",
+        "value": "✅ queue empty"
+      },
+      "keep_until_end": true
+    }
+  ]
+}

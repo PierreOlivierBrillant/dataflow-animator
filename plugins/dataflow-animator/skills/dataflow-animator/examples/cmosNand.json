@@ -1,0 +1,658 @@
+{
+  "direction": "circuit",
+  "nodes": [
+    {
+      "id": "A",
+      "type": "signal",
+      "x": 0.11,
+      "y": 0.29,
+      "text": "A",
+      "icon": "0"
+    },
+    {
+      "id": "B",
+      "type": "signal",
+      "x": 0.11,
+      "y": 0.68,
+      "text": "B",
+      "icon": "0"
+    },
+    {
+      "id": "vdd",
+      "type": "junction",
+      "x": 0.9,
+      "y": 0.24,
+      "text": "VDD"
+    },
+    {
+      "id": "P1",
+      "type": "mosfet_p",
+      "x": 0.45,
+      "y": 0.29,
+      "text": "P1"
+    },
+    {
+      "id": "P2",
+      "type": "mosfet_p",
+      "x": 0.78,
+      "y": 0.29,
+      "text": "P2"
+    },
+    {
+      "id": "out",
+      "type": "junction",
+      "x": 0.66,
+      "y": 0.42
+    },
+    {
+      "id": "N1",
+      "type": "mosfet_n",
+      "x": 0.6,
+      "y": 0.49,
+      "text": "N1"
+    },
+    {
+      "id": "N2",
+      "type": "mosfet_n",
+      "x": 0.6,
+      "y": 0.68,
+      "text": "N2"
+    },
+    {
+      "id": "gnd",
+      "type": "ground",
+      "x": 0.66,
+      "y": 0.87
+    },
+    {
+      "id": "Y",
+      "type": "signal",
+      "x": 0.89,
+      "y": 0.52,
+      "text": "Y",
+      "icon": "1"
+    }
+  ],
+  "connections": [
+    {
+      "id": "wV1",
+      "from": "vdd",
+      "to": "P1:s",
+      "color": "#cbd5e1"
+    },
+    {
+      "id": "wV2",
+      "from": "vdd",
+      "to": "P2:s",
+      "color": "#cbd5e1"
+    },
+    {
+      "id": "wP1",
+      "from": "P1:d",
+      "to": "out",
+      "color": "#cbd5e1"
+    },
+    {
+      "id": "wP2",
+      "from": "P2:d",
+      "to": "out",
+      "color": "#cbd5e1"
+    },
+    {
+      "id": "wN1",
+      "from": "out",
+      "to": "N1:d",
+      "color": "#cbd5e1"
+    },
+    {
+      "id": "wMid",
+      "from": "N1:s",
+      "to": "N2:d",
+      "color": "#cbd5e1"
+    },
+    {
+      "id": "wGnd",
+      "from": "N2:s",
+      "to": "gnd:a",
+      "color": "#cbd5e1"
+    },
+    {
+      "id": "wOut",
+      "from": "out",
+      "to": "Y",
+      "color": "#cbd5e1"
+    },
+    {
+      "id": "wAp",
+      "from": "A",
+      "to": "P1:g",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "wAn",
+      "from": "A",
+      "to": "N1:g",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "wBp",
+      "from": "B",
+      "to": "P2:g",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "wBn",
+      "from": "B",
+      "to": "N2:g",
+      "color": "#9aa4b2"
+    }
+  ],
+  "packets": [],
+  "timeline": [
+    {
+      "type": "comment",
+      "text": "Inside a NAND gate: four MOS transistors. Two pMOS in PARALLEL on top — a pMOS conducts on a LOW gate. Two nMOS in SERIES below — an nMOS conducts on a HIGH one."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "A",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "A",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "B",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "B",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "Y",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "Y",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "P1",
+          "border_color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "P2",
+          "border_color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "N1",
+          "border_color": "#cbd5e1"
+        },
+        {
+          "type": "set_color",
+          "object": "N2",
+          "border_color": "#cbd5e1"
+        },
+        {
+          "type": "set_color",
+          "object": "wAp",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "wAn",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "wBp",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "wBn",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "wV1",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wV2",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wP1",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wP2",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wOut",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wN1",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wMid",
+          "color": "#cbd5e1"
+        },
+        {
+          "type": "set_color",
+          "object": "wGnd",
+          "color": "#cbd5e1"
+        },
+        {
+          "type": "comment",
+          "text": "A = 0, B = 0. Both pMOS conduct, so the output is tied to VDD through TWO paths. The series nMOS chain is broken twice over. Y = 1.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "A",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "A",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "B",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "B",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "Y",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "Y",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "P1",
+          "border_color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "P2",
+          "border_color": "#cbd5e1"
+        },
+        {
+          "type": "set_color",
+          "object": "N1",
+          "border_color": "#cbd5e1"
+        },
+        {
+          "type": "set_color",
+          "object": "N2",
+          "border_color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wAp",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "wAn",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "wBp",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wBn",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wV1",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wV2",
+          "color": "#cbd5e1"
+        },
+        {
+          "type": "set_color",
+          "object": "wP1",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wP2",
+          "color": "#cbd5e1"
+        },
+        {
+          "type": "set_color",
+          "object": "wOut",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wN1",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wMid",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "wGnd",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "comment",
+          "text": "A = 0, B = 1. P2 blocks and N2 conducts — but P1 still ties the output to VDD, and N1 still breaks the chain to ground. One path is enough: Y = 1.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "A",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "A",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "B",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "B",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "Y",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "Y",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "P1",
+          "border_color": "#cbd5e1"
+        },
+        {
+          "type": "set_color",
+          "object": "P2",
+          "border_color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "N1",
+          "border_color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "N2",
+          "border_color": "#cbd5e1"
+        },
+        {
+          "type": "set_color",
+          "object": "wAp",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wAn",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wBp",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "wBn",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "wV1",
+          "color": "#cbd5e1"
+        },
+        {
+          "type": "set_color",
+          "object": "wV2",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wP1",
+          "color": "#cbd5e1"
+        },
+        {
+          "type": "set_color",
+          "object": "wP2",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wOut",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wN1",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wMid",
+          "color": "#cbd5e1"
+        },
+        {
+          "type": "set_color",
+          "object": "wGnd",
+          "color": "#cbd5e1"
+        },
+        {
+          "type": "comment",
+          "text": "A = 1, B = 0. The mirror image: P1 blocks, N1 conducts, and P2 alone holds the output high. Y = 1.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "A",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "A",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "B",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "B",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "Y",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "Y",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "P1",
+          "border_color": "#cbd5e1"
+        },
+        {
+          "type": "set_color",
+          "object": "P2",
+          "border_color": "#cbd5e1"
+        },
+        {
+          "type": "set_color",
+          "object": "N1",
+          "border_color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "N2",
+          "border_color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wAp",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wAn",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wBp",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wBn",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wV1",
+          "color": "#cbd5e1"
+        },
+        {
+          "type": "set_color",
+          "object": "wV2",
+          "color": "#cbd5e1"
+        },
+        {
+          "type": "set_color",
+          "object": "wP1",
+          "color": "#cbd5e1"
+        },
+        {
+          "type": "set_color",
+          "object": "wP2",
+          "color": "#cbd5e1"
+        },
+        {
+          "type": "set_color",
+          "object": "wOut",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "wN1",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "wMid",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "wGnd",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "comment",
+          "text": "A = 1, B = 1. NOW both pMOS block and both nMOS conduct: the only complete path runs to GROUND. Y = 0 — the single zero of the NAND truth table.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "text": "Exactly one network conducts at a time — which is why CMOS draws almost no power while it holds a value.",
+      "keep_until_end": true
+    },
+    {
+      "type": "wait",
+      "duration": 2500
+    }
+  ]
+}

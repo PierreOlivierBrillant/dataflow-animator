@@ -1,0 +1,437 @@
+{
+  "direction": "circuit",
+  "diagonal_wires": true,
+  "nodes": [
+    {
+      "id": "Sbar",
+      "type": "signal",
+      "x": 0.1,
+      "y": 0.28,
+      "text": "S̄",
+      "icon": "1"
+    },
+    {
+      "id": "Rbar",
+      "type": "signal",
+      "x": 0.1,
+      "y": 0.72,
+      "text": "R̄",
+      "icon": "1"
+    },
+    {
+      "id": "g1",
+      "type": "nand_gate",
+      "x": 0.44,
+      "y": 0.28,
+      "text": "NAND"
+    },
+    {
+      "id": "g2",
+      "type": "nand_gate",
+      "x": 0.44,
+      "y": 0.72,
+      "text": "NAND"
+    },
+    {
+      "id": "Q",
+      "type": "signal",
+      "x": 0.82,
+      "y": 0.28,
+      "text": "Q",
+      "icon": "0"
+    },
+    {
+      "id": "Qbar",
+      "type": "signal",
+      "x": 0.82,
+      "y": 0.72,
+      "text": "Q̄",
+      "icon": "0"
+    }
+  ],
+  "connections": [
+    {
+      "id": "wS",
+      "from": "Sbar",
+      "to": "g1:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "wR",
+      "from": "Rbar",
+      "to": "g2:b",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "wFB1",
+      "from": "g1:y",
+      "to": "g2:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "wFB2",
+      "from": "g2:y",
+      "to": "g1:b",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "wQ",
+      "from": "g1:y",
+      "to": "Q",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "wQb",
+      "from": "g2:y",
+      "to": "Qbar",
+      "color": "#9aa4b2"
+    }
+  ],
+  "packets": [],
+  "timeline": [
+    {
+      "type": "comment",
+      "text": "Cross-couple two NAND gates and you get a LATCH — one bit of memory. Active-low inputs: S̄ = 0 SETS Q to 1, R̄ = 0 RESETS Q to 0. The outputs feed back, so with S̄ = R̄ = 1 the latch HOLDS its value."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "Sbar",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "Sbar",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "Rbar",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "Rbar",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "Q",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "Q",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "Qbar",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "Qbar",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "wS",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "wR",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wQ",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wQb",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "wFB1",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wFB2",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "comment",
+          "text": "SET: S̄ = 0 forces Q = 1 (and Q̄ = 0). The 0 on S̄ pins the top NAND’s output high.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "Sbar",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "Sbar",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "Rbar",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "Rbar",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "Q",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "Q",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "Qbar",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "Qbar",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "wS",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wR",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wQ",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wQb",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "wFB1",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wFB2",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "comment",
+          "text": "HOLD: S̄ = R̄ = 1. Nothing drives a change — the feedback keeps Q = 1. This is the memory.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "Sbar",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "Sbar",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "Rbar",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "Rbar",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "Q",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "Q",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "Qbar",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "Qbar",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "wS",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wR",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "wQ",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "wQb",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wFB1",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "wFB2",
+          "color": "#16a34a"
+        },
+        {
+          "type": "comment",
+          "text": "RESET: R̄ = 0 forces Q̄ = 1, which pulls Q = 0.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "Sbar",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "Sbar",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "Rbar",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "Rbar",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "Q",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "Q",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "Qbar",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "Qbar",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "wS",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wR",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wQ",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "wQb",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "wFB1",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "wFB2",
+          "color": "#16a34a"
+        },
+        {
+          "type": "comment",
+          "text": "HOLD again: S̄ = R̄ = 1 keeps Q = 0. The same inputs remember EITHER value — that is storage.",
+          "keep_until_end": true
+        }
+      ]
+    },
+    {
+      "type": "wait",
+      "duration": 2500
+    }
+  ]
+}

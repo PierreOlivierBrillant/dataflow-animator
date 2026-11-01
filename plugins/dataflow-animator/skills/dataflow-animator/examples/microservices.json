@@ -1,0 +1,251 @@
+{
+  "direction": "left-to-right",
+  "nodes": [
+    {
+      "id": "client",
+      "type": "laptop",
+      "text": "Client",
+      "icon": "react",
+      "lane": 1
+    },
+    {
+      "id": "nginx",
+      "type": "server",
+      "text": "Nginx",
+      "icon": "nginx",
+      "lane": 2
+    },
+    {
+      "id": "auth",
+      "type": "server",
+      "text": "Auth",
+      "icon": "dotnet",
+      "lane": 3
+    },
+    {
+      "id": "data",
+      "type": "server",
+      "text": "Data",
+      "icon": "node",
+      "lane": 3
+    },
+    {
+      "id": "authdb",
+      "type": "database",
+      "text": "Auth DB",
+      "icon": "postgres",
+      "lane": 4
+    },
+    {
+      "id": "datadb",
+      "type": "database",
+      "text": "Data DB",
+      "icon": "mongodb",
+      "lane": 4
+    }
+  ],
+  "connections": [
+    {
+      "from": "client",
+      "to": "nginx",
+      "style": "dotted"
+    },
+    {
+      "from": "nginx",
+      "to": "auth",
+      "style": "dotted"
+    },
+    {
+      "from": "nginx",
+      "to": "data",
+      "style": "dotted"
+    },
+    {
+      "from": "auth",
+      "to": "authdb",
+      "style": "dotted"
+    },
+    {
+      "from": "data",
+      "to": "datadb",
+      "style": "dotted"
+    }
+  ],
+  "packets": [
+    {
+      "id": "login",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "POST /login"
+      }
+    },
+    {
+      "id": "authq",
+      "kind": "sql_request",
+      "request_content": "SELECT * FROM users WHERE email=…"
+    },
+    {
+      "id": "authr",
+      "kind": "sql_response",
+      "response_content": {
+        "rows": 1
+      }
+    },
+    {
+      "id": "token",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "200 OK",
+        "body": {
+          "type": "text",
+          "value": "JWT"
+        }
+      }
+    },
+    {
+      "id": "get",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /orders",
+        "body": {
+          "type": "text",
+          "value": "Bearer JWT"
+        }
+      }
+    },
+    {
+      "id": "dataq",
+      "kind": "sql_request",
+      "request_content": "db.orders.find()"
+    },
+    {
+      "id": "datar",
+      "kind": "sql_response",
+      "response_content": {
+        "rows": 12
+      }
+    },
+    {
+      "id": "json",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "200 OK",
+        "body": {
+          "type": "text",
+          "value": "[ orders ]"
+        }
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "type": "comment",
+      "object": "client",
+      "text": "1. Authentication"
+    },
+    {
+      "type": "move",
+      "object": "login",
+      "from": "client",
+      "to": "nginx"
+    },
+    {
+      "type": "move",
+      "object": "login",
+      "from": "nginx",
+      "to": "auth"
+    },
+    {
+      "type": "loading",
+      "object": "auth",
+      "duration": 500
+    },
+    {
+      "type": "move",
+      "object": "authq",
+      "from": "auth",
+      "to": "authdb"
+    },
+    {
+      "type": "loading",
+      "id": "authdbwork",
+      "object": "authdb"
+    },
+    {
+      "type": "move",
+      "object": "authr",
+      "from": "authdb",
+      "to": "auth",
+      "wait_for": "authdbwork"
+    },
+    {
+      "type": "move",
+      "object": "token",
+      "from": "auth",
+      "to": "nginx"
+    },
+    {
+      "type": "move",
+      "object": "token",
+      "from": "nginx",
+      "to": "client"
+    },
+    {
+      "type": "comment",
+      "object": "client",
+      "text": "2. Data Request (with JWT)"
+    },
+    {
+      "type": "move",
+      "object": "get",
+      "from": "client",
+      "to": "nginx"
+    },
+    {
+      "type": "move",
+      "object": "get",
+      "from": "nginx",
+      "to": "data"
+    },
+    {
+      "type": "loading",
+      "object": "data",
+      "duration": 500
+    },
+    {
+      "type": "move",
+      "object": "dataq",
+      "from": "data",
+      "to": "datadb"
+    },
+    {
+      "type": "loading",
+      "id": "datadbwork",
+      "object": "datadb"
+    },
+    {
+      "type": "move",
+      "object": "datar",
+      "from": "datadb",
+      "to": "data",
+      "wait_for": "datadbwork"
+    },
+    {
+      "type": "move",
+      "object": "json",
+      "from": "data",
+      "to": "nginx"
+    },
+    {
+      "type": "move",
+      "object": "json",
+      "from": "nginx",
+      "to": "client"
+    },
+    {
+      "type": "comment",
+      "object": "client",
+      "text": "Data displayed ✅"
+    }
+  ]
+}

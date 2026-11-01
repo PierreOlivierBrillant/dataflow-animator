@@ -1,0 +1,178 @@
+{
+  "direction": "tree",
+  "tree": {
+    "root": "8",
+    "children": {
+      "4": {
+        "left": "2",
+        "right": "6"
+      },
+      "6": {
+        "right": "7"
+      },
+      "8": {
+        "left": "4",
+        "right": "12"
+      },
+      "12": {
+        "left": "10",
+        "right": "14"
+      }
+    }
+  },
+  "nodes": [
+    {
+      "id": "8",
+      "type": "circle",
+      "body": "8",
+      "background_color": "steelblue",
+      "text_color": "white"
+    },
+    {
+      "id": "4",
+      "type": "circle",
+      "body": "4",
+      "background_color": "steelblue",
+      "text_color": "white"
+    },
+    {
+      "id": "12",
+      "type": "circle",
+      "body": "12",
+      "background_color": "steelblue",
+      "text_color": "white"
+    },
+    {
+      "id": "2",
+      "type": "circle",
+      "body": "2",
+      "background_color": "steelblue",
+      "text_color": "white"
+    },
+    {
+      "id": "6",
+      "type": "circle",
+      "body": "6",
+      "background_color": "steelblue",
+      "text_color": "white"
+    },
+    {
+      "id": "10",
+      "type": "circle",
+      "body": "10",
+      "background_color": "steelblue",
+      "text_color": "white"
+    },
+    {
+      "id": "14",
+      "type": "circle",
+      "body": "14",
+      "background_color": "steelblue",
+      "text_color": "white"
+    },
+    {
+      "id": "7",
+      "type": "circle",
+      "body": "7",
+      "background_color": "steelblue",
+      "text_color": "white"
+    }
+  ],
+  "packets": [
+    {
+      "id": "q",
+      "kind": "subicon",
+      "icon": "7"
+    }
+  ],
+  "timeline": [
+    {
+      "type": "comment",
+      "text": "Searching a binary search tree: at each node we go left if our key is smaller, right if it is larger. We are looking for 7."
+    },
+    {
+      "type": "comment",
+      "object": "8",
+      "text": "We start at the root, 8, and compare."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "move",
+          "object": "q",
+          "from": "8",
+          "to": "4",
+          "duration": 900
+        },
+        {
+          "type": "comment",
+          "object": "8",
+          "text": "7 < 8 → the key, if present, is in the LEFT subtree. We can ignore everything on the right.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "move",
+          "object": "q",
+          "from": "4",
+          "to": "6",
+          "duration": 900
+        },
+        {
+          "type": "comment",
+          "object": "4",
+          "text": "7 > 4 → go to the RIGHT.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "move",
+          "object": "q",
+          "from": "6",
+          "to": "7",
+          "duration": 900
+        },
+        {
+          "type": "comment",
+          "object": "6",
+          "text": "7 > 6 → go to the RIGHT child.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_color",
+          "object": "7",
+          "background_color": "seagreen"
+        },
+        {
+          "type": "highlight",
+          "object": "7",
+          "duration": 1200
+        },
+        {
+          "type": "comment",
+          "object": "7",
+          "text": "7 = 7 → found! Only three comparisons in an 8-node tree: that is the O(log n) advantage.",
+          "keep_until_end": true
+        }
+      ]
+    },
+    {
+      "type": "wait",
+      "delay_ms": 1400
+    }
+  ]
+}

@@ -1,0 +1,201 @@
+{
+  "direction": "left-to-right",
+  "nodes": [
+    {
+      "id": "alice",
+      "type": "laptop",
+      "text": "Alice (mail client)",
+      "lane": 1
+    },
+    {
+      "id": "out",
+      "type": "server",
+      "text": "Sender MTA",
+      "lane": 2
+    },
+    {
+      "id": "dns",
+      "type": "server",
+      "text": "DNS (MX)",
+      "icon": "DNS",
+      "lane": 3
+    },
+    {
+      "id": "in",
+      "type": "server",
+      "text": "Recipient MTA",
+      "lane": 3
+    },
+    {
+      "id": "bob",
+      "type": "mobile",
+      "text": "Bob (mail client)",
+      "lane": 4
+    }
+  ],
+  "connections": [
+    {
+      "from": "alice",
+      "to": "out",
+      "style": "dotted"
+    },
+    {
+      "from": "out",
+      "to": "in",
+      "style": "dotted"
+    },
+    {
+      "from": "in",
+      "to": "bob",
+      "style": "dotted"
+    }
+  ],
+  "packets": [
+    {
+      "id": "submit",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "SMTP submission",
+        "body": {
+          "type": "text",
+          "value": "From: alice@a.fr\nTo: bob@b.fr"
+        }
+      }
+    },
+    {
+      "id": "mxq",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "MX? b.fr"
+      }
+    },
+    {
+      "id": "mxr",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "MX b.fr",
+        "body": {
+          "type": "text",
+          "value": "mx1.b.fr (prio 10)"
+        }
+      }
+    },
+    {
+      "id": "relay",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "SMTP relay",
+        "body": {
+          "type": "text",
+          "value": "DATA … message"
+        }
+      }
+    },
+    {
+      "id": "fetch",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "IMAP fetch"
+      }
+    },
+    {
+      "id": "mail",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "New message ✉️",
+        "body": {
+          "type": "text",
+          "value": "From: alice@a.fr"
+        }
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "type": "comment",
+      "object": "alice",
+      "text": "1. Alice writes her message and sends it to her outgoing server (SMTP)"
+    },
+    {
+      "type": "move",
+      "object": "submit",
+      "from": "alice",
+      "to": "out"
+    },
+    {
+      "type": "comment",
+      "object": "out",
+      "text": "2. The server looks up which server receives mail for “b.fr” (MX record)"
+    },
+    {
+      "type": "move",
+      "object": "mxq",
+      "from": "out",
+      "to": "dns",
+      "duration": 1200
+    },
+    {
+      "type": "move",
+      "object": "mxr",
+      "from": "dns",
+      "to": "out",
+      "duration": 1200
+    },
+    {
+      "type": "comment",
+      "object": "out",
+      "text": "3. It relays the message to the recipient MTA"
+    },
+    {
+      "type": "move",
+      "object": "relay",
+      "from": "out",
+      "to": "in",
+      "duration": 1400
+    },
+    {
+      "type": "loading",
+      "id": "filter",
+      "object": "in",
+      "duration": 1000
+    },
+    {
+      "type": "set_content",
+      "object": "in",
+      "content": {
+        "type": "text",
+        "value": "✓ anti-spam OK\n📥 delivered to mailbox"
+      },
+      "keep_until": "deliver"
+    },
+    {
+      "type": "comment",
+      "object": "in",
+      "text": "4. After spam filtering, the message waits in Bob's mailbox"
+    },
+    {
+      "type": "comment",
+      "object": "bob",
+      "text": "5. Bob's client checks his mailbox (IMAP) and fetches the message"
+    },
+    {
+      "type": "move",
+      "object": "fetch",
+      "from": "bob",
+      "to": "in",
+      "duration": 1200
+    },
+    {
+      "type": "move",
+      "id": "deliver",
+      "object": "mail",
+      "from": "in",
+      "to": "bob"
+    },
+    {
+      "type": "comment",
+      "object": "bob",
+      "text": "Email received ✉️"
+    }
+  ]
+}

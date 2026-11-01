@@ -58,7 +58,9 @@
       "ignoreDependencies": ["@dataflow-animator/core"]
     }
   },
-  "ignore": ["eslint.config.js"],
+  // The plugin's skill folder is a generated copy (check:claude-plugin) whose
+  // scripts Claude runs from the skill, never imported by anything here.
+  "ignore": ["eslint.config.js", "plugins/**"],
   "ignoreDependencies": [
     "@docusaurus/theme-common",
     "@eslint/js",

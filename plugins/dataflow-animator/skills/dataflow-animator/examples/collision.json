@@ -1,0 +1,128 @@
+{
+  "direction": "left-to-right",
+  "nodes": [
+    {
+      "id": "app",
+      "type": "server",
+      "text": "Application",
+      "icon": "node",
+      "lane": 1
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "text": "Database",
+      "icon": "postgres",
+      "lane": 2
+    }
+  ],
+  "connections": [
+    {
+      "from": "app",
+      "to": "db",
+      "arrow_head": "both",
+      "style": "dashed"
+    }
+  ],
+  "packets": [
+    {
+      "id": "write",
+      "kind": "sql_request",
+      "request_content": "INSERT INTO events …"
+    },
+    {
+      "id": "ack",
+      "kind": "sql_response",
+      "response_content": {
+        "rows": 1,
+        "header": "1 row inserted"
+      }
+    },
+    {
+      "id": "read",
+      "kind": "sql_request",
+      "request_content": "SELECT * FROM events"
+    },
+    {
+      "id": "rows",
+      "kind": "sql_response",
+      "response_content": {
+        "rows": 42,
+        "header": "42 rows"
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "type": "comment",
+      "text": "Traffic flows in both directions on the same App ↔ DB link, at the same time."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "move",
+          "object": "write",
+          "from": "app",
+          "to": "db"
+        },
+        {
+          "type": "move",
+          "object": "read",
+          "from": "db",
+          "to": "app"
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "text": "The two packets do not overlap: they take offset parallel lanes."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "move",
+          "object": "ack",
+          "from": "db",
+          "to": "app"
+        },
+        {
+          "type": "move",
+          "object": "rows",
+          "from": "app",
+          "to": "db"
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "text": "The offset direction is deterministic (identifier order), thus stable when scrubbing."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "arrow",
+          "from": "app",
+          "to": "db",
+          "text": "write",
+          "style": "solid",
+          "keep_until_end": true
+        },
+        {
+          "type": "arrow",
+          "from": "db",
+          "to": "app",
+          "text": "read",
+          "style": "solid",
+          "keep_until_end": true
+        }
+      ]
+    },
+    {
+      "type": "wait",
+      "duration": 1400
+    }
+  ]
+}

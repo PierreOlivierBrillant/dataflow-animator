@@ -1,0 +1,203 @@
+{
+  "direction": "left-to-right",
+  "nodes": [
+    {
+      "id": "buyer",
+      "type": "mobile",
+      "text": "Customer",
+      "lane": 1
+    },
+    {
+      "id": "shop",
+      "type": "server",
+      "text": "Shop",
+      "icon": "react",
+      "lane": 2
+    },
+    {
+      "id": "psp",
+      "type": "cloud",
+      "text": "Provider",
+      "icon": "Pay",
+      "lane": 3
+    },
+    {
+      "id": "bank",
+      "type": "server",
+      "text": "Bank",
+      "icon": "bank",
+      "lane": 4
+    }
+  ],
+  "connections": [
+    {
+      "from": "buyer",
+      "to": "shop",
+      "style": "dotted"
+    },
+    {
+      "from": "shop",
+      "to": "psp",
+      "style": "dotted"
+    },
+    {
+      "from": "psp",
+      "to": "bank",
+      "style": "dotted"
+    }
+  ],
+  "packets": [
+    {
+      "id": "pay",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "Pay €49.90"
+      }
+    },
+    {
+      "id": "intent",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "create PaymentIntent",
+        "body": {
+          "type": "text",
+          "value": "amount: 4990, eur"
+        }
+      }
+    },
+    {
+      "id": "auth",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "authorization",
+        "body": {
+          "type": "text",
+          "value": "card •••• 4242"
+        }
+      }
+    },
+    {
+      "id": "challenge",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "3-D Secure",
+        "body": {
+          "type": "text",
+          "value": "validate in banking app"
+        }
+      }
+    },
+    {
+      "id": "approved",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "approved ✅"
+      }
+    },
+    {
+      "id": "webhook",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "webhook",
+        "body": {
+          "type": "text",
+          "value": "payment_intent.succeeded"
+        }
+      }
+    },
+    {
+      "id": "receipt",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "Order confirmed 🎉"
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "type": "comment",
+      "object": "buyer",
+      "text": "1. The customer validates their cart and pays"
+    },
+    {
+      "type": "move",
+      "object": "pay",
+      "from": "buyer",
+      "to": "shop"
+    },
+    {
+      "type": "comment",
+      "object": "shop",
+      "text": "2. The shop creates a payment intent with the provider"
+    },
+    {
+      "type": "move",
+      "object": "intent",
+      "from": "shop",
+      "to": "psp"
+    },
+    {
+      "type": "comment",
+      "object": "psp",
+      "text": "3. The provider asks the issuing bank for authorization"
+    },
+    {
+      "type": "move",
+      "object": "auth",
+      "from": "psp",
+      "to": "bank",
+      "duration": 1300
+    },
+    {
+      "type": "comment",
+      "object": "bank",
+      "text": "4. The bank requires strong authentication (3-D Secure)"
+    },
+    {
+      "type": "move",
+      "object": "challenge",
+      "from": "bank",
+      "to": "buyer"
+    },
+    {
+      "type": "loading",
+      "id": "sca",
+      "object": "buyer",
+      "duration": 1200
+    },
+    {
+      "type": "comment",
+      "object": "buyer",
+      "text": "The customer confirms in their banking app",
+      "wait_for": "sca"
+    },
+    {
+      "type": "move",
+      "object": "approved",
+      "from": "bank",
+      "to": "psp"
+    },
+    {
+      "type": "comment",
+      "object": "psp",
+      "text": "5. Payment captured. The provider notifies the shop asynchronously (webhook)."
+    },
+    {
+      "type": "move",
+      "object": "webhook",
+      "from": "psp",
+      "to": "shop"
+    },
+    {
+      "type": "move",
+      "object": "receipt",
+      "from": "shop",
+      "to": "buyer"
+    },
+    {
+      "type": "comment",
+      "object": "buyer",
+      "text": "Order confirmed 🎉"
+    }
+  ]
+}

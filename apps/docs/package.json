@@ -5,6 +5,8 @@
   "scripts": {
     "copy:schema": "node scripts/copy-schema.mjs",
     "build:claude-kit": "node scripts/build-claude-kit.mjs",
+    "generate:claude-plugin": "node scripts/generate-claude-plugin.mjs",
+    "check:claude-plugin": "node scripts/check-claude-plugin-is-fresh.mjs",
     "prebuild": "npm run copy:schema && npm run build:claude-kit",
     "build": "docusaurus build",
     "clear": "docusaurus clear",

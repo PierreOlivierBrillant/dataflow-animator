@@ -1,0 +1,1726 @@
+{
+  "direction": "circuit",
+  "nodes": [
+    {
+      "id": "andA",
+      "type": "signal"
+    },
+    {
+      "id": "andB",
+      "type": "signal"
+    },
+    {
+      "id": "and",
+      "type": "and_gate",
+      "text": "AND"
+    },
+    {
+      "id": "andY",
+      "type": "signal"
+    },
+    {
+      "id": "orA",
+      "type": "signal"
+    },
+    {
+      "id": "orB",
+      "type": "signal"
+    },
+    {
+      "id": "or",
+      "type": "or_gate",
+      "text": "OR"
+    },
+    {
+      "id": "orY",
+      "type": "signal"
+    },
+    {
+      "id": "xorA",
+      "type": "signal"
+    },
+    {
+      "id": "xorB",
+      "type": "signal"
+    },
+    {
+      "id": "xor",
+      "type": "xor_gate",
+      "text": "XOR"
+    },
+    {
+      "id": "xorY",
+      "type": "signal"
+    },
+    {
+      "id": "xnorA",
+      "type": "signal"
+    },
+    {
+      "id": "xnorB",
+      "type": "signal"
+    },
+    {
+      "id": "xnor",
+      "type": "xnor_gate",
+      "text": "XNOR"
+    },
+    {
+      "id": "xnorY",
+      "type": "signal"
+    },
+    {
+      "id": "nandA",
+      "type": "signal"
+    },
+    {
+      "id": "nandB",
+      "type": "signal"
+    },
+    {
+      "id": "nand",
+      "type": "nand_gate",
+      "text": "NAND"
+    },
+    {
+      "id": "nandY",
+      "type": "signal"
+    },
+    {
+      "id": "norA",
+      "type": "signal"
+    },
+    {
+      "id": "norB",
+      "type": "signal"
+    },
+    {
+      "id": "nor",
+      "type": "nor_gate",
+      "text": "NOR"
+    },
+    {
+      "id": "norY",
+      "type": "signal"
+    },
+    {
+      "id": "notA",
+      "type": "signal"
+    },
+    {
+      "id": "not",
+      "type": "not_gate",
+      "text": "NOT"
+    },
+    {
+      "id": "notY",
+      "type": "signal"
+    },
+    {
+      "id": "bufA",
+      "type": "signal"
+    },
+    {
+      "id": "buf",
+      "type": "buffer_gate",
+      "text": "BUF"
+    },
+    {
+      "id": "bufY",
+      "type": "signal"
+    }
+  ],
+  "connections": [
+    {
+      "id": "andwa",
+      "from": "andA",
+      "to": "and:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "andwb",
+      "from": "andB",
+      "to": "and:b",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "andwy",
+      "from": "and:y",
+      "to": "andY",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "orwa",
+      "from": "orA",
+      "to": "or:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "orwb",
+      "from": "orB",
+      "to": "or:b",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "orwy",
+      "from": "or:y",
+      "to": "orY",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "xorwa",
+      "from": "xorA",
+      "to": "xor:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "xorwb",
+      "from": "xorB",
+      "to": "xor:b",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "xorwy",
+      "from": "xor:y",
+      "to": "xorY",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "xnorwa",
+      "from": "xnorA",
+      "to": "xnor:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "xnorwb",
+      "from": "xnorB",
+      "to": "xnor:b",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "xnorwy",
+      "from": "xnor:y",
+      "to": "xnorY",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "nandwa",
+      "from": "nandA",
+      "to": "nand:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "nandwb",
+      "from": "nandB",
+      "to": "nand:b",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "nandwy",
+      "from": "nand:y",
+      "to": "nandY",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "norwa",
+      "from": "norA",
+      "to": "nor:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "norwb",
+      "from": "norB",
+      "to": "nor:b",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "norwy",
+      "from": "nor:y",
+      "to": "norY",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "notwa",
+      "from": "notA",
+      "to": "not:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "notwy",
+      "from": "not:y",
+      "to": "notY",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "bufwa",
+      "from": "bufA",
+      "to": "buf:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "bufwy",
+      "from": "buf:y",
+      "to": "bufY",
+      "color": "#9aa4b2"
+    }
+  ],
+  "packets": [],
+  "timeline": [
+    {
+      "type": "comment",
+      "text": "The eight logic gates, side by side. Each turns its input bits into one output bit — the rule is what differs. We step through all four input combinations; watch the output pads and the green (= 1) wires build each gate’s truth table."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "andA",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "andA",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "andwa",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "andB",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "andB",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "andwb",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "andY",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "andY",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "andwy",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "orA",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "orA",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "orwa",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "orB",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "orB",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "orwb",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "orY",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "orY",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "orwy",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "xorA",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "xorA",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "xorwa",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "xorB",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "xorB",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "xorwb",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "xorY",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "xorY",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "xorwy",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "xnorA",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "xnorA",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "xnorwa",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "xnorB",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "xnorB",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "xnorwb",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "xnorY",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "xnorY",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "xnorwy",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "nandA",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "nandA",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "nandwa",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "nandB",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "nandB",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "nandwb",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "nandY",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "nandY",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "nandwy",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "norA",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "norA",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "norwa",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "norB",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "norB",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "norwb",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "norY",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "norY",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "norwy",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "notA",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "notA",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "notwa",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "notY",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "notY",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "notwy",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "bufA",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "bufA",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "bufwa",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "bufY",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "bufY",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "bufwy",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "comment",
+          "text": "a = 0, b = 0. Outputs 1 come only from the inverting gates: XNOR, NAND, NOR and NOT (NOT sees a = 0).",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "andA",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "andA",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "andwa",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "andB",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "andB",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "andwb",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "andY",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "andY",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "andwy",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "orA",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "orA",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "orwa",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "orB",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "orB",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "orwb",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "orY",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "orY",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "orwy",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "xorA",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "xorA",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "xorwa",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "xorB",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "xorB",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "xorwb",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "xorY",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "xorY",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "xorwy",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "xnorA",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "xnorA",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "xnorwa",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "xnorB",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "xnorB",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "xnorwb",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "xnorY",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "xnorY",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "xnorwy",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "nandA",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "nandA",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "nandwa",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "nandB",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "nandB",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "nandwb",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "nandY",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "nandY",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "nandwy",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "norA",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "norA",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "norwa",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "norB",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "norB",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "norwb",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "norY",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "norY",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "norwy",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "notA",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "notA",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "notwa",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "notY",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "notY",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "notwy",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "bufA",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "bufA",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "bufwa",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "bufY",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "bufY",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "bufwy",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "comment",
+          "text": "a = 0, b = 1. The inputs DIFFER → XOR and OR go high; AND, XNOR, NOR go low. NOT/BUF follow a = 0.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "andA",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "andA",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "andwa",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "andB",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "andB",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "andwb",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "andY",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "andY",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "andwy",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "orA",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "orA",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "orwa",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "orB",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "orB",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "orwb",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "orY",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "orY",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "orwy",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "xorA",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "xorA",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "xorwa",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "xorB",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "xorB",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "xorwb",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "xorY",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "xorY",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "xorwy",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "xnorA",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "xnorA",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "xnorwa",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "xnorB",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "xnorB",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "xnorwb",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "xnorY",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "xnorY",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "xnorwy",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "nandA",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "nandA",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "nandwa",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "nandB",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "nandB",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "nandwb",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "nandY",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "nandY",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "nandwy",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "norA",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "norA",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "norwa",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "norB",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "norB",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "norwb",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "norY",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "norY",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "norwy",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "notA",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "notA",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "notwa",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "notY",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "notY",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "notwy",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "bufA",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "bufA",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "bufwa",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "bufY",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "bufY",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "bufwy",
+          "color": "#16a34a"
+        },
+        {
+          "type": "comment",
+          "text": "a = 1, b = 0. Still differ → same pattern for the 2-input gates; but NOT a = 0 and BUF a = 1 now.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "andA",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "andA",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "andwa",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "andB",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "andB",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "andwb",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "andY",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "andY",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "andwy",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "orA",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "orA",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "orwa",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "orB",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "orB",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "orwb",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "orY",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "orY",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "orwy",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "xorA",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "xorA",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "xorwa",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "xorB",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "xorB",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "xorwb",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "xorY",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "xorY",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "xorwy",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "xnorA",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "xnorA",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "xnorwa",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "xnorB",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "xnorB",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "xnorwb",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "xnorY",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "xnorY",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "xnorwy",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "nandA",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "nandA",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "nandwa",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "nandB",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "nandB",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "nandwb",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "nandY",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "nandY",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "nandwy",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "norA",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "norA",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "norwa",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "norB",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "norB",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "norwb",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "norY",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "norY",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "norwy",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "notA",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "notA",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "notwa",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "notY",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "notY",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "notwy",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_icon",
+          "object": "bufA",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "bufA",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "bufwa",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_icon",
+          "object": "bufY",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "bufY",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "bufwy",
+          "color": "#16a34a"
+        },
+        {
+          "type": "comment",
+          "text": "a = 1, b = 1. Both high → AND, OR, XOR… AND & OR are 1, XOR is 0, XNOR 1, NAND & NOR 0. NOT 0, BUF 1.",
+          "keep_until_end": true
+        }
+      ]
+    },
+    {
+      "type": "wait",
+      "duration": 2500
+    }
+  ]
+}

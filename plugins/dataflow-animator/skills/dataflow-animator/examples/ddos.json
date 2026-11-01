@@ -1,0 +1,743 @@
+{
+  "direction": "left-to-right",
+  "nodes": [
+    {
+      "id": "cnc",
+      "type": "eve",
+      "text": "C&C server",
+      "lane": 1
+    },
+    {
+      "id": "user",
+      "type": "user",
+      "text": "Legitimate user",
+      "lane": 1
+    },
+    {
+      "id": "bot0",
+      "type": "desktop",
+      "text": "Bot",
+      "lane": 2
+    },
+    {
+      "id": "bot1",
+      "type": "desktop",
+      "text": "Bot",
+      "lane": 2
+    },
+    {
+      "id": "bot2",
+      "type": "desktop",
+      "text": "Bot",
+      "lane": 2
+    },
+    {
+      "id": "bot3",
+      "type": "desktop",
+      "text": "Bot",
+      "lane": 2
+    },
+    {
+      "id": "bot4",
+      "type": "desktop",
+      "text": "Bot",
+      "lane": 2
+    },
+    {
+      "id": "server",
+      "type": "server",
+      "text": "Web server",
+      "icon": "nginx",
+      "lane": 3
+    }
+  ],
+  "connections": [
+    {
+      "from": "cnc",
+      "to": "bot0",
+      "style": "dotted"
+    },
+    {
+      "from": "cnc",
+      "to": "bot1",
+      "style": "dotted"
+    },
+    {
+      "from": "cnc",
+      "to": "bot2",
+      "style": "dotted"
+    },
+    {
+      "from": "cnc",
+      "to": "bot3",
+      "style": "dotted"
+    },
+    {
+      "from": "cnc",
+      "to": "bot4",
+      "style": "dotted"
+    },
+    {
+      "from": "bot0",
+      "to": "server",
+      "style": "dotted"
+    },
+    {
+      "from": "bot1",
+      "to": "server",
+      "style": "dotted"
+    },
+    {
+      "from": "bot2",
+      "to": "server",
+      "style": "dotted"
+    },
+    {
+      "from": "bot3",
+      "to": "server",
+      "style": "dotted"
+    },
+    {
+      "from": "bot4",
+      "to": "server",
+      "style": "dotted"
+    },
+    {
+      "from": "user",
+      "to": "server",
+      "style": "dotted",
+      "arrow_head": "both"
+    }
+  ],
+  "packets": [
+    {
+      "id": "cmd-bot0",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "attack target"
+      }
+    },
+    {
+      "id": "cmd-bot1",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "attack target"
+      }
+    },
+    {
+      "id": "cmd-bot2",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "attack target"
+      }
+    },
+    {
+      "id": "cmd-bot3",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "attack target"
+      }
+    },
+    {
+      "id": "cmd-bot4",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "attack target"
+      }
+    },
+    {
+      "id": "bot0-g0",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot0-g1",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot0-g2",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot0-g3",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot0-g4",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot0-g5",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot1-g0",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot1-g1",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot1-g2",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot1-g3",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot1-g4",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot1-g5",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot2-g0",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot2-g1",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot2-g2",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot2-g3",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot2-g4",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot2-g5",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot3-g0",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot3-g1",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot3-g2",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot3-g3",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot3-g4",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot3-g5",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot4-g0",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot4-g1",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot4-g2",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot4-g3",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot4-g4",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot4-g5",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "legit",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /home"
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "type": "comment",
+      "object": "cnc",
+      "text": "The command-and-control server (C&C) orders the whole botnet to attack the target."
+    },
+    {
+      "type": "parallel",
+      "duration": 1100,
+      "actions": [
+        {
+          "type": "move",
+          "object": "cmd-bot0",
+          "from": "cnc",
+          "to": "bot0",
+          "delay_ms": 0
+        },
+        {
+          "type": "move",
+          "object": "cmd-bot1",
+          "from": "cnc",
+          "to": "bot1",
+          "delay_ms": 70
+        },
+        {
+          "type": "move",
+          "object": "cmd-bot2",
+          "from": "cnc",
+          "to": "bot2",
+          "delay_ms": 140
+        },
+        {
+          "type": "move",
+          "object": "cmd-bot3",
+          "from": "cnc",
+          "to": "bot3",
+          "delay_ms": 210
+        },
+        {
+          "type": "move",
+          "object": "cmd-bot4",
+          "from": "cnc",
+          "to": "bot4",
+          "delay_ms": 280
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "text": "On cue, every bot floods the server at the same time: the requests converge from everywhere at once."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "move",
+          "object": "bot0-g0",
+          "from": "bot0",
+          "to": "server",
+          "delay_ms": 0,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot0-g1",
+          "from": "bot0",
+          "to": "server",
+          "delay_ms": 110,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot0-g2",
+          "from": "bot0",
+          "to": "server",
+          "delay_ms": 220,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot0-g3",
+          "from": "bot0",
+          "to": "server",
+          "delay_ms": 330,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot0-g4",
+          "from": "bot0",
+          "to": "server",
+          "delay_ms": 440,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot0-g5",
+          "from": "bot0",
+          "to": "server",
+          "delay_ms": 550,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot1-g0",
+          "from": "bot1",
+          "to": "server",
+          "delay_ms": 60,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot1-g1",
+          "from": "bot1",
+          "to": "server",
+          "delay_ms": 170,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot1-g2",
+          "from": "bot1",
+          "to": "server",
+          "delay_ms": 280,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot1-g3",
+          "from": "bot1",
+          "to": "server",
+          "delay_ms": 390,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot1-g4",
+          "from": "bot1",
+          "to": "server",
+          "delay_ms": 500,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot1-g5",
+          "from": "bot1",
+          "to": "server",
+          "delay_ms": 610,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot2-g0",
+          "from": "bot2",
+          "to": "server",
+          "delay_ms": 120,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot2-g1",
+          "from": "bot2",
+          "to": "server",
+          "delay_ms": 230,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot2-g2",
+          "from": "bot2",
+          "to": "server",
+          "delay_ms": 340,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot2-g3",
+          "from": "bot2",
+          "to": "server",
+          "delay_ms": 450,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot2-g4",
+          "from": "bot2",
+          "to": "server",
+          "delay_ms": 560,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot2-g5",
+          "from": "bot2",
+          "to": "server",
+          "delay_ms": 670,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot3-g0",
+          "from": "bot3",
+          "to": "server",
+          "delay_ms": 180,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot3-g1",
+          "from": "bot3",
+          "to": "server",
+          "delay_ms": 290,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot3-g2",
+          "from": "bot3",
+          "to": "server",
+          "delay_ms": 400,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot3-g3",
+          "from": "bot3",
+          "to": "server",
+          "delay_ms": 510,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot3-g4",
+          "from": "bot3",
+          "to": "server",
+          "delay_ms": 620,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot3-g5",
+          "from": "bot3",
+          "to": "server",
+          "delay_ms": 730,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot4-g0",
+          "from": "bot4",
+          "to": "server",
+          "delay_ms": 240,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot4-g1",
+          "from": "bot4",
+          "to": "server",
+          "delay_ms": 350,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot4-g2",
+          "from": "bot4",
+          "to": "server",
+          "delay_ms": 460,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot4-g3",
+          "from": "bot4",
+          "to": "server",
+          "delay_ms": 570,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot4-g4",
+          "from": "bot4",
+          "to": "server",
+          "delay_ms": 680,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot4-g5",
+          "from": "bot4",
+          "to": "server",
+          "delay_ms": 790,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "loading",
+          "object": "server",
+          "keep_until": "down"
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "object": "server",
+      "text": "Hundreds of thousands of requests pile up: bandwidth and server are saturated."
+    },
+    {
+      "id": "down",
+      "type": "set_content",
+      "object": "server",
+      "content": {
+        "type": "text",
+        "value": "🛑 503\nService unavailable"
+      },
+      "keep_until_end": true
+    },
+    {
+      "type": "comment",
+      "object": "user",
+      "text": "Drowned in the flood, the legitimate user gets no answer: denial of service."
+    },
+    {
+      "type": "move",
+      "object": "legit",
+      "from": "user",
+      "to": "server"
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "loading",
+          "object": "user"
+        },
+        {
+          "type": "comment",
+          "object": "user",
+          "text": "⏳ Timeout…",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "text": "The traffic comes from thousands of distinct IPs: you cannot just block one address. That is what makes a DDoS so formidable."
+    }
+  ]
+}

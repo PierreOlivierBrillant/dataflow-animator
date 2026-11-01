@@ -1,0 +1,2206 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/DataFlowSpec",
+  "definitions": {
+    "DataFlowSpec": {
+      "type": "object",
+      "properties": {
+        "direction": {
+          "$ref": "#/definitions/Direction",
+          "description": "Node placement direction. For the flow (`left-to-right` …), `circular` and `tree` modes you provide **no coordinates** — the engine arranges nodes from `lane` / `main` / the  {@link  TreeSpec } . Default: 'left-to-right'. Use `'tree'` to lay out a binary tree (in-order rank → horizontal, depth → vertical) and enable the  {@link  RotateSubtreeAction } . Use `'graph'` for an arbitrary graph (Dijkstra, A\\*, minimum spanning tree…): nodes are auto-placed to minimize edge crossings, and a node MAY pin itself with `x` / `y`. Use `'circuit'` for an electrical schematic: `connections` drawn as orthogonal **wires** (no arrow head) by default, edges anchored on the components' **named terminals** (`\"node:pin\"`); a single loop or a feed-forward logic network is auto-placed, anything else is positioned with `x` / `y`."
+        },
+        "diagonal_wires": {
+          "type": "boolean",
+          "description": "(`direction: 'circuit'` only) Draw wires **octilinearly**: their corners are mitered into exact 45° segments (only 45 / 135 / 225 / 315°), so long L-shapes and staircases collapse into clean diagonal runs, while wires that are already straight (aligned terminals) stay straight. A short perpendicular stub is kept at each component pin, and a miter that would cross a body falls back to a right angle. Override per wire with  {@link  Connection.diagonal } . Default: false (strict horizontal/vertical wires). Ignored by every other direction."
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Node"
+          },
+          "description": "Fixed elements of the scene (servers, clients, databases…). They form the permanent decor and are placed automatically according to `direction` and their `lane`."
+        },
+        "tree": {
+          "$ref": "#/definitions/TreeSpec",
+          "description": "Binary-tree topology, **required when `direction` is `'tree'`** (ignored otherwise). Drives the layout and the auto-drawn parent/child edges, and is the structure mutated by `rotate_subtree`. See  {@link  TreeSpec } ."
+        },
+        "packets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Packet"
+          },
+          "description": "Mobile elements (requests, responses, messages). Declared here, then moved from one node to another by a `move` action in the `timeline`."
+        },
+        "connections": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Connection"
+          },
+          "description": "Permanent arrows/links (decor) displayed upon initialization."
+        },
+        "zones": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Zone"
+          },
+          "description": "Rectangular regions displayed in the background around a group of nodes."
+        },
+        "timeline": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Action"
+          },
+          "description": "Animated scenario: ordered list of actions (moves, arrows, comments…) played sequentially. Each root action becomes a navigable step."
+        },
+        "description": {
+          "type": "string",
+          "description": "What this animation shows, in one or two sentences — the opening line of the player's text description, which is what a screen-reader user hears before any step.\n\nThe rest of that description (the cast of elements and every step) is generated from the spec, so omitting this still produces a usable one; it loses only the part no structure can supply, which is what the animation is ABOUT. Per-step wording is  {@link  Action.description } .",
+          "examples": [
+            "How a page load reaches the database and comes back"
+          ]
+        },
+        "pace": {
+          "type": "number",
+          "description": "Scales the reading time the engine DERIVES for actions that carry something to read — a `comment`'s text, a `set_content`'s panel — when they declare no `duration` of their own. Above 1 leaves more time (1.25 = a quarter longer), below 1 moves faster. Default: 1.\n\nIt is the single knob for the whole animation's pace: derive everything, then nudge it in one place if the result reads too fast or too slow for your audience. It deliberately does NOT touch a `duration` you wrote yourself — that is an explicit intent, not an estimate to be scaled.",
+          "examples": [
+            1.25
+          ],
+          "minimum": 0.1,
+          "maximum": 10
+        }
+      },
+      "required": [
+        "nodes",
+        "packets",
+        "timeline"
+      ],
+      "additionalProperties": false
+    },
+    "Direction": {
+      "type": "string",
+      "enum": [
+        "left-to-right",
+        "right-to-left",
+        "top-to-bottom",
+        "bottom-to-top",
+        "circular",
+        "graph",
+        "tree",
+        "circuit"
+      ],
+      "description": "How nodes are placed: along a flow (`left-to-right`, `right-to-left`, `top-to-bottom`, `bottom-to-top`, positioned by `lane`), on a ring around the `main` node (`circular`), as an auto-placed arbitrary graph (`graph`), as a binary tree (`tree`, driven by the `tree` block) or as an electrical schematic (`circuit`)."
+    },
+    "Node": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique node identifier (e.g., 'web_server')."
+        },
+        "type": {
+          "$ref": "#/definitions/NodeType",
+          "description": "Node appearance: pictogram (server, client…), text node (panel) or geometric shape. See previews of each value."
+        },
+        "text": {
+          "type": "string",
+          "description": "Label displayed below the node. Supports inline LaTeX between `$…$` — `\"$B_{in}$\"` renders B with an \"in\" subscript (see the \"Math notation\" page).",
+          "examples": [
+            "Web server"
+          ]
+        },
+        "visible": {
+          "type": "boolean",
+          "description": "Initial visibility of the node. Default: true. A hidden node can be displayed via the `set_visible` action."
+        },
+        "icon": {
+          "type": "string",
+          "description": "Overlaid badge: name of a known technology (e.g., 'react', 'postgres'), name of a registered icon, or short free text (e.g., 'v2', 'API').",
+          "examples": [
+            "react"
+          ]
+        },
+        "lane": {
+          "type": "number",
+          "description": "Placement row/column (positive integer). Default: 1."
+        },
+        "main": {
+          "type": "boolean",
+          "description": "(circular) Marks the node as a central node. Default: false."
+        },
+        "align_with": {
+          "type": "string",
+          "description": "Aligns this node on the transverse axis of another node (by ID): useful for aligning two nodes from different lanes. Ignored in circular layout."
+        },
+        "x": {
+          "type": "number",
+          "description": "(`graph`, `circuit`) Horizontal position as a fraction of the Stage, from 0 (left edge) to 1 (right edge). Used **only** when `direction` is `'graph'` or `'circuit'`. **Optional:** omit it and the node is placed AUTOMATICALLY (in `graph`, the layout minimizes edge crossings; in `circuit`, a single loop or a feed-forward logic network is auto-arranged). Provide it to **pin** the node as a fixed anchor — handy to fix a source, a target, or the overall orientation, and required for a `circuit` that is neither a loop nor feed-forward. Ignored by every other direction (which derive positions from `lane` / `main` / the tree).",
+          "examples": [
+            0.25
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "y": {
+          "type": "number",
+          "description": "(`graph`, `circuit`) Vertical position as a fraction of the Stage, from 0 (top edge) to 1 (bottom edge). Companion of  {@link  Node.x } : used only when `direction` is `'graph'` or `'circuit'`, omit for automatic placement, provide to pin the node. Ignored otherwise.",
+          "examples": [
+            0.8
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "merge_edges": {
+          "type": "boolean",
+          "description": "Edge convergence on the node's faces. When `true` (the default), all connections / arrows / moves attaching to the same face of this node meet at a **single anchor point**: a many-to-one flow (a flood, a load balancer, a hub) visually converges instead of spreading out.\n\nSet to `false` to **fan out** the edges instead — each pair gets its own attachment point along the face, ordered to reduce crossings. Useful when a node has several distinct neighbours on the same side and you want to tell the links apart.\n\nIndependent from the spreading of multiple edges between the *same* two nodes (bidirectional request/response tracks stay distinct regardless). Default: true."
+        },
+        "ports": {
+          "anyOf": [
+            {
+              "type": "string",
+              "const": "direct"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "description": "Connection points on a **round** node's outline (`type: 'circle'`), so edges meet the circle wherever they naturally point instead of snapping to the four cardinal sides — the reason graphs and binary trees look more organic.\n\n- `'direct'` (**the default for a circle**): the edge aims at the node centre   and attaches exactly where that straight line crosses the outline — an   *infinite* set of possible points, i.e. the most direct path.\n- a positive integer `N`: exactly `N` attach points, spread evenly around the   outline; each edge snaps to the nearest one (`4` reproduces N/E/S/W on the   round contour). Edges landing on the same point merge, like `merge_edges`.\n\nIgnored on non-round node types (which keep cardinal-side anchoring).",
+          "examples": [
+            "direct",
+            6
+          ]
+        },
+        "url": {
+          "type": "string",
+          "description": "URL making the node clickable (opens in a new tab).",
+          "examples": [
+            "https://status.example.com"
+          ]
+        },
+        "background_color": {
+          "type": "string",
+          "description": "Background color of the node: shape fill, panel background (`simple_node`/`complex_node`), pill behind a pictogram. Accepts a\n**predefined** CSS color (name: `tomato`, `steelblue`, `teal`…) or an\n**exact hex** value (`#3b82f6`). No effect on an active `set_content`.",
+          "examples": [
+            "#3b82f6"
+          ]
+        },
+        "border_color": {
+          "type": "string",
+          "description": "Node border / stroke color (shape stroke, panel borders, stroke color of a pictogram). Same format as `background_color`. If `background_color` is defined but not `border_color`, a coordinated border (darker variant of the background) is automatically generated.",
+          "examples": [
+            "steelblue"
+          ]
+        },
+        "text_color": {
+          "type": "string",
+          "description": "Color of the text displayed IN the node (shape body, panel header/body),\n**only when syntax highlighting is disabled** (no `language`: otherwise syntax colors take precedence). Same format as `background_color` (predefined name or hex). If not defined but a `background_color` is, a high-contrast color with the background (black or white) is automatically chosen."
+        },
+        "content": {
+          "$ref": "#/definitions/ObjectContent",
+          "description": "Initial content displayed in the node (code terminal, window, etc.)."
+        },
+        "body": {
+          "type": "string",
+          "description": "Text displayed IN the node, as opposed to `text` which remains the label below the node. For `simple_node` / `complex_node`: panel body (line breaks respected, colored according to `language` if provided). For geometric shapes (`square` … `star`): short centered text in the shape (keep it brief so it doesn't overflow), which supports inline LaTeX between `$…$` (see the \"Math notation\" page). A panel body does NOT: `$` is a legitimate character there, and the text goes through syntax highlighting.",
+          "examples": [
+            "Worker"
+          ]
+        },
+        "header": {
+          "type": "string",
+          "description": "(`complex_node`) Header displayed above the `body`, separated by a line — the node then looks like an HTTP packet. Ignored by `simple_node`. Colored according to `language` if provided.",
+          "examples": [
+            "POST /login"
+          ]
+        },
+        "language": {
+          "description": "(`simple_node` / `complex_node`) Syntax highlighting language applied to ALL text areas of the node (`header` and `body`). Recognized values: see  {@link  HighlightLanguage } .",
+          "$ref": "#/definitions/HighlightLanguage"
+        },
+        "rotation": {
+          "type": "number",
+          "description": "Clockwise rotation of the node visual, in degrees. The label below the node stays upright and arrow anchoring is unchanged (the layout box is not rotated). Can be animated with the `rotate` action. Default: 0.\n\n**Exception — electrical components:** a component's **named terminals** ( {@link  NodeType } : `resistor`, `transistor_npn`…) DO rotate with the symbol, so a vertical resistor (`rotation: 90`) has its `a`/`b` terminals at the top/bottom. This is the intended behavior for circuits.",
+          "examples": [
+            45
+          ]
+        },
+        "pins": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/BlockPin"
+          },
+          "description": "(`block`) Terminals of a generic functional block, in declaration order per face. The box SIZES ITSELF from them: its height follows the busiest of the `left` / `right` faces, its width the longest labels plus the `body` text, so a 4:1 multiplexer and an 8-bit register are the same node type at two different sizes.\n\nWire a terminal by name like any other component (`\"mux:i3\"`, `\"reg:clk\"`). Ignored by every other node type — which carry their terminals in the library instead, `d_flip_flop` and `mux_2to1` included.",
+          "examples": [
+            [
+              {
+                "name": "i0"
+              },
+              {
+                "name": "i1"
+              },
+              {
+                "name": "sel",
+                "side": "bottom"
+              },
+              {
+                "name": "y",
+                "side": "right"
+              }
+            ]
+          ]
+        },
+        "closed": {
+          "type": "boolean",
+          "description": "(Electrical `switch` / `push_button`) Initial state of the contact: `true` = closed (conducting), `false` = open (the default). Animate it with the `toggle` action — the lever swings and the state persists. Ignored by every other node type.",
+          "examples": [
+            true
+          ]
+        },
+        "value": {
+          "type": [
+            "string",
+            "number"
+          ],
+          "description": "Component value shown in the label (mainly for electrical components): a resistance, capacitance, voltage… Combined with  {@link  Node.unit }  to form `\"<value> <unit>\"`. If  {@link  Node.text }  is also set, the value is appended to it (`\"R1 · 10 kΩ\"`). Purely a label convenience.",
+          "examples": [
+            "10"
+          ]
+        },
+        "unit": {
+          "type": "string",
+          "description": "Unit appended after  {@link  Node.value }  in the label (`kΩ`, `µF`, `V`, `mA`…). Ignored when `value` is absent.",
+          "examples": [
+            "kΩ"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    "NodeType": {
+      "type": "string",
+      "enum": [
+        "desktop",
+        "laptop",
+        "client",
+        "server",
+        "database",
+        "mobile",
+        "user",
+        "admin",
+        "users",
+        "cloud",
+        "alice",
+        "bob",
+        "eve",
+        "simple_node",
+        "complex_node",
+        "square",
+        "diamond",
+        "circle",
+        "triangle",
+        "parallelogram",
+        "height_rectangle",
+        "width_rectangle",
+        "star",
+        "resistor",
+        "potentiometer",
+        "capacitor",
+        "polarized_capacitor",
+        "inductor",
+        "fuse",
+        "battery",
+        "dc_source",
+        "ac_source",
+        "current_source",
+        "diode",
+        "led",
+        "transistor_npn",
+        "transistor_pnp",
+        "opamp",
+        "switch",
+        "push_button",
+        "lamp",
+        "motor",
+        "buzzer",
+        "ground",
+        "junction",
+        "signal",
+        "ammeter",
+        "voltmeter",
+        "antenna",
+        "transformer",
+        "mosfet_n",
+        "mosfet_p",
+        "transmission_gate",
+        "and_gate",
+        "or_gate",
+        "not_gate",
+        "nand_gate",
+        "nor_gate",
+        "xor_gate",
+        "xnor_gate",
+        "buffer_gate",
+        "and3_gate",
+        "or3_gate",
+        "nand3_gate",
+        "nor3_gate",
+        "xor3_gate",
+        "d_flip_flop",
+        "jk_flip_flop",
+        "t_flip_flop",
+        "sr_latch",
+        "mux_2to1",
+        "demux_1to2",
+        "half_adder",
+        "full_adder",
+        "block"
+      ],
+      "description": "Node types (appearance). Decor arrows live in `connections`.\n\nFour families:\n- **Pictograms** (`desktop` … `cloud`): a fixed SVG icon.\n- **Text nodes** (`simple_node`, `complex_node`): a text box   (body only, or header + body like an HTTP packet).\n- **Geometric shapes** (`square` … `star`): a drawn shape that can   contain short centered text (`body` field).\n- **Electrical components** (`resistor` … `transformer`): schematic symbols   with **named terminals** (see  {@link  Node.pins }  — actually resolved from the   type). A `Connection` targets a specific terminal with `\"node:pin\"` (e.g.   `\"R1:a\"`, `\"Q1:base\"`). Best drawn in `direction: 'circuit'`."
+    },
+    "ObjectContent": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/ContentType",
+          "description": "Content display mode: `code` (colored terminal), `text` (browser-like window), `image` (illustration), `table` (data table) or `html` (rich markup, sanitized)."
+        },
+        "value": {
+          "type": "string",
+          "description": "Textual content according to `type`: source code (`code`), text (`text`), image path/URL (`image`) or markup (`html`).",
+          "examples": [
+            "SELECT * FROM users;"
+          ]
+        },
+        "language": {
+          "description": "Language for syntax highlighting. Recognized values: see  {@link  HighlightLanguage } .",
+          "$ref": "#/definitions/HighlightLanguage"
+        },
+        "url": {
+          "type": "string",
+          "description": "(`text` mode, and `html` when provided) URL displayed in the window's address bar. An `html` panel with no `url` renders bare, without chrome.",
+          "examples": [
+            "https://app.example.com/login"
+          ]
+        },
+        "screen_width": {
+          "type": "number",
+          "description": "(`html` mode) Width, in px, of the DESIGN SPACE the markup is laid out in. Setting it turns the panel into a SCREEN: the layout is computed once at this width and then scaled uniformly to fit the room the node has, so the same arrangement is recognisable at every player size instead of re-flowing. Clamped to `[40, 4000]`.",
+          "examples": [
+            480
+          ]
+        },
+        "screen_height": {
+          "type": "number",
+          "description": "(`html` mode) Height of the design space, in px. Default: `screen_width × 0.625` — a 16:10 lid. A screen is a fixed box: what does not fit is cropped, as it is on a real one.",
+          "examples": [
+            300
+          ]
+        },
+        "frames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "(`image` mode) Frame sequence played from the ANIMATION's clock rather than the browser's: it pauses with the player, rewinds when scrubbed backwards and exports frame-accurately — none of which an animated GIF in `value` can do. Each entry is an image source, ideally a `data:` URI (a remote one cannot be rasterized by the video export). `value` is the still shown when the list is empty.",
+          "examples": [
+            [
+              "data:image/png;base64,iVBORw0…",
+              "data:image/png;base64,iVBORw1…"
+            ]
+          ]
+        },
+        "fps": {
+          "type": "number",
+          "description": "(`image` mode) Playback rate of `frames`, in frames per second. Clamped to `[0.1, 60]`. Default: 12."
+        },
+        "loop": {
+          "type": "boolean",
+          "description": "(`image` mode) Whether `frames` repeats. `false` holds the last frame once the sequence has played through. Default: true."
+        },
+        "columns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "(`table` mode) Column headers.",
+          "examples": [
+            [
+              "id",
+              "email"
+            ]
+          ]
+        },
+        "rows_data": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": [
+                "string",
+                "number"
+              ]
+            }
+          },
+          "description": "(`table` mode) Data rows.",
+          "examples": [
+            [
+              [
+                1,
+                "alice@corp.io"
+              ],
+              [
+                2,
+                "bob@corp.io"
+              ]
+            ]
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "ContentType": {
+      "type": "string",
+      "enum": [
+        "image",
+        "text",
+        "code",
+        "table",
+        "html"
+      ],
+      "description": "Content modes for `set_content` (action) and `content` (static object)."
+    },
+    "HighlightLanguage": {
+      "type": "string",
+      "enum": [
+        "javascript",
+        "js",
+        "typescript",
+        "ts",
+        "json",
+        "sql",
+        "bash",
+        "sh",
+        "shell",
+        "python",
+        "py",
+        "csharp",
+        "cs",
+        "html",
+        "xml",
+        "markup",
+        "css",
+        "jsx",
+        "tsx",
+        "http"
+      ],
+      "description": "Languages supported by the syntax highlighting engine (Prism)."
+    },
+    "BlockPin": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Terminal name, used in `\"node:pin\"` endpoint references (`\"mux:i3\"`). Must be unique within the block.",
+          "examples": [
+            "i3"
+          ]
+        },
+        "side": {
+          "$ref": "#/definitions/BlockSide",
+          "description": "Face the terminal sits on. Terminals of the same face are spread evenly over it, in DECLARATION order (top to bottom on `left` / `right`, left to right on `top` / `bottom`). Default: `'left'`."
+        },
+        "label": {
+          "type": "string",
+          "description": "Text drawn inside the box next to the terminal. Defaults to  {@link  * BlockPin.name }  — set it when the wiring name and the printed name differ (`name: 'i0'`, `label: 'D0'`). Supports inline LaTeX between `$…$`.",
+          "examples": [
+            "D0"
+          ]
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "additionalProperties": false,
+      "description": "One declared terminal of a `type: 'block'` node.\n\nThe fixed-pin symbols (`d_flip_flop`, `mux_2to1`, `full_adder`…) carry their terminals in the library because their COUNT never varies. A block is the escape hatch for everything whose count does — a 4:1 multiplexer, an n→2ⁿ decoder, an N-bit register, an ALU — which would otherwise need one node type per size, forever."
+    },
+    "BlockSide": {
+      "type": "string",
+      "enum": [
+        "left",
+        "right",
+        "top",
+        "bottom"
+      ],
+      "description": "Face of a `block` a terminal sits on."
+    },
+    "TreeSpec": {
+      "type": "object",
+      "properties": {
+        "root": {
+          "type": "string",
+          "description": "ID of the root node."
+        },
+        "children": {
+          "$ref": "#/definitions/Record%3Cstring%2CTreeChildren%3E",
+          "description": "Left/right child of each (internal) node, by node ID. A node absent from this map — or with an empty entry — is a leaf.",
+          "examples": [
+            {
+              "g": {
+                "left": "p",
+                "right": "u"
+              },
+              "p": {
+                "left": "n"
+              }
+            }
+          ]
+        },
+        "edge_style": {
+          "$ref": "#/definitions/TreeEdgeStyle",
+          "description": "Default styling applied to EVERY parent→child edge — the place to set the `path` (or the line style / color) once for the whole tree. Tree edges otherwise default to a `straight` path and no arrow head. Overridden per edge by  {@link  TreeSpec.edges } . See  {@link  TreeEdgeStyle } .",
+          "examples": [
+            {
+              "path": "step"
+            }
+          ]
+        },
+        "edges": {
+          "$ref": "#/definitions/Record%3Cstring%2CTreeEdgeStyle%3E",
+          "description": "Per-edge styling override, keyed by the **child** node ID: since every node has exactly one parent, its id names the incoming edge unambiguously (and the style follows the node through  {@link  RotateSubtreeAction } ). Each entry is merged OVER  {@link  TreeSpec.edge_style } , field by field. See  {@link  TreeEdgeStyle } .",
+          "examples": [
+            {
+              "6": {
+                "style": "dashed",
+                "color": "crimson"
+              }
+            }
+          ]
+        }
+      },
+      "required": [
+        "root",
+        "children"
+      ],
+      "additionalProperties": false,
+      "description": "Binary-tree topology (used when `direction` is `'tree'`). Single source of truth for the structure: parent/child **edges are derived from it** (and drawn automatically — no `connections` to maintain), and the layout places each node by its **in-order rank** (horizontal) and **depth** (vertical). The  {@link  RotateSubtreeAction }  mutates this topology at runtime and the engine re-lays-out and re-routes the edges from this same model."
+    },
+    "Record<string,TreeChildren>": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/TreeChildren"
+      }
+    },
+    "TreeChildren": {
+      "type": "object",
+      "properties": {
+        "left": {
+          "type": "string",
+          "description": "ID of the left child (smaller key), if any."
+        },
+        "right": {
+          "type": "string",
+          "description": "ID of the right child (greater key), if any."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Left/right children of a node in a binary tree."
+    },
+    "TreeEdgeStyle": {
+      "type": "object",
+      "properties": {
+        "style": {
+          "$ref": "#/definitions/LineStyle",
+          "description": "Line style. Default: 'solid'."
+        },
+        "path": {
+          "$ref": "#/definitions/PathShape",
+          "description": "Shape of the edge path. Default (tree): 'straight'. See  {@link  PathShape } ."
+        },
+        "arrow_head": {
+          "type": "string",
+          "enum": [
+            "forward",
+            "backward",
+            "both",
+            "none"
+          ],
+          "description": "Arrow head. Default (tree): 'none' — parent→child links carry no head."
+        },
+        "text": {
+          "type": "string",
+          "description": "Optional median label drawn on the edge. Supports inline LaTeX between `$…$` (see the \"Math notation\" page).",
+          "examples": [
+            "L"
+          ]
+        },
+        "color": {
+          "type": "string",
+          "description": "Line color (predefined CSS name or hex). Tints the whole path and its arrow head(s). Default: the theme's neutral connection color.",
+          "examples": [
+            "steelblue"
+          ]
+        },
+        "highlighted": {
+          "type": "boolean",
+          "description": "Emphasizes the edge permanently — accent color, thicker stroke and glow — like a statically  {@link  Connection.highlighted }  link. Default: false."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Visual styling for the parent→child edges auto-drawn in a `'tree'` layout. Orthogonal to the topology (`children` stays a pure structure): it is applied at RENDER time, so it survives  {@link  RotateSubtreeAction }  re-routing — a style keyed to a child follows that node as its depth changes. Used both as the tree-wide default ( {@link  TreeSpec.edge_style } ) and as a per-edge override ( {@link  TreeSpec.edges } ), the override merged over the default field by field.\n\nSame vocabulary as a  {@link  Connection } , but tree edges have their own defaults: a **`straight`** path (not `bezier`) and **no** arrow head (they are plain hierarchy links, not directed arrows)."
+    },
+    "LineStyle": {
+      "type": "string",
+      "enum": [
+        "solid",
+        "dotted",
+        "dashed",
+        "animated"
+      ],
+      "description": "Line style (SVG/CSS terminology). `full` is accepted as an alias for `solid`."
+    },
+    "PathShape": {
+      "type": "string",
+      "enum": [
+        "bezier",
+        "simplebezier",
+        "straight",
+        "step",
+        "smoothstep"
+      ],
+      "description": "Shape of the arrow / connection path — orthogonal to  {@link  LineStyle } , which only sets the stroke pattern (solid, dotted…). Default: 'bezier'.\n\n- `bezier`: smooth S curve, handles along the dominant axis (default);\n- `simplebezier`: same idea, more subtle curvature;\n- `straight`: direct segment (bypasses sandwiched labels);\n- `step`: orthogonal path with right angles;\n- `smoothstep`: orthogonal path with rounded angles.\n\nOn two perfectly aligned nodes (same row/column), all shapes merge into a straight line: curvature only appears in the presence of a transverse offset (different lanes, fan-out, bidirectional tracks)."
+    },
+    "Record<string,TreeEdgeStyle>": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/TreeEdgeStyle"
+      }
+    },
+    "Packet": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier of the packet."
+        },
+        "kind": {
+          "$ref": "#/definitions/PacketKind",
+          "description": "Packet category, which sets its appearance and expected content: `http_packet` (header + body via `packet_content`), `sql_request` (textual request via `request_content`), `sql_response` (response via `response_content`), a **text panel** (`simple_node` / `complex_node`) that travels: same look and content fields as the homonymous  {@link  NodeType }  (`body`, plus `header` for `complex_node`, optionally syntax-highlighted via `language`), or a\n**tech badge** (`subicon`) that travels: the same  {@link  Node.icon }  badge (known technology, registered icon, or short free text), via `icon`."
+        },
+        "request_content": {
+          "type": "string",
+          "description": "Textual request (e.g., for sql_request).",
+          "examples": [
+            "SELECT * FROM users WHERE id = 42"
+          ]
+        },
+        "response_content": {
+          "$ref": "#/definitions/SqlResponse",
+          "description": "Content of a `sql_response`: number of rows, header and body (text or table)."
+        },
+        "packet_content": {
+          "$ref": "#/definitions/PacketContent",
+          "description": "Content of an `http_packet`: header (e.g., 'GET /api') and optional body."
+        },
+        "body": {
+          "type": "string",
+          "description": "(`simple_node` / `complex_node`) Panel body text (line breaks respected, colored according to `language` if provided). Same role as  {@link  Node.body } .",
+          "examples": [
+            "Worker"
+          ]
+        },
+        "header": {
+          "type": "string",
+          "description": "(`complex_node`) Header displayed above the `body`, separated by a line — the packet then looks like an HTTP packet. Ignored by `simple_node`. Same role as  {@link  Node.header } .",
+          "examples": [
+            "POST /login"
+          ]
+        },
+        "language": {
+          "description": "(`simple_node` / `complex_node`) Syntax highlighting language applied to ALL text areas of the panel (`header` and `body`). Recognized values: see  {@link  HighlightLanguage } . Same role as  {@link  Node.language } .",
+          "$ref": "#/definitions/HighlightLanguage"
+        },
+        "icon": {
+          "type": "string",
+          "description": "(`subicon`) The tech badge that travels: name of a known technology (e.g., 'react', 'postgres'), name of a registered icon, or short free text (e.g., 'v2', 'API'). Same role as  {@link  Node.icon } .",
+          "examples": [
+            "react"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "kind"
+      ],
+      "additionalProperties": false
+    },
+    "PacketKind": {
+      "type": "string",
+      "enum": [
+        "http_packet",
+        "sql_request",
+        "sql_response",
+        "simple_node",
+        "complex_node",
+        "subicon"
+      ]
+    },
+    "SqlResponse": {
+      "type": "object",
+      "properties": {
+        "rows": {
+          "type": "number",
+          "description": "Number of rows returned.",
+          "examples": [
+            42
+          ]
+        },
+        "header": {
+          "type": "string",
+          "description": "Optional header visible in the packet."
+        },
+        "body": {
+          "$ref": "#/definitions/SqlResponseBody",
+          "description": "Response body (pure text or table)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "SqlResponseBody": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "text",
+            "table"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "description": "Pure text if type is 'text'"
+        },
+        "columns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Table columns if type is 'table'",
+          "examples": [
+            [
+              "id",
+              "name"
+            ]
+          ]
+        },
+        "rows_data": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": [
+                "string",
+                "number"
+              ]
+            }
+          },
+          "description": "Data rows if type is 'table'",
+          "examples": [
+            [
+              [
+                1,
+                "Alice"
+              ],
+              [
+                2,
+                "Bob"
+              ]
+            ]
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "PacketContent": {
+      "type": "object",
+      "properties": {
+        "header": {
+          "type": "string",
+          "description": "Header visible in the packet (e.g., 'GET /api').",
+          "examples": [
+            "GET /api/users"
+          ]
+        },
+        "body": {
+          "$ref": "#/definitions/PacketBody"
+        }
+      },
+      "additionalProperties": false
+    },
+    "PacketBody": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "text",
+            "image"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "description": "Text or image path.",
+          "examples": [
+            "{ \"token\": \"abc123\" }"
+          ]
+        },
+        "language": {
+          "description": "Language for text syntax highlighting (optional). Recognized values: see  {@link  HighlightLanguage } .",
+          "$ref": "#/definitions/HighlightLanguage"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Connection": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Optional identifier."
+        },
+        "from": {
+          "type": "string",
+          "description": "Source node ID."
+        },
+        "to": {
+          "type": "string",
+          "description": "Destination node ID."
+        },
+        "style": {
+          "$ref": "#/definitions/LineStyle",
+          "description": "Line style. Default: 'solid'."
+        },
+        "path": {
+          "$ref": "#/definitions/PathShape",
+          "description": "Shape of the link path. Default: 'bezier'. See  {@link  PathShape } ."
+        },
+        "diagonal": {
+          "type": "boolean",
+          "description": "(`direction: 'circuit'` only) Draw THIS wire octilinearly (`true`, 45° miters) or force it strictly orthogonal (`false`), **overriding** the circuit-wide  {@link  DataFlowSpec.diagonal_wires } . Unset = inherit that circuit default. Ignored outside `circuit`."
+        },
+        "arrow_head": {
+          "type": "string",
+          "enum": [
+            "forward",
+            "backward",
+            "both",
+            "none"
+          ],
+          "description": "Arrow head. Default: 'forward'."
+        },
+        "text": {
+          "type": "string",
+          "description": "Optional median text. Supports inline LaTeX between `$…$` (see the \"Math notation\" page).",
+          "examples": [
+            "HTTPS"
+          ]
+        },
+        "color": {
+          "type": "string",
+          "description": "Line color (predefined CSS name or hex). Tints the whole path and its arrow head(s); the median `text` label keeps the theme color for legibility. Default: the theme's neutral connection color. A runtime `set_color` on this connection's `id` recolors it, and an active `highlight` (accent) takes precedence over both.",
+          "examples": [
+            "steelblue"
+          ]
+        },
+        "highlighted": {
+          "type": "boolean",
+          "description": "Emphasizes the connection permanently, from initialization — the same accent color, thicker stroke and glow the  {@link  HighlightAction }  applies, but static (no timeline action needed). Default: false."
+        }
+      },
+      "required": [
+        "from",
+        "to"
+      ],
+      "additionalProperties": false,
+      "description": "Permanent link/arrow (decor), displayed upon initialization."
+    },
+    "Zone": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Optional identifier (required to be referenced in the `contains` of another zone)."
+        },
+        "contains": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "IDs of the enclosed nodes and/or zones."
+        },
+        "color": {
+          "type": "string",
+          "description": "CSS color of the border and semi-transparent background."
+        },
+        "label": {
+          "type": "string",
+          "description": "Label displayed at the top left of the zone. Supports inline LaTeX between `$…$` (see the \"Math notation\" page)."
+        }
+      },
+      "required": [
+        "contains"
+      ],
+      "additionalProperties": false,
+      "description": "Rectangular region enclosing a group of nodes and/or other zones."
+    },
+    "Action": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/MoveAction"
+        },
+        {
+          "$ref": "#/definitions/ArrowAction"
+        },
+        {
+          "$ref": "#/definitions/ParallelAction"
+        },
+        {
+          "$ref": "#/definitions/LoadingAction"
+        },
+        {
+          "$ref": "#/definitions/SetContentAction"
+        },
+        {
+          "$ref": "#/definitions/CommentAction"
+        },
+        {
+          "$ref": "#/definitions/HighlightAction"
+        },
+        {
+          "$ref": "#/definitions/SetVisibleAction"
+        },
+        {
+          "$ref": "#/definitions/SetColorAction"
+        },
+        {
+          "$ref": "#/definitions/SetIconAction"
+        },
+        {
+          "$ref": "#/definitions/RotateAction"
+        },
+        {
+          "$ref": "#/definitions/RotateSubtreeAction"
+        },
+        {
+          "$ref": "#/definitions/FlowAction"
+        },
+        {
+          "$ref": "#/definitions/ToggleAction"
+        },
+        {
+          "$ref": "#/definitions/WaitAction"
+        }
+      ],
+      "description": "Discriminated union of actions (by `type`)."
+    },
+    "MoveAction": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Action ID to refer to it (wait_for / keep_until)."
+        },
+        "description": {
+          "type": "string",
+          "description": "What this step means, in one sentence, for the player's text description (see  {@link  DataFlowSpec.description } ).\n\nThe description is generated from the action itself when this is omitted — \"GET /users travels from Browser to Web server\" — so an animation is described whether or not anyone writes anything. Provide it when the generated sentence would be accurate and still miss the point: the structure knows a packet moved, only you know it moved BECAUSE the cache missed.\n\nA `comment` action needs it least of all: its `text` is already your own narration, and it is used verbatim.",
+          "examples": [
+            "The cache misses, so the request continues to the database"
+          ]
+        },
+        "duration": {
+          "type": "number",
+          "description": "Animation duration in ms (default: 500, 1200 for loading).",
+          "minimum": 1,
+          "multipleOf": 1
+        },
+        "wait_for": {
+          "type": "string",
+          "description": "ID of another action: this action starts at the end of that one."
+        },
+        "keep_until": {
+          "type": "string",
+          "description": "ID of a future action: this action remains visible until its start."
+        },
+        "keep_until_next": {
+          "type": "boolean",
+          "description": "Remains visible until the start of the next root step. Default: false for `move`/`loading`, true for `arrow`/`comment`/`set_content`."
+        },
+        "keep_until_end": {
+          "type": "boolean",
+          "description": "If true, remains visible until the end of the timeline."
+        },
+        "delay_ms": {
+          "type": "number",
+          "description": "Start offset in ms, added after resolving `wait_for` and the step clamp. Mainly useful in a `parallel` block to stagger actions against each other (staggered sequence animations). Also applies to an entire `parallel` action to delay the whole group.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "fade_in_ms": {
+          "type": "number",
+          "description": "Fade-in duration in ms. Default: 250 ms — or the element's appearance pause when that pause is shorter. The fade never fills the whole pause: a packet held at its origin to be read appears first, then stays legible for the rest of it. 0 = instant appearance.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "fade_out_ms": {
+          "type": "number",
+          "description": "Fade-out duration in ms. Default: 250. 0 = instant disappearance. No effect if `keep_until_end` is true.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "type": {
+          "type": "string",
+          "const": "move"
+        },
+        "object": {
+          "type": "string",
+          "description": "ID of the packet (declared in `packets`) to move."
+        },
+        "from": {
+          "type": "string",
+          "description": "Start node ID."
+        },
+        "to": {
+          "type": "string",
+          "description": "Arrival node ID."
+        }
+      },
+      "required": [
+        "type",
+        "object",
+        "from",
+        "to"
+      ],
+      "additionalProperties": false,
+      "description": "Moves a packet from `from` to `to`."
+    },
+    "ArrowAction": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Action ID to refer to it (wait_for / keep_until)."
+        },
+        "description": {
+          "type": "string",
+          "description": "What this step means, in one sentence, for the player's text description (see  {@link  DataFlowSpec.description } ).\n\nThe description is generated from the action itself when this is omitted — \"GET /users travels from Browser to Web server\" — so an animation is described whether or not anyone writes anything. Provide it when the generated sentence would be accurate and still miss the point: the structure knows a packet moved, only you know it moved BECAUSE the cache missed.\n\nA `comment` action needs it least of all: its `text` is already your own narration, and it is used verbatim.",
+          "examples": [
+            "The cache misses, so the request continues to the database"
+          ]
+        },
+        "duration": {
+          "type": "number",
+          "description": "Animation duration in ms (default: 500, 1200 for loading).",
+          "minimum": 1,
+          "multipleOf": 1
+        },
+        "wait_for": {
+          "type": "string",
+          "description": "ID of another action: this action starts at the end of that one."
+        },
+        "keep_until": {
+          "type": "string",
+          "description": "ID of a future action: this action remains visible until its start."
+        },
+        "keep_until_next": {
+          "type": "boolean",
+          "description": "Remains visible until the start of the next root step. Default: false for `move`/`loading`, true for `arrow`/`comment`/`set_content`."
+        },
+        "keep_until_end": {
+          "type": "boolean",
+          "description": "If true, remains visible until the end of the timeline."
+        },
+        "delay_ms": {
+          "type": "number",
+          "description": "Start offset in ms, added after resolving `wait_for` and the step clamp. Mainly useful in a `parallel` block to stagger actions against each other (staggered sequence animations). Also applies to an entire `parallel` action to delay the whole group.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "fade_in_ms": {
+          "type": "number",
+          "description": "Fade-in duration in ms. Default: 250 ms — or the element's appearance pause when that pause is shorter. The fade never fills the whole pause: a packet held at its origin to be read appears first, then stays legible for the rest of it. 0 = instant appearance.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "fade_out_ms": {
+          "type": "number",
+          "description": "Fade-out duration in ms. Default: 250. 0 = instant disappearance. No effect if `keep_until_end` is true.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "type": {
+          "type": "string",
+          "const": "arrow"
+        },
+        "from": {
+          "type": "string",
+          "description": "Start node ID of the arrow."
+        },
+        "to": {
+          "type": "string",
+          "description": "Arrival node ID of the arrow."
+        },
+        "text": {
+          "type": "string",
+          "description": "Label displayed in the middle of the arrow. Supports inline LaTeX between `$…$` (see the \"Math notation\" page)."
+        },
+        "style": {
+          "$ref": "#/definitions/LineStyle",
+          "description": "Line style: solid, dotted, dashed or animated. Default: 'solid'."
+        },
+        "path": {
+          "$ref": "#/definitions/PathShape",
+          "description": "Path shape: bezier, simplebezier, straight, step, smoothstep. Default: 'bezier'."
+        },
+        "arrow_head": {
+          "type": "string",
+          "enum": [
+            "forward",
+            "backward",
+            "both",
+            "none"
+          ],
+          "description": "Side(s) where to draw the arrow head. Default: 'forward'."
+        }
+      },
+      "required": [
+        "type",
+        "from",
+        "to"
+      ],
+      "additionalProperties": false,
+      "description": "Draws an animated arrow between two nodes."
+    },
+    "ParallelAction": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Action ID to refer to it (wait_for / keep_until)."
+        },
+        "description": {
+          "type": "string",
+          "description": "What this step means, in one sentence, for the player's text description (see  {@link  DataFlowSpec.description } ).\n\nThe description is generated from the action itself when this is omitted — \"GET /users travels from Browser to Web server\" — so an animation is described whether or not anyone writes anything. Provide it when the generated sentence would be accurate and still miss the point: the structure knows a packet moved, only you know it moved BECAUSE the cache missed.\n\nA `comment` action needs it least of all: its `text` is already your own narration, and it is used verbatim.",
+          "examples": [
+            "The cache misses, so the request continues to the database"
+          ]
+        },
+        "duration": {
+          "type": "number",
+          "description": "Animation duration in ms (default: 500, 1200 for loading).",
+          "minimum": 1,
+          "multipleOf": 1
+        },
+        "wait_for": {
+          "type": "string",
+          "description": "ID of another action: this action starts at the end of that one."
+        },
+        "keep_until": {
+          "type": "string",
+          "description": "ID of a future action: this action remains visible until its start."
+        },
+        "keep_until_next": {
+          "type": "boolean",
+          "description": "Remains visible until the start of the next root step. Default: false for `move`/`loading`, true for `arrow`/`comment`/`set_content`."
+        },
+        "keep_until_end": {
+          "type": "boolean",
+          "description": "If true, remains visible until the end of the timeline."
+        },
+        "delay_ms": {
+          "type": "number",
+          "description": "Start offset in ms, added after resolving `wait_for` and the step clamp. Mainly useful in a `parallel` block to stagger actions against each other (staggered sequence animations). Also applies to an entire `parallel` action to delay the whole group.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "fade_in_ms": {
+          "type": "number",
+          "description": "Fade-in duration in ms. Default: 250 ms — or the element's appearance pause when that pause is shorter. The fade never fills the whole pause: a packet held at its origin to be read appears first, then stays legible for the rest of it. 0 = instant appearance.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "fade_out_ms": {
+          "type": "number",
+          "description": "Fade-out duration in ms. Default: 250. 0 = instant disappearance. No effect if `keep_until_end` is true.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "type": {
+          "type": "string",
+          "const": "parallel"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Action"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "actions"
+      ],
+      "additionalProperties": false,
+      "description": "Executes multiple actions at the same time."
+    },
+    "LoadingAction": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Action ID to refer to it (wait_for / keep_until)."
+        },
+        "description": {
+          "type": "string",
+          "description": "What this step means, in one sentence, for the player's text description (see  {@link  DataFlowSpec.description } ).\n\nThe description is generated from the action itself when this is omitted — \"GET /users travels from Browser to Web server\" — so an animation is described whether or not anyone writes anything. Provide it when the generated sentence would be accurate and still miss the point: the structure knows a packet moved, only you know it moved BECAUSE the cache missed.\n\nA `comment` action needs it least of all: its `text` is already your own narration, and it is used verbatim.",
+          "examples": [
+            "The cache misses, so the request continues to the database"
+          ]
+        },
+        "duration": {
+          "type": "number",
+          "description": "Animation duration in ms (default: 500, 1200 for loading).",
+          "minimum": 1,
+          "multipleOf": 1
+        },
+        "wait_for": {
+          "type": "string",
+          "description": "ID of another action: this action starts at the end of that one."
+        },
+        "keep_until": {
+          "type": "string",
+          "description": "ID of a future action: this action remains visible until its start."
+        },
+        "keep_until_next": {
+          "type": "boolean",
+          "description": "Remains visible until the start of the next root step. Default: false for `move`/`loading`, true for `arrow`/`comment`/`set_content`."
+        },
+        "keep_until_end": {
+          "type": "boolean",
+          "description": "If true, remains visible until the end of the timeline."
+        },
+        "delay_ms": {
+          "type": "number",
+          "description": "Start offset in ms, added after resolving `wait_for` and the step clamp. Mainly useful in a `parallel` block to stagger actions against each other (staggered sequence animations). Also applies to an entire `parallel` action to delay the whole group.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "fade_in_ms": {
+          "type": "number",
+          "description": "Fade-in duration in ms. Default: 250 ms — or the element's appearance pause when that pause is shorter. The fade never fills the whole pause: a packet held at its origin to be read appears first, then stays legible for the rest of it. 0 = instant appearance.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "fade_out_ms": {
+          "type": "number",
+          "description": "Fade-out duration in ms. Default: 250. 0 = instant disappearance. No effect if `keep_until_end` is true.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "type": {
+          "type": "string",
+          "const": "loading"
+        },
+        "object": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "object"
+      ],
+      "additionalProperties": false,
+      "description": "Displays a loading spinner on a node."
+    },
+    "SetContentAction": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Action ID to refer to it (wait_for / keep_until)."
+        },
+        "description": {
+          "type": "string",
+          "description": "What this step means, in one sentence, for the player's text description (see  {@link  DataFlowSpec.description } ).\n\nThe description is generated from the action itself when this is omitted — \"GET /users travels from Browser to Web server\" — so an animation is described whether or not anyone writes anything. Provide it when the generated sentence would be accurate and still miss the point: the structure knows a packet moved, only you know it moved BECAUSE the cache missed.\n\nA `comment` action needs it least of all: its `text` is already your own narration, and it is used verbatim.",
+          "examples": [
+            "The cache misses, so the request continues to the database"
+          ]
+        },
+        "duration": {
+          "type": "number",
+          "description": "Animation duration in ms (default: 500, 1200 for loading).",
+          "minimum": 1,
+          "multipleOf": 1
+        },
+        "wait_for": {
+          "type": "string",
+          "description": "ID of another action: this action starts at the end of that one."
+        },
+        "keep_until": {
+          "type": "string",
+          "description": "ID of a future action: this action remains visible until its start."
+        },
+        "keep_until_next": {
+          "type": "boolean",
+          "description": "Remains visible until the start of the next root step. Default: false for `move`/`loading`, true for `arrow`/`comment`/`set_content`."
+        },
+        "keep_until_end": {
+          "type": "boolean",
+          "description": "If true, remains visible until the end of the timeline."
+        },
+        "delay_ms": {
+          "type": "number",
+          "description": "Start offset in ms, added after resolving `wait_for` and the step clamp. Mainly useful in a `parallel` block to stagger actions against each other (staggered sequence animations). Also applies to an entire `parallel` action to delay the whole group.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "fade_in_ms": {
+          "type": "number",
+          "description": "Fade-in duration in ms. Default: 250 ms — or the element's appearance pause when that pause is shorter. The fade never fills the whole pause: a packet held at its origin to be read appears first, then stays legible for the rest of it. 0 = instant appearance.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "fade_out_ms": {
+          "type": "number",
+          "description": "Fade-out duration in ms. Default: 250. 0 = instant disappearance. No effect if `keep_until_end` is true.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "type": {
+          "type": "string",
+          "const": "set_content"
+        },
+        "object": {
+          "type": "string"
+        },
+        "content": {
+          "$ref": "#/definitions/ObjectContent"
+        }
+      },
+      "required": [
+        "type",
+        "object",
+        "content"
+      ],
+      "additionalProperties": false,
+      "description": "Mutates the content of a node (code, text, image)."
+    },
+    "CommentAction": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Action ID to refer to it (wait_for / keep_until)."
+        },
+        "description": {
+          "type": "string",
+          "description": "What this step means, in one sentence, for the player's text description (see  {@link  DataFlowSpec.description } ).\n\nThe description is generated from the action itself when this is omitted — \"GET /users travels from Browser to Web server\" — so an animation is described whether or not anyone writes anything. Provide it when the generated sentence would be accurate and still miss the point: the structure knows a packet moved, only you know it moved BECAUSE the cache missed.\n\nA `comment` action needs it least of all: its `text` is already your own narration, and it is used verbatim.",
+          "examples": [
+            "The cache misses, so the request continues to the database"
+          ]
+        },
+        "duration": {
+          "type": "number",
+          "description": "Animation duration in ms (default: 500, 1200 for loading).",
+          "minimum": 1,
+          "multipleOf": 1
+        },
+        "wait_for": {
+          "type": "string",
+          "description": "ID of another action: this action starts at the end of that one."
+        },
+        "keep_until": {
+          "type": "string",
+          "description": "ID of a future action: this action remains visible until its start."
+        },
+        "keep_until_next": {
+          "type": "boolean",
+          "description": "Remains visible until the start of the next root step. Default: false for `move`/`loading`, true for `arrow`/`comment`/`set_content`."
+        },
+        "keep_until_end": {
+          "type": "boolean",
+          "description": "If true, remains visible until the end of the timeline."
+        },
+        "delay_ms": {
+          "type": "number",
+          "description": "Start offset in ms, added after resolving `wait_for` and the step clamp. Mainly useful in a `parallel` block to stagger actions against each other (staggered sequence animations). Also applies to an entire `parallel` action to delay the whole group.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "fade_in_ms": {
+          "type": "number",
+          "description": "Fade-in duration in ms. Default: 250 ms — or the element's appearance pause when that pause is shorter. The fade never fills the whole pause: a packet held at its origin to be read appears first, then stays legible for the rest of it. 0 = instant appearance.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "fade_out_ms": {
+          "type": "number",
+          "description": "Fade-out duration in ms. Default: 250. 0 = instant disappearance. No effect if `keep_until_end` is true.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "type": {
+          "type": "string",
+          "const": "comment"
+        },
+        "object": {
+          "type": "string",
+          "description": "ID of the node near which to display the comment. Omitted = omniscient comment (top of the stage)."
+        },
+        "text": {
+          "type": "string",
+          "description": "Supports inline LaTeX between `$…$` (see the \"Math notation\" page).",
+          "examples": [
+            "Le serveur valide le token"
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "text"
+      ],
+      "additionalProperties": false,
+      "description": "Displays a comment bubble near a node, or at the top of the stage if `object` is omitted."
+    },
+    "HighlightAction": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Action ID to refer to it (wait_for / keep_until)."
+        },
+        "description": {
+          "type": "string",
+          "description": "What this step means, in one sentence, for the player's text description (see  {@link  DataFlowSpec.description } ).\n\nThe description is generated from the action itself when this is omitted — \"GET /users travels from Browser to Web server\" — so an animation is described whether or not anyone writes anything. Provide it when the generated sentence would be accurate and still miss the point: the structure knows a packet moved, only you know it moved BECAUSE the cache missed.\n\nA `comment` action needs it least of all: its `text` is already your own narration, and it is used verbatim.",
+          "examples": [
+            "The cache misses, so the request continues to the database"
+          ]
+        },
+        "duration": {
+          "type": "number",
+          "description": "Animation duration in ms (default: 500, 1200 for loading).",
+          "minimum": 1,
+          "multipleOf": 1
+        },
+        "wait_for": {
+          "type": "string",
+          "description": "ID of another action: this action starts at the end of that one."
+        },
+        "keep_until": {
+          "type": "string",
+          "description": "ID of a future action: this action remains visible until its start."
+        },
+        "keep_until_next": {
+          "type": "boolean",
+          "description": "Remains visible until the start of the next root step. Default: false for `move`/`loading`, true for `arrow`/`comment`/`set_content`."
+        },
+        "keep_until_end": {
+          "type": "boolean",
+          "description": "If true, remains visible until the end of the timeline."
+        },
+        "delay_ms": {
+          "type": "number",
+          "description": "Start offset in ms, added after resolving `wait_for` and the step clamp. Mainly useful in a `parallel` block to stagger actions against each other (staggered sequence animations). Also applies to an entire `parallel` action to delay the whole group.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "fade_in_ms": {
+          "type": "number",
+          "description": "Fade-in duration in ms. Default: 250 ms — or the element's appearance pause when that pause is shorter. The fade never fills the whole pause: a packet held at its origin to be read appears first, then stays legible for the rest of it. 0 = instant appearance.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "fade_out_ms": {
+          "type": "number",
+          "description": "Fade-out duration in ms. Default: 250. 0 = instant disappearance. No effect if `keep_until_end` is true.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "type": {
+          "type": "string",
+          "const": "highlight"
+        },
+        "object": {
+          "type": "string",
+          "description": "ID of a static node OR a connection to highlight."
+        }
+      },
+      "required": [
+        "type",
+        "object"
+      ],
+      "additionalProperties": false,
+      "description": "Highlights a static node or a connection (by ID)."
+    },
+    "SetVisibleAction": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Action ID to refer to it (wait_for / keep_until)."
+        },
+        "description": {
+          "type": "string",
+          "description": "What this step means, in one sentence, for the player's text description (see  {@link  DataFlowSpec.description } ).\n\nThe description is generated from the action itself when this is omitted — \"GET /users travels from Browser to Web server\" — so an animation is described whether or not anyone writes anything. Provide it when the generated sentence would be accurate and still miss the point: the structure knows a packet moved, only you know it moved BECAUSE the cache missed.\n\nA `comment` action needs it least of all: its `text` is already your own narration, and it is used verbatim.",
+          "examples": [
+            "The cache misses, so the request continues to the database"
+          ]
+        },
+        "duration": {
+          "type": "number",
+          "description": "Animation duration in ms (default: 500, 1200 for loading).",
+          "minimum": 1,
+          "multipleOf": 1
+        },
+        "wait_for": {
+          "type": "string",
+          "description": "ID of another action: this action starts at the end of that one."
+        },
+        "keep_until": {
+          "type": "string",
+          "description": "ID of a future action: this action remains visible until its start."
+        },
+        "keep_until_next": {
+          "type": "boolean",
+          "description": "Remains visible until the start of the next root step. Default: false for `move`/`loading`, true for `arrow`/`comment`/`set_content`."
+        },
+        "keep_until_end": {
+          "type": "boolean",
+          "description": "If true, remains visible until the end of the timeline."
+        },
+        "delay_ms": {
+          "type": "number",
+          "description": "Start offset in ms, added after resolving `wait_for` and the step clamp. Mainly useful in a `parallel` block to stagger actions against each other (staggered sequence animations). Also applies to an entire `parallel` action to delay the whole group.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "fade_in_ms": {
+          "type": "number",
+          "description": "Fade-in duration in ms. Default: 250 ms — or the element's appearance pause when that pause is shorter. The fade never fills the whole pause: a packet held at its origin to be read appears first, then stays legible for the rest of it. 0 = instant appearance.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "fade_out_ms": {
+          "type": "number",
+          "description": "Fade-out duration in ms. Default: 250. 0 = instant disappearance. No effect if `keep_until_end` is true.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "type": {
+          "type": "string",
+          "const": "set_visible"
+        },
+        "object": {
+          "type": "string",
+          "description": "ID of the node to show or hide."
+        },
+        "visible": {
+          "type": "boolean",
+          "description": "true = show, false = hide."
+        }
+      },
+      "required": [
+        "type",
+        "object",
+        "visible"
+      ],
+      "additionalProperties": false,
+      "description": "Shows or hides a static node with a fade."
+    },
+    "SetColorAction": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Action ID to refer to it (wait_for / keep_until)."
+        },
+        "description": {
+          "type": "string",
+          "description": "What this step means, in one sentence, for the player's text description (see  {@link  DataFlowSpec.description } ).\n\nThe description is generated from the action itself when this is omitted — \"GET /users travels from Browser to Web server\" — so an animation is described whether or not anyone writes anything. Provide it when the generated sentence would be accurate and still miss the point: the structure knows a packet moved, only you know it moved BECAUSE the cache missed.\n\nA `comment` action needs it least of all: its `text` is already your own narration, and it is used verbatim.",
+          "examples": [
+            "The cache misses, so the request continues to the database"
+          ]
+        },
+        "duration": {
+          "type": "number",
+          "description": "Animation duration in ms (default: 500, 1200 for loading).",
+          "minimum": 1,
+          "multipleOf": 1
+        },
+        "wait_for": {
+          "type": "string",
+          "description": "ID of another action: this action starts at the end of that one."
+        },
+        "keep_until": {
+          "type": "string",
+          "description": "ID of a future action: this action remains visible until its start."
+        },
+        "keep_until_next": {
+          "type": "boolean",
+          "description": "Remains visible until the start of the next root step. Default: false for `move`/`loading`, true for `arrow`/`comment`/`set_content`."
+        },
+        "keep_until_end": {
+          "type": "boolean",
+          "description": "If true, remains visible until the end of the timeline."
+        },
+        "delay_ms": {
+          "type": "number",
+          "description": "Start offset in ms, added after resolving `wait_for` and the step clamp. Mainly useful in a `parallel` block to stagger actions against each other (staggered sequence animations). Also applies to an entire `parallel` action to delay the whole group.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "fade_in_ms": {
+          "type": "number",
+          "description": "Fade-in duration in ms. Default: 250 ms — or the element's appearance pause when that pause is shorter. The fade never fills the whole pause: a packet held at its origin to be read appears first, then stays legible for the rest of it. 0 = instant appearance.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "fade_out_ms": {
+          "type": "number",
+          "description": "Fade-out duration in ms. Default: 250. 0 = instant disappearance. No effect if `keep_until_end` is true.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "type": {
+          "type": "string",
+          "const": "set_color"
+        },
+        "object": {
+          "type": "string",
+          "description": "ID of the node or connection to recolor."
+        },
+        "background_color": {
+          "type": "string",
+          "description": "New background color (shape fill, panel background, pill behind a pictogram). Predefined CSS name or hex. Omit to leave it unchanged.",
+          "examples": [
+            "#1a1a1a"
+          ]
+        },
+        "border_color": {
+          "type": "string",
+          "description": "New border / stroke color. Predefined CSS name or hex. Omit to leave it unchanged. If `background_color` is set without `border_color`, a coordinated border (darker background) is derived automatically.",
+          "examples": [
+            "crimson"
+          ]
+        },
+        "text_color": {
+          "type": "string",
+          "description": "New color of the text inside the node (shape body, panel header/body), effective only when syntax highlighting is disabled. Predefined CSS name or hex. Omit to leave it unchanged.",
+          "examples": [
+            "white"
+          ]
+        },
+        "color": {
+          "type": "string",
+          "description": "New line color when `object` is a  {@link  Connection }  id (recolors the path and its arrow head). Predefined CSS name or hex. Ignored for a node — use the three channels above. Omit to leave it unchanged.",
+          "examples": [
+            "crimson"
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "object"
+      ],
+      "additionalProperties": false,
+      "description": "Recolors a static node — or a permanent  {@link  Connection }  — at runtime, over `duration` ms, with a deterministic eased cross-fade between the previous color and the new one (via CSS `color-mix`, so it stays scrubbable in both directions). What `object` refers to selects the channels that apply: a node uses `background_color` / `border_color` / `text_color`; a connection uses `color` (its single line color). Only the channels you provide change; the others keep their current value.\n\nSame value space as the static colors: a predefined CSS color name (`tomato`, `steelblue`…) or an exact hex (`#1a1a1a`). Node auto-derivations apply exactly as for a static node (a `background_color` without `border_color` derives a coordinated border; without `text_color`, a high-contrast ink — the latter only outside syntax-highlighted areas). The reached color persists until the end of the timeline, like  {@link  SetVisibleAction } .\n\nThis is the core operation for algorithm visualizations that recolor elements — e.g. the red/black recoloring of a red-black tree, or lighting up the edge a traversal just followed."
+    },
+    "SetIconAction": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Action ID to refer to it (wait_for / keep_until)."
+        },
+        "description": {
+          "type": "string",
+          "description": "What this step means, in one sentence, for the player's text description (see  {@link  DataFlowSpec.description } ).\n\nThe description is generated from the action itself when this is omitted — \"GET /users travels from Browser to Web server\" — so an animation is described whether or not anyone writes anything. Provide it when the generated sentence would be accurate and still miss the point: the structure knows a packet moved, only you know it moved BECAUSE the cache missed.\n\nA `comment` action needs it least of all: its `text` is already your own narration, and it is used verbatim.",
+          "examples": [
+            "The cache misses, so the request continues to the database"
+          ]
+        },
+        "duration": {
+          "type": "number",
+          "description": "Animation duration in ms (default: 500, 1200 for loading).",
+          "minimum": 1,
+          "multipleOf": 1
+        },
+        "wait_for": {
+          "type": "string",
+          "description": "ID of another action: this action starts at the end of that one."
+        },
+        "keep_until": {
+          "type": "string",
+          "description": "ID of a future action: this action remains visible until its start."
+        },
+        "keep_until_next": {
+          "type": "boolean",
+          "description": "Remains visible until the start of the next root step. Default: false for `move`/`loading`, true for `arrow`/`comment`/`set_content`."
+        },
+        "keep_until_end": {
+          "type": "boolean",
+          "description": "If true, remains visible until the end of the timeline."
+        },
+        "delay_ms": {
+          "type": "number",
+          "description": "Start offset in ms, added after resolving `wait_for` and the step clamp. Mainly useful in a `parallel` block to stagger actions against each other (staggered sequence animations). Also applies to an entire `parallel` action to delay the whole group.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "fade_in_ms": {
+          "type": "number",
+          "description": "Fade-in duration in ms. Default: 250 ms — or the element's appearance pause when that pause is shorter. The fade never fills the whole pause: a packet held at its origin to be read appears first, then stays legible for the rest of it. 0 = instant appearance.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "fade_out_ms": {
+          "type": "number",
+          "description": "Fade-out duration in ms. Default: 250. 0 = instant disappearance. No effect if `keep_until_end` is true.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "type": {
+          "type": "string",
+          "const": "set_icon"
+        },
+        "object": {
+          "type": "string",
+          "description": "ID of the node whose badge changes."
+        },
+        "icon": {
+          "type": "string",
+          "description": "New badge value: a known technology (e.g. 'react'), a registered icon name, or short free text (a number like '7', a symbol like '∞'). An empty string clears the badge.",
+          "examples": [
+            "7"
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "object",
+        "icon"
+      ],
+      "additionalProperties": false,
+      "description": "Updates a node's corner **icon badge** at runtime — the small overlaid badge ( {@link  Node.icon } : a known technology, a registered icon, or short free text). The badge swaps to the new value when the clip starts and, like  {@link  SetVisibleAction }  /  {@link  SetColorAction } , the reached value persists until the end of the timeline; successive `set_icon` on the same node chain (each replaces the previous badge). It is scrubbable in both directions.\n\nThis is how an algorithm visualization keeps a **per-node scalar that evolves** legible right on the node — the tentative distance of a Dijkstra node (∞ → 7 → 5…), the `f = g + h` of an A\\* node — instead of relying only on a comment."
+    },
+    "RotateAction": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Action ID to refer to it (wait_for / keep_until)."
+        },
+        "description": {
+          "type": "string",
+          "description": "What this step means, in one sentence, for the player's text description (see  {@link  DataFlowSpec.description } ).\n\nThe description is generated from the action itself when this is omitted — \"GET /users travels from Browser to Web server\" — so an animation is described whether or not anyone writes anything. Provide it when the generated sentence would be accurate and still miss the point: the structure knows a packet moved, only you know it moved BECAUSE the cache missed.\n\nA `comment` action needs it least of all: its `text` is already your own narration, and it is used verbatim.",
+          "examples": [
+            "The cache misses, so the request continues to the database"
+          ]
+        },
+        "duration": {
+          "type": "number",
+          "description": "Animation duration in ms (default: 500, 1200 for loading).",
+          "minimum": 1,
+          "multipleOf": 1
+        },
+        "wait_for": {
+          "type": "string",
+          "description": "ID of another action: this action starts at the end of that one."
+        },
+        "keep_until": {
+          "type": "string",
+          "description": "ID of a future action: this action remains visible until its start."
+        },
+        "keep_until_next": {
+          "type": "boolean",
+          "description": "Remains visible until the start of the next root step. Default: false for `move`/`loading`, true for `arrow`/`comment`/`set_content`."
+        },
+        "keep_until_end": {
+          "type": "boolean",
+          "description": "If true, remains visible until the end of the timeline."
+        },
+        "delay_ms": {
+          "type": "number",
+          "description": "Start offset in ms, added after resolving `wait_for` and the step clamp. Mainly useful in a `parallel` block to stagger actions against each other (staggered sequence animations). Also applies to an entire `parallel` action to delay the whole group.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "fade_in_ms": {
+          "type": "number",
+          "description": "Fade-in duration in ms. Default: 250 ms — or the element's appearance pause when that pause is shorter. The fade never fills the whole pause: a packet held at its origin to be read appears first, then stays legible for the rest of it. 0 = instant appearance.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "fade_out_ms": {
+          "type": "number",
+          "description": "Fade-out duration in ms. Default: 250. 0 = instant disappearance. No effect if `keep_until_end` is true.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "type": {
+          "type": "string",
+          "const": "rotate"
+        },
+        "object": {
+          "type": "string",
+          "description": "ID of the node to rotate."
+        },
+        "to": {
+          "type": "number",
+          "description": "Target angle in degrees (absolute, clockwise). Mutually exclusive with `spin` (which takes precedence if both are set).",
+          "examples": [
+            90
+          ]
+        },
+        "spin": {
+          "type": "number",
+          "description": "Continuous spin speed in degrees per second: positive turns clockwise, negative counter-clockwise. Mutually exclusive with `to`. The spin lasts for `duration` ms (default 600), or until `keep_until` / `keep_until_end` when set; the angle reached then persists.",
+          "examples": [
+            360
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "object"
+      ],
+      "additionalProperties": false,
+      "description": "Animates the visual rotation of a node. Two mutually exclusive modes:\n\n- **Target angle** (`to`): a single eased rotation toward an absolute angle.   The starting angle is the node's current rotation (its static `rotation`, or   the target of a previous `rotate`), so successive rotations chain.\n- **Continuous spin** (`spin`): the node turns at a constant speed (linear, no   easing) for as long as the action lasts. How long is driven by the usual   timing fields — `duration` (spin that long), `keep_until` (spin until another   action starts), or `keep_until_end` (spin until the end of the timeline).\n\nOnly the visual rotates; the label stays upright. The angle reached when the rotation ends persists until the end of the timeline."
+    },
+    "RotateSubtreeAction": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Action ID to refer to it (wait_for / keep_until)."
+        },
+        "description": {
+          "type": "string",
+          "description": "What this step means, in one sentence, for the player's text description (see  {@link  DataFlowSpec.description } ).\n\nThe description is generated from the action itself when this is omitted — \"GET /users travels from Browser to Web server\" — so an animation is described whether or not anyone writes anything. Provide it when the generated sentence would be accurate and still miss the point: the structure knows a packet moved, only you know it moved BECAUSE the cache missed.\n\nA `comment` action needs it least of all: its `text` is already your own narration, and it is used verbatim.",
+          "examples": [
+            "The cache misses, so the request continues to the database"
+          ]
+        },
+        "duration": {
+          "type": "number",
+          "description": "Animation duration in ms (default: 500, 1200 for loading).",
+          "minimum": 1,
+          "multipleOf": 1
+        },
+        "wait_for": {
+          "type": "string",
+          "description": "ID of another action: this action starts at the end of that one."
+        },
+        "keep_until": {
+          "type": "string",
+          "description": "ID of a future action: this action remains visible until its start."
+        },
+        "keep_until_next": {
+          "type": "boolean",
+          "description": "Remains visible until the start of the next root step. Default: false for `move`/`loading`, true for `arrow`/`comment`/`set_content`."
+        },
+        "keep_until_end": {
+          "type": "boolean",
+          "description": "If true, remains visible until the end of the timeline."
+        },
+        "delay_ms": {
+          "type": "number",
+          "description": "Start offset in ms, added after resolving `wait_for` and the step clamp. Mainly useful in a `parallel` block to stagger actions against each other (staggered sequence animations). Also applies to an entire `parallel` action to delay the whole group.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "fade_in_ms": {
+          "type": "number",
+          "description": "Fade-in duration in ms. Default: 250 ms — or the element's appearance pause when that pause is shorter. The fade never fills the whole pause: a packet held at its origin to be read appears first, then stays legible for the rest of it. 0 = instant appearance.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "fade_out_ms": {
+          "type": "number",
+          "description": "Fade-out duration in ms. Default: 250. 0 = instant disappearance. No effect if `keep_until_end` is true.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "type": {
+          "type": "string",
+          "const": "rotate_subtree"
+        },
+        "object": {
+          "type": "string",
+          "description": "ID of the pivot node. A **left** rotation requires it to have a right child; a **right** rotation requires a left child."
+        },
+        "rotation": {
+          "type": "string",
+          "enum": [
+            "left",
+            "right"
+          ],
+          "description": "Rotation direction."
+        }
+      },
+      "required": [
+        "type",
+        "object",
+        "rotation"
+      ],
+      "additionalProperties": false,
+      "description": "Restructures a binary  {@link  TreeSpec }  with a left or right **tree rotation** around a pivot node, then animates the nodes gliding to their new places while the parent/child edges re-route. Only valid when `direction` is `'tree'`.\n\nA rotation preserves the in-order traversal of the tree, so horizontal positions (assigned by in-order rank) stay put — the motion is essentially the pivot and the moved subtree changing depth. The engine recomputes the layout AND the edges from the single tree model, so positions and links can never disagree. Successive `rotate_subtree` actions chain (each starts from the topology left by the previous one), which is how AVL double rotations (LR / RL) are expressed: two `rotate_subtree` in a row."
+    },
+    "FlowAction": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Action ID to refer to it (wait_for / keep_until)."
+        },
+        "description": {
+          "type": "string",
+          "description": "What this step means, in one sentence, for the player's text description (see  {@link  DataFlowSpec.description } ).\n\nThe description is generated from the action itself when this is omitted — \"GET /users travels from Browser to Web server\" — so an animation is described whether or not anyone writes anything. Provide it when the generated sentence would be accurate and still miss the point: the structure knows a packet moved, only you know it moved BECAUSE the cache missed.\n\nA `comment` action needs it least of all: its `text` is already your own narration, and it is used verbatim.",
+          "examples": [
+            "The cache misses, so the request continues to the database"
+          ]
+        },
+        "duration": {
+          "type": "number",
+          "description": "Animation duration in ms (default: 500, 1200 for loading).",
+          "minimum": 1,
+          "multipleOf": 1
+        },
+        "wait_for": {
+          "type": "string",
+          "description": "ID of another action: this action starts at the end of that one."
+        },
+        "keep_until": {
+          "type": "string",
+          "description": "ID of a future action: this action remains visible until its start."
+        },
+        "keep_until_next": {
+          "type": "boolean",
+          "description": "Remains visible until the start of the next root step. Default: false for `move`/`loading`, true for `arrow`/`comment`/`set_content`."
+        },
+        "keep_until_end": {
+          "type": "boolean",
+          "description": "If true, remains visible until the end of the timeline."
+        },
+        "delay_ms": {
+          "type": "number",
+          "description": "Start offset in ms, added after resolving `wait_for` and the step clamp. Mainly useful in a `parallel` block to stagger actions against each other (staggered sequence animations). Also applies to an entire `parallel` action to delay the whole group.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "fade_in_ms": {
+          "type": "number",
+          "description": "Fade-in duration in ms. Default: 250 ms — or the element's appearance pause when that pause is shorter. The fade never fills the whole pause: a packet held at its origin to be read appears first, then stays legible for the rest of it. 0 = instant appearance.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "fade_out_ms": {
+          "type": "number",
+          "description": "Fade-out duration in ms. Default: 250. 0 = instant disappearance. No effect if `keep_until_end` is true.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "type": {
+          "type": "string",
+          "const": "flow"
+        },
+        "route": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Ordered wire path the current follows: node ids or `\"node:pin\"` terminal references. A closed loop repeats the first id at the end.",
+          "examples": [
+            [
+              "battery:+",
+              "R1:a",
+              "R1:b",
+              "led:a",
+              "led:b",
+              "battery:-"
+            ]
+          ]
+        },
+        "reverse": {
+          "type": "boolean",
+          "description": "Reverses the travel direction (e.g. electron flow − → + instead of conventional current + → −). Default: false."
+        },
+        "loop": {
+          "type": "boolean",
+          "description": "Continuous circulation: the charges wrap around the `route` forever (until the clip ends). Set to `false` for a single pass. Default: true."
+        },
+        "count": {
+          "type": "number",
+          "description": "Number of charge dots spread along the route. Default: derived from the route length (roughly one per segment).",
+          "minimum": 1,
+          "multipleOf": 1
+        },
+        "color": {
+          "type": "string",
+          "description": "Charge color (predefined CSS name or hex). Default: the theme's accent.",
+          "examples": [
+            "#f59e0b"
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "route"
+      ],
+      "additionalProperties": false,
+      "description": "Animates an **electric current** circulating along a chain of wires — the signature animation of a schematic. A train of evenly-spaced charges rides the `route` (an ordered list of `node` / `node:pin` references forming a path, a branch or a closed loop), advancing one full lap per `duration` ms and, by default, looping continuously. Deterministic in `t` (the phase is a pure function of time), so it scrubs both ways like everything else.\n\nEach consecutive pair of the `route` must be joined by an actual wire (`Connection`) so the charges follow the real path. Use `keep_until_end` (or `keep_until_next`) to keep the current flowing across the whole step."
+    },
+    "ToggleAction": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Action ID to refer to it (wait_for / keep_until)."
+        },
+        "description": {
+          "type": "string",
+          "description": "What this step means, in one sentence, for the player's text description (see  {@link  DataFlowSpec.description } ).\n\nThe description is generated from the action itself when this is omitted — \"GET /users travels from Browser to Web server\" — so an animation is described whether or not anyone writes anything. Provide it when the generated sentence would be accurate and still miss the point: the structure knows a packet moved, only you know it moved BECAUSE the cache missed.\n\nA `comment` action needs it least of all: its `text` is already your own narration, and it is used verbatim.",
+          "examples": [
+            "The cache misses, so the request continues to the database"
+          ]
+        },
+        "duration": {
+          "type": "number",
+          "description": "Animation duration in ms (default: 500, 1200 for loading).",
+          "minimum": 1,
+          "multipleOf": 1
+        },
+        "wait_for": {
+          "type": "string",
+          "description": "ID of another action: this action starts at the end of that one."
+        },
+        "keep_until": {
+          "type": "string",
+          "description": "ID of a future action: this action remains visible until its start."
+        },
+        "keep_until_next": {
+          "type": "boolean",
+          "description": "Remains visible until the start of the next root step. Default: false for `move`/`loading`, true for `arrow`/`comment`/`set_content`."
+        },
+        "keep_until_end": {
+          "type": "boolean",
+          "description": "If true, remains visible until the end of the timeline."
+        },
+        "delay_ms": {
+          "type": "number",
+          "description": "Start offset in ms, added after resolving `wait_for` and the step clamp. Mainly useful in a `parallel` block to stagger actions against each other (staggered sequence animations). Also applies to an entire `parallel` action to delay the whole group.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "fade_in_ms": {
+          "type": "number",
+          "description": "Fade-in duration in ms. Default: 250 ms — or the element's appearance pause when that pause is shorter. The fade never fills the whole pause: a packet held at its origin to be read appears first, then stays legible for the rest of it. 0 = instant appearance.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "fade_out_ms": {
+          "type": "number",
+          "description": "Fade-out duration in ms. Default: 250. 0 = instant disappearance. No effect if `keep_until_end` is true.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "type": {
+          "type": "string",
+          "const": "toggle"
+        },
+        "object": {
+          "type": "string",
+          "description": "ID of the `switch` / `push_button` node to actuate."
+        },
+        "closed": {
+          "type": "boolean",
+          "description": "Target state: `true` = close the contact, `false` = open it."
+        }
+      },
+      "required": [
+        "type",
+        "object",
+        "closed"
+      ],
+      "additionalProperties": false,
+      "description": "Flips an electrical `switch` / `push_button` between open and closed, swinging the lever over `duration` ms. Like  {@link  SetVisibleAction }  the reached state persists until the end of the timeline (or the next contrary `toggle`), and it is scrubbable in both directions. Pair it with a `flow` that starts once the contact is closed to show the circuit energizing."
+    },
+    "WaitAction": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Action ID to refer to it (wait_for / keep_until)."
+        },
+        "description": {
+          "type": "string",
+          "description": "What this step means, in one sentence, for the player's text description (see  {@link  DataFlowSpec.description } ).\n\nThe description is generated from the action itself when this is omitted — \"GET /users travels from Browser to Web server\" — so an animation is described whether or not anyone writes anything. Provide it when the generated sentence would be accurate and still miss the point: the structure knows a packet moved, only you know it moved BECAUSE the cache missed.\n\nA `comment` action needs it least of all: its `text` is already your own narration, and it is used verbatim.",
+          "examples": [
+            "The cache misses, so the request continues to the database"
+          ]
+        },
+        "duration": {
+          "type": "number",
+          "description": "Animation duration in ms (default: 500, 1200 for loading).",
+          "minimum": 1,
+          "multipleOf": 1
+        },
+        "wait_for": {
+          "type": "string",
+          "description": "ID of another action: this action starts at the end of that one."
+        },
+        "keep_until": {
+          "type": "string",
+          "description": "ID of a future action: this action remains visible until its start."
+        },
+        "keep_until_next": {
+          "type": "boolean",
+          "description": "Remains visible until the start of the next root step. Default: false for `move`/`loading`, true for `arrow`/`comment`/`set_content`."
+        },
+        "keep_until_end": {
+          "type": "boolean",
+          "description": "If true, remains visible until the end of the timeline."
+        },
+        "delay_ms": {
+          "type": "number",
+          "description": "Start offset in ms, added after resolving `wait_for` and the step clamp. Mainly useful in a `parallel` block to stagger actions against each other (staggered sequence animations). Also applies to an entire `parallel` action to delay the whole group.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "fade_in_ms": {
+          "type": "number",
+          "description": "Fade-in duration in ms. Default: 250 ms — or the element's appearance pause when that pause is shorter. The fade never fills the whole pause: a packet held at its origin to be read appears first, then stays legible for the rest of it. 0 = instant appearance.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "fade_out_ms": {
+          "type": "number",
+          "description": "Fade-out duration in ms. Default: 250. 0 = instant disappearance. No effect if `keep_until_end` is true.",
+          "minimum": 0,
+          "multipleOf": 1
+        },
+        "type": {
+          "type": "string",
+          "const": "wait"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false,
+      "description": "Dead time: nothing happens for `duration` ms (default: 1000). Does not produce any clip; simply inserts a pause between two steps (elements maintained via `keep_until_next` remain displayed during the wait)."
+    }
+  },
+  "title": "DataFlowSpec"
+}

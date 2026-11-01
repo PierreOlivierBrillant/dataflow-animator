@@ -1,0 +1,273 @@
+{
+  "direction": "left-to-right",
+  "nodes": [
+    {
+      "id": "browser",
+      "type": "laptop",
+      "text": "Browser",
+      "icon": "chrome",
+      "lane": 1
+    },
+    {
+      "id": "web",
+      "type": "server",
+      "text": "Web Server",
+      "icon": "nginx",
+      "lane": 2
+    },
+    {
+      "id": "api",
+      "type": "server",
+      "text": "Web API",
+      "icon": "dotnet",
+      "lane": 2
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "text": "DB",
+      "icon": "postgres",
+      "align_with": "api",
+      "lane": 3
+    }
+  ],
+  "packets": [
+    {
+      "id": "getindex",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "html",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "200 OK\nContent-Type: text/html",
+        "body": {
+          "type": "text",
+          "value": "<div id=\"root\"></div>\n<script src=\"/app.js\"></script>",
+          "language": "html"
+        }
+      }
+    },
+    {
+      "id": "getjs",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /app.js"
+      }
+    },
+    {
+      "id": "js",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "200 OK\nContent-Type: application/javascript",
+        "body": {
+          "type": "text",
+          "value": "fetch(\"/api/products\")\n  .then(r => r.json())\n  .then(render);",
+          "language": "javascript"
+        }
+      }
+    },
+    {
+      "id": "apireq",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /api/products\nAccept: application/json"
+      }
+    },
+    {
+      "id": "sql",
+      "kind": "sql_request",
+      "request_content": "SELECT id, name FROM products"
+    },
+    {
+      "id": "rows",
+      "kind": "sql_response",
+      "response_content": {
+        "header": "3 rows",
+        "body": {
+          "type": "table",
+          "columns": [
+            "id",
+            "name"
+          ],
+          "rows_data": [
+            [
+              1,
+              "Keyboard"
+            ],
+            [
+              2,
+              "Mouse"
+            ],
+            [
+              3,
+              "Monitor"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "apires",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "200 OK\nContent-Type: application/json",
+        "body": {
+          "type": "text",
+          "value": "[\n  { \"id\": 1, \"name\": \"Keyboard\" },\n  { \"id\": 2, \"name\": \"Mouse\" },\n  { \"id\": 3, \"name\": \"Monitor\" }\n]",
+          "language": "json"
+        }
+      }
+    }
+  ],
+  "connections": [
+    {
+      "from": "browser",
+      "to": "web",
+      "style": "dotted"
+    },
+    {
+      "from": "browser",
+      "to": "api",
+      "style": "dotted"
+    },
+    {
+      "from": "api",
+      "to": "db",
+      "style": "dotted"
+    }
+  ],
+  "timeline": [
+    {
+      "type": "comment",
+      "object": "browser",
+      "text": "1. The browser asks the web server for the page"
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "move",
+          "object": "getindex",
+          "from": "browser",
+          "to": "web"
+        },
+        {
+          "type": "loading",
+          "object": "browser",
+          "keep_until": "shell"
+        }
+      ]
+    },
+    {
+      "type": "move",
+      "object": "html",
+      "from": "web",
+      "to": "browser"
+    },
+    {
+      "type": "set_content",
+      "id": "shell",
+      "object": "browser",
+      "content": {
+        "type": "text",
+        "url": "my.app/products",
+        "value": "📄 index.html rendered — <div id=\"root\"> still empty"
+      },
+      "keep_until": "waiting"
+    },
+    {
+      "type": "move",
+      "object": "getjs",
+      "from": "browser",
+      "to": "web"
+    },
+    {
+      "type": "move",
+      "object": "js",
+      "from": "web",
+      "to": "browser"
+    },
+    {
+      "type": "comment",
+      "object": "browser",
+      "text": "2. The shell is displayed but empty: the script calls the API"
+    },
+    {
+      "type": "set_content",
+      "id": "waiting",
+      "object": "browser",
+      "content": {
+        "type": "text",
+        "url": "my.app/products",
+        "value": "⚛️ SPA running · ⏳ loading… ▭▭▭▭▭ ▭▭▭"
+      },
+      "keep_until": "render"
+    },
+    {
+      "type": "move",
+      "object": "apireq",
+      "from": "browser",
+      "to": "api"
+    },
+    {
+      "type": "loading",
+      "object": "api",
+      "duration": 400
+    },
+    {
+      "type": "move",
+      "object": "sql",
+      "from": "api",
+      "to": "db"
+    },
+    {
+      "type": "loading",
+      "id": "dbwork",
+      "object": "db",
+      "duration": 600
+    },
+    {
+      "type": "move",
+      "object": "rows",
+      "from": "db",
+      "to": "api",
+      "wait_for": "dbwork"
+    },
+    {
+      "type": "move",
+      "object": "apires",
+      "from": "api",
+      "to": "browser"
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_content",
+          "id": "render",
+          "object": "browser",
+          "keep_until_end": true,
+          "content": {
+            "type": "text",
+            "url": "my.app/products",
+            "value": "✅ 3 products: Keyboard · Mouse · Monitor"
+          }
+        },
+        {
+          "type": "comment",
+          "object": "browser",
+          "text": "3. The JSON becomes DOM: the products are displayed",
+          "keep_until_end": true
+        }
+      ]
+    },
+    {
+      "type": "wait",
+      "delay_ms": 1000
+    }
+  ]
+}

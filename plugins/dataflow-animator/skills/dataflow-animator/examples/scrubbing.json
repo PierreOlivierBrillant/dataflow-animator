@@ -1,0 +1,654 @@
+{
+  "direction": "left-to-right",
+  "nodes": [
+    {
+      "id": "bot0",
+      "type": "desktop",
+      "text": "Bot",
+      "lane": 1
+    },
+    {
+      "id": "bot1",
+      "type": "desktop",
+      "text": "Bot",
+      "lane": 1
+    },
+    {
+      "id": "bot2",
+      "type": "desktop",
+      "text": "Bot",
+      "lane": 1
+    },
+    {
+      "id": "bot3",
+      "type": "desktop",
+      "text": "Bot",
+      "lane": 1
+    },
+    {
+      "id": "user",
+      "type": "user",
+      "text": "Legitimate user",
+      "lane": 1
+    },
+    {
+      "id": "scrub",
+      "type": "cloud",
+      "text": "🛡️ Scrubbing center",
+      "lane": 2
+    },
+    {
+      "id": "origin",
+      "type": "server",
+      "text": "Origin server",
+      "icon": "node",
+      "lane": 3
+    }
+  ],
+  "connections": [
+    {
+      "from": "bot0",
+      "to": "scrub",
+      "style": "dotted"
+    },
+    {
+      "from": "bot1",
+      "to": "scrub",
+      "style": "dotted"
+    },
+    {
+      "from": "bot2",
+      "to": "scrub",
+      "style": "dotted"
+    },
+    {
+      "from": "bot3",
+      "to": "scrub",
+      "style": "dotted"
+    },
+    {
+      "from": "user",
+      "to": "scrub",
+      "style": "dotted",
+      "arrow_head": "both"
+    },
+    {
+      "from": "scrub",
+      "to": "origin",
+      "style": "dotted",
+      "arrow_head": "both"
+    }
+  ],
+  "packets": [
+    {
+      "id": "bot0-g0",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot0-g1",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot0-g2",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot0-g3",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot0-g4",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot0-g5",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot0-g6",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot1-g0",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot1-g1",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot1-g2",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot1-g3",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot1-g4",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot1-g5",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot1-g6",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot2-g0",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot2-g1",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot2-g2",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot2-g3",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot2-g4",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot2-g5",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot2-g6",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot3-g0",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot3-g1",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot3-g2",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot3-g3",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot3-g4",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot3-g5",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "bot3-g6",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /"
+      }
+    },
+    {
+      "id": "legit",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /home"
+      }
+    },
+    {
+      "id": "fwd",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /home"
+      }
+    },
+    {
+      "id": "resp",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "200 OK"
+      }
+    },
+    {
+      "id": "resp2",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "200 OK"
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "type": "comment",
+      "text": "All traffic is routed through a scrubbing center: a high-capacity edge that absorbs the flood and filters out malicious requests before the origin."
+    },
+    {
+      "type": "comment",
+      "text": "The botnet flood and one legitimate request reach the scrubber together — convergence of thousands of sources."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "move",
+          "object": "bot0-g0",
+          "from": "bot0",
+          "to": "scrub",
+          "delay_ms": 0,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot0-g1",
+          "from": "bot0",
+          "to": "scrub",
+          "delay_ms": 110,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot0-g2",
+          "from": "bot0",
+          "to": "scrub",
+          "delay_ms": 220,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot0-g3",
+          "from": "bot0",
+          "to": "scrub",
+          "delay_ms": 330,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot0-g4",
+          "from": "bot0",
+          "to": "scrub",
+          "delay_ms": 440,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot0-g5",
+          "from": "bot0",
+          "to": "scrub",
+          "delay_ms": 550,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot0-g6",
+          "from": "bot0",
+          "to": "scrub",
+          "delay_ms": 660,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot1-g0",
+          "from": "bot1",
+          "to": "scrub",
+          "delay_ms": 60,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot1-g1",
+          "from": "bot1",
+          "to": "scrub",
+          "delay_ms": 170,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot1-g2",
+          "from": "bot1",
+          "to": "scrub",
+          "delay_ms": 280,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot1-g3",
+          "from": "bot1",
+          "to": "scrub",
+          "delay_ms": 390,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot1-g4",
+          "from": "bot1",
+          "to": "scrub",
+          "delay_ms": 500,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot1-g5",
+          "from": "bot1",
+          "to": "scrub",
+          "delay_ms": 610,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot1-g6",
+          "from": "bot1",
+          "to": "scrub",
+          "delay_ms": 720,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot2-g0",
+          "from": "bot2",
+          "to": "scrub",
+          "delay_ms": 120,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot2-g1",
+          "from": "bot2",
+          "to": "scrub",
+          "delay_ms": 230,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot2-g2",
+          "from": "bot2",
+          "to": "scrub",
+          "delay_ms": 340,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot2-g3",
+          "from": "bot2",
+          "to": "scrub",
+          "delay_ms": 450,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot2-g4",
+          "from": "bot2",
+          "to": "scrub",
+          "delay_ms": 560,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot2-g5",
+          "from": "bot2",
+          "to": "scrub",
+          "delay_ms": 670,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot2-g6",
+          "from": "bot2",
+          "to": "scrub",
+          "delay_ms": 780,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot3-g0",
+          "from": "bot3",
+          "to": "scrub",
+          "delay_ms": 180,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot3-g1",
+          "from": "bot3",
+          "to": "scrub",
+          "delay_ms": 290,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot3-g2",
+          "from": "bot3",
+          "to": "scrub",
+          "delay_ms": 400,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot3-g3",
+          "from": "bot3",
+          "to": "scrub",
+          "delay_ms": 510,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot3-g4",
+          "from": "bot3",
+          "to": "scrub",
+          "delay_ms": 620,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot3-g5",
+          "from": "bot3",
+          "to": "scrub",
+          "delay_ms": 730,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "bot3-g6",
+          "from": "bot3",
+          "to": "scrub",
+          "delay_ms": 840,
+          "fade_in_ms": 0,
+          "fade_out_ms": 120
+        },
+        {
+          "type": "move",
+          "object": "legit",
+          "from": "user",
+          "to": "scrub",
+          "delay_ms": 700,
+          "fade_out_ms": 0,
+          "keep_until": "forward"
+        },
+        {
+          "type": "loading",
+          "object": "scrub",
+          "keep_until": "filtering"
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "object": "scrub",
+      "text": "The scrubber absorbs the volume and drops the bot traffic (behavioral analysis, challenges); only the clean request survives."
+    },
+    {
+      "id": "filtering",
+      "type": "set_content",
+      "object": "scrub",
+      "content": {
+        "type": "text",
+        "value": "🛡️ filtering\nbots dropped"
+      },
+      "keep_until_end": true
+    },
+    {
+      "type": "comment",
+      "object": "origin",
+      "text": "Only the legitimate, scrubbed traffic is forwarded to the origin."
+    },
+    {
+      "id": "forward",
+      "type": "move",
+      "object": "fwd",
+      "from": "scrub",
+      "to": "origin"
+    },
+    {
+      "type": "loading",
+      "id": "originwork",
+      "object": "origin",
+      "duration": 600
+    },
+    {
+      "type": "set_content",
+      "object": "origin",
+      "content": {
+        "type": "text",
+        "value": "🟢 OK"
+      },
+      "keep_until_end": true,
+      "wait_for": "originwork"
+    },
+    {
+      "type": "move",
+      "object": "resp",
+      "from": "origin",
+      "to": "scrub",
+      "wait_for": "originwork"
+    },
+    {
+      "type": "move",
+      "object": "resp2",
+      "from": "scrub",
+      "to": "user"
+    },
+    {
+      "type": "comment",
+      "object": "user",
+      "text": "The origin only ever sees clean traffic: it stays up, the user is served."
+    },
+    {
+      "type": "comment",
+      "text": "Distributed edge capacity (Anycast) absorbs the volume, and filtering drops the bots: the origin never faces the attack. This is how managed DDoS protection works."
+    }
+  ]
+}

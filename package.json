@@ -21,7 +21,9 @@
     "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,mdx,css}\"",
     "deadcode": "knip",
     "check:schema": "npm run check:schema -w @dataflow-animator/core",
-    "check:subicons": "npm run check:subicons -w @dataflow-animator/core"
+    "check:subicons": "npm run check:subicons -w @dataflow-animator/core",
+    "check:claude-plugin": "npm run check:claude-plugin -w @dataflow-animator/docs",
+    "generate:claude-plugin": "npm run generate:claude-plugin -w @dataflow-animator/docs"
   },
   "devDependencies": {
     "knip": "^6.16.1",

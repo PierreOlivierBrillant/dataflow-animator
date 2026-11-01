@@ -1,0 +1,224 @@
+{
+  "direction": "tree",
+  "tree": {
+    "root": "40",
+    "children": {
+      "10": {
+        "left": "5"
+      },
+      "20": {
+        "left": "10"
+      },
+      "40": {
+        "left": "20",
+        "right": "60"
+      },
+      "60": {
+        "right": "70"
+      }
+    }
+  },
+  "nodes": [
+    {
+      "id": "40",
+      "type": "circle",
+      "body": "40",
+      "background_color": "#1f2937",
+      "text_color": "white"
+    },
+    {
+      "id": "20",
+      "type": "circle",
+      "body": "20",
+      "background_color": "#1f2937",
+      "text_color": "white"
+    },
+    {
+      "id": "60",
+      "type": "circle",
+      "body": "60",
+      "background_color": "#1f2937",
+      "text_color": "white"
+    },
+    {
+      "id": "10",
+      "type": "circle",
+      "body": "10",
+      "background_color": "crimson",
+      "text_color": "white"
+    },
+    {
+      "id": "70",
+      "type": "circle",
+      "body": "70",
+      "background_color": "crimson",
+      "text_color": "white"
+    },
+    {
+      "id": "5",
+      "type": "circle",
+      "body": "5",
+      "background_color": "crimson",
+      "text_color": "white",
+      "visible": false
+    }
+  ],
+  "packets": [
+    {
+      "id": "k",
+      "kind": "subicon",
+      "icon": "5"
+    }
+  ],
+  "timeline": [
+    {
+      "type": "comment",
+      "text": "A valid red-black tree. We are about to insert a key on its left side."
+    },
+    {
+      "type": "comment",
+      "object": "40",
+      "text": "Insert the key 5 (red), walking it down from the root."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "move",
+          "object": "k",
+          "from": "40",
+          "to": "20",
+          "duration": 900
+        },
+        {
+          "type": "comment",
+          "object": "40",
+          "text": "5 < 40 → go LEFT",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "move",
+          "object": "k",
+          "from": "20",
+          "to": "10",
+          "duration": 900
+        },
+        {
+          "type": "comment",
+          "object": "20",
+          "text": "5 < 20 → go LEFT",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "object": "10",
+      "text": "5 < 10 → 10’s left child is empty: this is the spot"
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_visible",
+          "object": "5",
+          "visible": true,
+          "duration": 500
+        },
+        {
+          "type": "comment",
+          "object": "10",
+          "text": "5 is placed at the empty spot, in red…",
+          "duration": 1500
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "object": "5",
+      "text": "…then linked to its parent 10."
+    },
+    {
+      "type": "comment",
+      "object": "5",
+      "text": "Red-red violation: 5 and its parent 10 are both red."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "highlight",
+          "object": "20",
+          "duration": 2400
+        },
+        {
+          "type": "comment",
+          "object": "20",
+          "text": "The UNCLE (10’s sibling) is BLACK — here it is absent. A black uncle means recoloring is NOT enough: we must ROTATE.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "object": "10",
+      "text": "It is the left-left case: a right rotation around the grandparent 20. Watch who moves where."
+    },
+    {
+      "type": "comment",
+      "object": "10",
+      "text": "1) 10, the LEFT child of 20, moves UP to take 20’s place."
+    },
+    {
+      "type": "comment",
+      "object": "20",
+      "text": "2) 20 moves DOWN and becomes the RIGHT child of 10."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "rotate_subtree",
+          "object": "20",
+          "rotation": "right"
+        },
+        {
+          "type": "comment",
+          "text": "The nodes glide into place.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_color",
+          "object": "10",
+          "background_color": "#1f2937"
+        },
+        {
+          "type": "set_color",
+          "object": "20",
+          "background_color": "crimson"
+        },
+        {
+          "type": "comment",
+          "text": "Finally we recolor: 10 becomes black, 20 becomes red.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "object": "10",
+      "text": "Valid red-black tree ✓ — 10 is black with two red children.",
+      "keep_until_end": true
+    }
+  ]
+}

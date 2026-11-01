@@ -1,0 +1,221 @@
+{
+  "direction": "left-to-right",
+  "nodes": [
+    {
+      "id": "alice",
+      "type": "alice",
+      "text": "Alice",
+      "lane": 1
+    },
+    {
+      "id": "eve",
+      "type": "eve",
+      "text": "Eve (on the wire)",
+      "lane": 2
+    },
+    {
+      "id": "bob",
+      "type": "bob",
+      "text": "Bob",
+      "lane": 3
+    }
+  ],
+  "connections": [
+    {
+      "from": "alice",
+      "to": "bob",
+      "style": "dashed",
+      "arrow_head": "both",
+      "text": "public channel (eavesdropped)"
+    }
+  ],
+  "packets": [
+    {
+      "id": "pubA",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "A = gᵃ mod p",
+        "body": {
+          "type": "text",
+          "value": "public value (Alice)"
+        }
+      }
+    },
+    {
+      "id": "pubB",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "B = gᵇ mod p",
+        "body": {
+          "type": "text",
+          "value": "public value (Bob)"
+        }
+      }
+    },
+    {
+      "id": "cipher",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "🔒 encrypted message",
+        "body": {
+          "type": "text",
+          "value": "Vm0wd2QyUXlVWGxW…"
+        }
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "type": "comment",
+      "text": "Diffie-Hellman: agreeing on a common secret key, over a channel that anyone can listen to."
+    },
+    {
+      "type": "comment",
+      "object": "alice",
+      "text": "Alice picks a secret a, then computes her public value A = gᵃ mod p"
+    },
+    {
+      "type": "set_content",
+      "id": "a_pub",
+      "object": "alice",
+      "content": {
+        "type": "code",
+        "language": "python",
+        "value": "a = 6            # secret, never transmitted\nA = (g**a) % p   # public"
+      },
+      "keep_until": "a_key"
+    },
+    {
+      "type": "move",
+      "object": "pubA",
+      "from": "alice",
+      "to": "bob"
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "highlight",
+          "object": "eve"
+        },
+        {
+          "type": "comment",
+          "object": "eve",
+          "text": "Eve notes A as it passes... but A alone teaches her nothing."
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "object": "bob",
+      "text": "Bob picks his secret b, computes B = gᵇ mod p and sends it back"
+    },
+    {
+      "type": "set_content",
+      "id": "b_pub",
+      "object": "bob",
+      "content": {
+        "type": "code",
+        "language": "python",
+        "value": "b = 15           # secret, never transmitted\nB = (g**b) % p   # public"
+      },
+      "keep_until": "b_key"
+    },
+    {
+      "type": "move",
+      "object": "pubB",
+      "from": "bob",
+      "to": "alice"
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "highlight",
+          "object": "eve"
+        },
+        {
+          "type": "comment",
+          "object": "eve",
+          "text": "Eve now knows A and B — but still neither a nor b."
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "text": "Each raises the received value to their own secret: K = Bᵃ = Aᵇ mod p. The same key, without ever transmitting it!"
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_content",
+          "id": "a_key",
+          "object": "alice",
+          "content": {
+            "type": "code",
+            "language": "python",
+            "value": "K = (B**a) % p   # shared key 🔑"
+          },
+          "keep_until_end": true
+        },
+        {
+          "type": "set_content",
+          "id": "b_key",
+          "object": "bob",
+          "content": {
+            "type": "code",
+            "language": "python",
+            "value": "K = (A**b) % p   # shared key 🔑"
+          },
+          "keep_until": "b_msg"
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "object": "alice",
+      "text": "Alice encrypts her message with K and sends it"
+    },
+    {
+      "type": "move",
+      "object": "cipher",
+      "from": "alice",
+      "to": "bob"
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "highlight",
+          "object": "eve"
+        },
+        {
+          "type": "comment",
+          "object": "eve",
+          "text": "Eve only captures an encrypted block: unreadable without K 🔒"
+        }
+      ]
+    },
+    {
+      "type": "set_content",
+      "id": "b_msg",
+      "object": "bob",
+      "content": {
+        "type": "text",
+        "url": "decrypted message",
+        "value": "Hi Bob 👋"
+      },
+      "keep_until_end": true
+    },
+    {
+      "type": "comment",
+      "object": "bob",
+      "text": "Bob decrypts with K and reads the plaintext message ✅"
+    },
+    {
+      "type": "comment",
+      "text": "Recovering the secret from A and B (the \"discrete logarithm\") is computationally infeasible in practice: Eve remains in the dark."
+    }
+  ]
+}

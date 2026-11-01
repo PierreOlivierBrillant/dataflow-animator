@@ -1,0 +1,211 @@
+{
+  "direction": "left-to-right",
+  "nodes": [
+    {
+      "id": "client",
+      "type": "users",
+      "text": "Clients",
+      "lane": 1
+    },
+    {
+      "id": "lb",
+      "type": "server",
+      "text": "Load Balancer",
+      "icon": "nginx",
+      "lane": 2
+    },
+    {
+      "id": "b1",
+      "type": "server",
+      "text": "Backend 1",
+      "icon": "node",
+      "lane": 3
+    },
+    {
+      "id": "b2",
+      "type": "server",
+      "text": "Backend 2",
+      "icon": "node",
+      "lane": 3
+    },
+    {
+      "id": "b3",
+      "type": "server",
+      "text": "Backend 3",
+      "icon": "node",
+      "lane": 3
+    }
+  ],
+  "connections": [
+    {
+      "from": "client",
+      "to": "lb",
+      "style": "dotted"
+    },
+    {
+      "from": "lb",
+      "to": "b1",
+      "style": "dotted"
+    },
+    {
+      "from": "lb",
+      "to": "b2",
+      "style": "dotted"
+    },
+    {
+      "from": "lb",
+      "to": "b3",
+      "style": "dotted"
+    }
+  ],
+  "packets": [
+    {
+      "id": "rq1",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /a"
+      }
+    },
+    {
+      "id": "rs1",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "200 OK"
+      }
+    },
+    {
+      "id": "rq2",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /b"
+      }
+    },
+    {
+      "id": "rs2",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "200 OK"
+      }
+    },
+    {
+      "id": "rq3",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET /c"
+      }
+    },
+    {
+      "id": "rs3",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "200 OK"
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "type": "comment",
+      "text": "The load balancer distributes requests in turn, to balance the load."
+    },
+    {
+      "type": "comment",
+      "object": "lb",
+      "text": "Request 1 → Backend 1"
+    },
+    {
+      "type": "move",
+      "object": "rq1",
+      "from": "client",
+      "to": "lb",
+      "duration": 1100
+    },
+    {
+      "type": "move",
+      "object": "rq1",
+      "from": "lb",
+      "to": "b1",
+      "duration": 1100
+    },
+    {
+      "type": "loading",
+      "id": "w1",
+      "object": "b1",
+      "duration": 800
+    },
+    {
+      "type": "move",
+      "object": "rs1",
+      "from": "b1",
+      "to": "client",
+      "wait_for": "w1"
+    },
+    {
+      "type": "comment",
+      "object": "lb",
+      "text": "Request 2 → Backend 2"
+    },
+    {
+      "type": "move",
+      "object": "rq2",
+      "from": "client",
+      "to": "lb",
+      "duration": 1100
+    },
+    {
+      "type": "move",
+      "object": "rq2",
+      "from": "lb",
+      "to": "b2",
+      "duration": 1100
+    },
+    {
+      "type": "loading",
+      "id": "w2",
+      "object": "b2",
+      "duration": 800
+    },
+    {
+      "type": "move",
+      "object": "rs2",
+      "from": "b2",
+      "to": "client",
+      "wait_for": "w2"
+    },
+    {
+      "type": "comment",
+      "object": "lb",
+      "text": "Request 3 → Backend 3"
+    },
+    {
+      "type": "move",
+      "object": "rq3",
+      "from": "client",
+      "to": "lb",
+      "duration": 1100
+    },
+    {
+      "type": "move",
+      "object": "rq3",
+      "from": "lb",
+      "to": "b3",
+      "duration": 1100
+    },
+    {
+      "type": "loading",
+      "id": "w3",
+      "object": "b3",
+      "duration": 800
+    },
+    {
+      "type": "move",
+      "object": "rs3",
+      "from": "b3",
+      "to": "client",
+      "wait_for": "w3"
+    },
+    {
+      "type": "comment",
+      "text": "The 4th request would go back to Backend 1: the round-robin loops."
+    }
+  ]
+}

@@ -1,0 +1,309 @@
+{
+  "direction": "graph",
+  "nodes": [
+    {
+      "id": "A",
+      "type": "circle",
+      "body": "A"
+    },
+    {
+      "id": "B",
+      "type": "circle",
+      "body": "B"
+    },
+    {
+      "id": "C",
+      "type": "circle",
+      "body": "C"
+    },
+    {
+      "id": "D",
+      "type": "circle",
+      "body": "D"
+    },
+    {
+      "id": "E",
+      "type": "circle",
+      "body": "E"
+    },
+    {
+      "id": "F",
+      "type": "circle",
+      "body": "F"
+    }
+  ],
+  "connections": [
+    {
+      "id": "ab",
+      "from": "A",
+      "to": "B",
+      "text": "1",
+      "path": "straight",
+      "arrow_head": "none"
+    },
+    {
+      "id": "bc",
+      "from": "B",
+      "to": "C",
+      "text": "2",
+      "path": "straight",
+      "arrow_head": "none"
+    },
+    {
+      "id": "ac",
+      "from": "A",
+      "to": "C",
+      "text": "3",
+      "path": "straight",
+      "arrow_head": "none"
+    },
+    {
+      "id": "cd",
+      "from": "C",
+      "to": "D",
+      "text": "4",
+      "path": "straight",
+      "arrow_head": "none"
+    },
+    {
+      "id": "de",
+      "from": "D",
+      "to": "E",
+      "text": "5",
+      "path": "straight",
+      "arrow_head": "none"
+    },
+    {
+      "id": "be",
+      "from": "B",
+      "to": "E",
+      "text": "6",
+      "path": "straight",
+      "arrow_head": "none"
+    },
+    {
+      "id": "ef",
+      "from": "E",
+      "to": "F",
+      "text": "7",
+      "path": "straight",
+      "arrow_head": "none"
+    },
+    {
+      "id": "cf",
+      "from": "C",
+      "to": "F",
+      "text": "8",
+      "path": "straight",
+      "arrow_head": "none"
+    }
+  ],
+  "packets": [],
+  "timeline": [
+    {
+      "type": "comment",
+      "text": "Kruskal’s minimum spanning tree: sort the edges by weight, then take each in turn — ADD it if its ends are in different trees, SKIP it if they are already connected (that would close a cycle)."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_color",
+          "object": "ab",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "A",
+          "background_color": "#0d9488",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "B",
+          "background_color": "#0d9488",
+          "text_color": "white"
+        },
+        {
+          "type": "comment",
+          "object": "A",
+          "text": "1 — A–B links two lone nodes. Add it.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_color",
+          "object": "bc",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "C",
+          "background_color": "#0d9488",
+          "text_color": "white"
+        },
+        {
+          "type": "comment",
+          "object": "C",
+          "text": "2 — B–C brings in C. Add it.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_color",
+          "object": "ac",
+          "color": "#dc2626"
+        },
+        {
+          "type": "highlight",
+          "object": "ab"
+        },
+        {
+          "type": "highlight",
+          "object": "bc"
+        },
+        {
+          "type": "comment",
+          "object": "A",
+          "text": "3 — A–C: but A and C are already joined through A–B–C (highlighted). Adding it would close a cycle → skip.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_color",
+          "object": "cd",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "D",
+          "background_color": "#0d9488",
+          "text_color": "white"
+        },
+        {
+          "type": "comment",
+          "object": "D",
+          "text": "4 — C–D brings in D. Add it.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_color",
+          "object": "de",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "E",
+          "background_color": "#0d9488",
+          "text_color": "white"
+        },
+        {
+          "type": "comment",
+          "object": "E",
+          "text": "5 — D–E brings in E. Add it.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_color",
+          "object": "be",
+          "color": "#dc2626"
+        },
+        {
+          "type": "highlight",
+          "object": "bc"
+        },
+        {
+          "type": "highlight",
+          "object": "cd"
+        },
+        {
+          "type": "highlight",
+          "object": "de"
+        },
+        {
+          "type": "comment",
+          "object": "E",
+          "text": "6 — B–E: B and E are already connected via B–C–D–E (highlighted) → cycle → skip.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_color",
+          "object": "ef",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "F",
+          "background_color": "#0d9488",
+          "text_color": "white"
+        },
+        {
+          "type": "comment",
+          "object": "F",
+          "text": "7 — E–F brings in the last node F. Five edges now join all six nodes: the tree is complete.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_color",
+          "object": "cf",
+          "color": "#dc2626"
+        },
+        {
+          "type": "highlight",
+          "object": "cd"
+        },
+        {
+          "type": "highlight",
+          "object": "de"
+        },
+        {
+          "type": "highlight",
+          "object": "ef"
+        },
+        {
+          "type": "comment",
+          "object": "F",
+          "text": "8 — C–F would also close a cycle (C–D–E–F) → skip. Kruskal stops once n−1 = 5 edges are chosen.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "text": "Minimum spanning tree = A–B, B–C, C–D, D–E, E–F, total weight 1+2+4+5+7 = 19.",
+      "keep_until_end": true
+    }
+  ]
+}

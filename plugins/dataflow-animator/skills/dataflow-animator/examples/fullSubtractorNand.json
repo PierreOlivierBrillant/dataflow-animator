@@ -1,0 +1,1033 @@
+{
+  "direction": "circuit",
+  "nodes": [
+    {
+      "id": "A",
+      "type": "signal",
+      "text": "A"
+    },
+    {
+      "id": "B",
+      "type": "signal",
+      "text": "B"
+    },
+    {
+      "id": "Bin",
+      "type": "signal",
+      "text": "$B_{in}$"
+    },
+    {
+      "id": "x1",
+      "type": "nand_gate",
+      "text": "NAND"
+    },
+    {
+      "id": "x2",
+      "type": "nand_gate",
+      "text": "NAND"
+    },
+    {
+      "id": "x3",
+      "type": "nand_gate",
+      "text": "NAND"
+    },
+    {
+      "id": "ab",
+      "type": "nand_gate",
+      "text": "NAND"
+    },
+    {
+      "id": "x5",
+      "type": "nand_gate",
+      "text": "NAND"
+    },
+    {
+      "id": "x6",
+      "type": "nand_gate",
+      "text": "NAND"
+    },
+    {
+      "id": "x7",
+      "type": "nand_gate",
+      "text": "NAND"
+    },
+    {
+      "id": "nDiff",
+      "type": "nand_gate",
+      "text": "NAND"
+    },
+    {
+      "id": "nBout",
+      "type": "nand_gate",
+      "text": "NAND"
+    },
+    {
+      "id": "diffOut",
+      "type": "signal",
+      "text": "Diff"
+    },
+    {
+      "id": "boutOut",
+      "type": "signal",
+      "text": "$B_{out}$"
+    }
+  ],
+  "connections": [
+    {
+      "id": "w0",
+      "from": "A",
+      "to": "x1:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w1",
+      "from": "B",
+      "to": "x1:b",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w2",
+      "from": "A",
+      "to": "x2:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w3",
+      "from": "x1:y",
+      "to": "x2:b",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w4",
+      "from": "x1:y",
+      "to": "x3:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w5",
+      "from": "B",
+      "to": "x3:b",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w6",
+      "from": "x2:y",
+      "to": "ab:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w7",
+      "from": "x3:y",
+      "to": "ab:b",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w8",
+      "from": "ab:y",
+      "to": "x5:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w9",
+      "from": "Bin",
+      "to": "x5:b",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w10",
+      "from": "ab:y",
+      "to": "x6:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w11",
+      "from": "x5:y",
+      "to": "x6:b",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w12",
+      "from": "x5:y",
+      "to": "x7:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w13",
+      "from": "Bin",
+      "to": "x7:b",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w14",
+      "from": "x6:y",
+      "to": "nDiff:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w15",
+      "from": "x7:y",
+      "to": "nDiff:b",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w16",
+      "from": "x3:y",
+      "to": "nBout:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w17",
+      "from": "x7:y",
+      "to": "nBout:b",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w18",
+      "from": "nDiff:y",
+      "to": "diffOut",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w19",
+      "from": "nBout:y",
+      "to": "boutOut",
+      "color": "#9aa4b2"
+    }
+  ],
+  "packets": [],
+  "timeline": [
+    {
+      "type": "comment",
+      "text": "A full subtractor computes A − B − Bin over three bits, into a Diff and a borrow-out. Nine NAND gates; green wires carry a 1 — trace where the borrow comes from."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "A",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "A",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "B",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "B",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "Bin",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "Bin",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "diffOut",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "diffOut",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "boutOut",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "boutOut",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "w0",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w1",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w2",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w3",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w4",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w5",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w6",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w7",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w8",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w9",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w10",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w11",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w12",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w13",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w14",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w15",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w16",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w17",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w18",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w19",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "comment",
+          "text": "0 − 0 − 0 = 0. Diff 0, Bout 0.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "A",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "A",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "B",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "B",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "Bin",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "Bin",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "diffOut",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "diffOut",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "boutOut",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "boutOut",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "w0",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w1",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w2",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w3",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w4",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w5",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w6",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w7",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w8",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w9",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w10",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w11",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w12",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w13",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w14",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w15",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w16",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w17",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w18",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w19",
+          "color": "#16a34a"
+        },
+        {
+          "type": "comment",
+          "text": "0 − 0 − 1 → we borrow: Diff 1, Bout 1.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "A",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "A",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "B",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "B",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "Bin",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "Bin",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "diffOut",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "diffOut",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "boutOut",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "boutOut",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "w0",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w1",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w2",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w3",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w4",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w5",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w6",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w7",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w8",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w9",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w10",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w11",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w12",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w13",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w14",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w15",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w16",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w17",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w18",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w19",
+          "color": "#16a34a"
+        },
+        {
+          "type": "comment",
+          "text": "0 − 1 − 0 → we borrow: Diff 1, Bout 1.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "A",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "A",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "B",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "B",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "Bin",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "Bin",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "diffOut",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "diffOut",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "boutOut",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "boutOut",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "w0",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w1",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w2",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w3",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w4",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w5",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w6",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w7",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w8",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w9",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w10",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w11",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w12",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w13",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w14",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w15",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w16",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w17",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w18",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w19",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "comment",
+          "text": "1 − 0 − 0 = 1. Diff 1, Bout 0. A clean subtraction.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "A",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "A",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "B",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "B",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "Bin",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "Bin",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "diffOut",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "diffOut",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "boutOut",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "boutOut",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "w0",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w1",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w2",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w3",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w4",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w5",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w6",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w7",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w8",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w9",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w10",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w11",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w12",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w13",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w14",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w15",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w16",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w17",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w18",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w19",
+          "color": "#16a34a"
+        },
+        {
+          "type": "comment",
+          "text": "1 − 1 − 1 → borrow again: Diff 1, Bout 1.",
+          "keep_until_end": true
+        }
+      ]
+    },
+    {
+      "type": "wait",
+      "duration": 2500
+    }
+  ]
+}

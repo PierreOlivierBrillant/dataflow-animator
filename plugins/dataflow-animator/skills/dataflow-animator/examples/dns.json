@@ -1,0 +1,198 @@
+{
+  "direction": "left-to-right",
+  "nodes": [
+    {
+      "id": "client",
+      "type": "laptop",
+      "text": "Browser",
+      "icon": "firefox",
+      "lane": 1
+    },
+    {
+      "id": "resolver",
+      "type": "server",
+      "text": "Recursive resolver",
+      "icon": "DNS",
+      "lane": 2
+    },
+    {
+      "id": "root",
+      "type": "server",
+      "text": "Root server \".\"",
+      "lane": 3
+    },
+    {
+      "id": "tld",
+      "type": "server",
+      "text": "TLD \".com\"",
+      "lane": 3
+    },
+    {
+      "id": "auth",
+      "type": "server",
+      "text": "Authoritative",
+      "lane": 3
+    }
+  ],
+  "packets": [
+    {
+      "id": "q",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "A? www.example.com"
+      }
+    },
+    {
+      "id": "qroot",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "A? www.example.com"
+      }
+    },
+    {
+      "id": "rroot",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "Go to TLD .com",
+        "body": {
+          "type": "text",
+          "value": "NS a.gtld-servers.net"
+        }
+      }
+    },
+    {
+      "id": "qtld",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "A? www.example.com"
+      }
+    },
+    {
+      "id": "rtld",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "Go to authoritative",
+        "body": {
+          "type": "text",
+          "value": "NS ns1.example.com"
+        }
+      }
+    },
+    {
+      "id": "qauth",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "A? www.example.com"
+      }
+    },
+    {
+      "id": "rauth",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "Authoritative response",
+        "body": {
+          "type": "text",
+          "value": "A 93.184.216.34"
+        }
+      }
+    },
+    {
+      "id": "answer",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "Response",
+        "body": {
+          "type": "text",
+          "value": "93.184.216.34 (TTL 3600)"
+        }
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "type": "comment",
+      "object": "client",
+      "text": "The browser does not know the IP address of www.example.com"
+    },
+    {
+      "type": "move",
+      "object": "q",
+      "from": "client",
+      "to": "resolver"
+    },
+    {
+      "type": "comment",
+      "object": "resolver",
+      "text": "1. The resolver asks a root server where to start"
+    },
+    {
+      "type": "move",
+      "object": "qroot",
+      "from": "resolver",
+      "to": "root"
+    },
+    {
+      "type": "move",
+      "object": "rroot",
+      "from": "root",
+      "to": "resolver"
+    },
+    {
+      "type": "comment",
+      "object": "resolver",
+      "text": "2. The root refers to the \".com\" TLD"
+    },
+    {
+      "type": "move",
+      "object": "qtld",
+      "from": "resolver",
+      "to": "tld"
+    },
+    {
+      "type": "move",
+      "object": "rtld",
+      "from": "tld",
+      "to": "resolver"
+    },
+    {
+      "type": "comment",
+      "object": "resolver",
+      "text": "3. The TLD refers to the domain's authoritative server"
+    },
+    {
+      "type": "move",
+      "object": "qauth",
+      "from": "resolver",
+      "to": "auth"
+    },
+    {
+      "type": "loading",
+      "id": "lookup",
+      "object": "auth",
+      "duration": 800
+    },
+    {
+      "type": "move",
+      "object": "rauth",
+      "from": "auth",
+      "to": "resolver",
+      "wait_for": "lookup"
+    },
+    {
+      "type": "comment",
+      "object": "resolver",
+      "text": "4. Authoritative response — the resolver caches it (TTL)"
+    },
+    {
+      "type": "move",
+      "object": "answer",
+      "from": "resolver",
+      "to": "client"
+    },
+    {
+      "type": "comment",
+      "object": "client",
+      "text": "IP resolved, the browser can connect ✅"
+    }
+  ]
+}

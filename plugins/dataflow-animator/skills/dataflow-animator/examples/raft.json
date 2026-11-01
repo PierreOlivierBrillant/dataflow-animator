@@ -1,0 +1,253 @@
+{
+  "direction": "circular",
+  "nodes": [
+    {
+      "id": "cand",
+      "type": "server",
+      "text": "Candidate (term 4)",
+      "icon": "go",
+      "main": true
+    },
+    {
+      "id": "f1",
+      "type": "server",
+      "text": "Follower",
+      "lane": 1
+    },
+    {
+      "id": "f2",
+      "type": "server",
+      "text": "Follower",
+      "lane": 2
+    },
+    {
+      "id": "f3",
+      "type": "server",
+      "text": "Follower",
+      "lane": 3
+    },
+    {
+      "id": "f4",
+      "type": "server",
+      "text": "Follower",
+      "lane": 4
+    }
+  ],
+  "packets": [
+    {
+      "id": "rv1",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "RequestVote",
+        "body": {
+          "type": "text",
+          "value": "term 4"
+        }
+      }
+    },
+    {
+      "id": "rv2",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "RequestVote",
+        "body": {
+          "type": "text",
+          "value": "term 4"
+        }
+      }
+    },
+    {
+      "id": "rv3",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "RequestVote",
+        "body": {
+          "type": "text",
+          "value": "term 4"
+        }
+      }
+    },
+    {
+      "id": "rv4",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "RequestVote",
+        "body": {
+          "type": "text",
+          "value": "term 4"
+        }
+      }
+    },
+    {
+      "id": "ack1",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "Vote ✅"
+      }
+    },
+    {
+      "id": "ack2",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "Vote ✅"
+      }
+    },
+    {
+      "id": "ack3",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "Vote ✅"
+      }
+    },
+    {
+      "id": "hb1",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "AppendEntries ♥"
+      }
+    },
+    {
+      "id": "hb2",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "AppendEntries ♥"
+      }
+    },
+    {
+      "id": "hb3",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "AppendEntries ♥"
+      }
+    },
+    {
+      "id": "hb4",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "AppendEntries ♥"
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "type": "comment",
+      "object": "cand",
+      "text": "No news from the leader: this node times out, becomes candidate and starts a new term (term 4)."
+    },
+    {
+      "type": "comment",
+      "object": "cand",
+      "text": "1. It requests votes from all followers in parallel"
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "move",
+          "object": "rv1",
+          "from": "cand",
+          "to": "f1"
+        },
+        {
+          "type": "move",
+          "object": "rv2",
+          "from": "cand",
+          "to": "f2"
+        },
+        {
+          "type": "move",
+          "object": "rv3",
+          "from": "cand",
+          "to": "f3"
+        },
+        {
+          "type": "move",
+          "object": "rv4",
+          "from": "cand",
+          "to": "f4"
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "object": "cand",
+      "text": "2. Three followers have not yet voted in this term: they grant their vote"
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "move",
+          "object": "ack1",
+          "from": "f1",
+          "to": "cand"
+        },
+        {
+          "type": "move",
+          "object": "ack2",
+          "from": "f2",
+          "to": "cand"
+        },
+        {
+          "type": "move",
+          "object": "ack3",
+          "from": "f3",
+          "to": "cand",
+          "delay_ms": 300
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "object": "cand",
+      "text": "3. Majority reached (3 votes + its own) → it becomes leader 👑"
+    },
+    {
+      "type": "set_content",
+      "object": "cand",
+      "content": {
+        "type": "text",
+        "value": "👑 LEADER — term 4"
+      },
+      "keep_until_end": true
+    },
+    {
+      "type": "comment",
+      "object": "cand",
+      "text": "4. The leader asserts its authority via regular heartbeats"
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "move",
+          "object": "hb1",
+          "from": "cand",
+          "to": "f1"
+        },
+        {
+          "type": "move",
+          "object": "hb2",
+          "from": "cand",
+          "to": "f2"
+        },
+        {
+          "type": "move",
+          "object": "hb3",
+          "from": "cand",
+          "to": "f3"
+        },
+        {
+          "type": "move",
+          "object": "hb4",
+          "from": "cand",
+          "to": "f4"
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "text": "As long as heartbeats arrive, no follower triggers an election. Consensus maintained."
+    }
+  ]
+}

@@ -1,0 +1,434 @@
+{
+  "direction": "graph",
+  "nodes": [
+    {
+      "id": "A",
+      "type": "circle",
+      "body": "A",
+      "icon": "∞"
+    },
+    {
+      "id": "B",
+      "type": "circle",
+      "body": "B",
+      "icon": "∞"
+    },
+    {
+      "id": "C",
+      "type": "circle",
+      "body": "C",
+      "icon": "∞"
+    },
+    {
+      "id": "D",
+      "type": "circle",
+      "body": "D",
+      "icon": "∞"
+    },
+    {
+      "id": "E",
+      "type": "circle",
+      "body": "E",
+      "icon": "∞"
+    },
+    {
+      "id": "F",
+      "type": "circle",
+      "body": "F",
+      "icon": "∞"
+    }
+  ],
+  "connections": [
+    {
+      "id": "ab",
+      "from": "A",
+      "to": "B",
+      "text": "4",
+      "path": "straight",
+      "arrow_head": "none"
+    },
+    {
+      "id": "ac",
+      "from": "A",
+      "to": "C",
+      "text": "2",
+      "path": "straight",
+      "arrow_head": "none"
+    },
+    {
+      "id": "bc",
+      "from": "B",
+      "to": "C",
+      "text": "1",
+      "path": "straight",
+      "arrow_head": "none"
+    },
+    {
+      "id": "bd",
+      "from": "B",
+      "to": "D",
+      "text": "5",
+      "path": "straight",
+      "arrow_head": "none"
+    },
+    {
+      "id": "cd",
+      "from": "C",
+      "to": "D",
+      "text": "8",
+      "path": "straight",
+      "arrow_head": "none"
+    },
+    {
+      "id": "ce",
+      "from": "C",
+      "to": "E",
+      "text": "10",
+      "path": "straight",
+      "arrow_head": "none"
+    },
+    {
+      "id": "de",
+      "from": "D",
+      "to": "E",
+      "text": "2",
+      "path": "straight",
+      "arrow_head": "none"
+    },
+    {
+      "id": "df",
+      "from": "D",
+      "to": "F",
+      "text": "6",
+      "path": "straight",
+      "arrow_head": "none"
+    },
+    {
+      "id": "ef",
+      "from": "E",
+      "to": "F",
+      "text": "3",
+      "path": "straight",
+      "arrow_head": "none"
+    }
+  ],
+  "packets": [],
+  "timeline": [
+    {
+      "type": "comment",
+      "text": "Dijkstra keeps a tentative distance on every node — the badge, ∞ at first. It repeatedly SETTLES the nearest unsettled node, then RELAXES its edges, lowering neighbours’ badges."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "A",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "A",
+          "background_color": "#0d9488",
+          "text_color": "white"
+        },
+        {
+          "type": "comment",
+          "object": "A",
+          "text": "A is the source: distance 0. Settle it.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "B",
+          "icon": "4"
+        },
+        {
+          "type": "set_color",
+          "object": "B",
+          "background_color": "#b45309",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "C",
+          "icon": "2"
+        },
+        {
+          "type": "set_color",
+          "object": "C",
+          "background_color": "#b45309",
+          "text_color": "white"
+        },
+        {
+          "type": "comment",
+          "object": "A",
+          "text": "Relax A’s edges: B ← 4 and C ← 2 get their first tentative badges.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_color",
+          "object": "C",
+          "background_color": "#0d9488",
+          "text_color": "white"
+        },
+        {
+          "type": "comment",
+          "object": "C",
+          "text": "The nearest unsettled node is C = 2 → settle it.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "B",
+          "icon": "3"
+        },
+        {
+          "type": "set_icon",
+          "object": "D",
+          "icon": "10"
+        },
+        {
+          "type": "set_color",
+          "object": "D",
+          "background_color": "#b45309",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "E",
+          "icon": "12"
+        },
+        {
+          "type": "set_color",
+          "object": "E",
+          "background_color": "#b45309",
+          "text_color": "white"
+        },
+        {
+          "type": "comment",
+          "object": "C",
+          "text": "Relax C: B improves 4 → 3 (2 + 1), and D = 10, E = 12 appear.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_color",
+          "object": "B",
+          "background_color": "#0d9488",
+          "text_color": "white"
+        },
+        {
+          "type": "comment",
+          "object": "B",
+          "text": "Nearest unsettled is now B = 3 → settle it.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "D",
+          "icon": "8"
+        },
+        {
+          "type": "comment",
+          "object": "D",
+          "text": "Relax B → D: 3 + 5 = 8 beats 10, so D drops to 8.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_color",
+          "object": "D",
+          "background_color": "#0d9488",
+          "text_color": "white"
+        },
+        {
+          "type": "comment",
+          "object": "D",
+          "text": "Nearest unsettled is D = 8 → settle it.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "E",
+          "icon": "10"
+        },
+        {
+          "type": "set_icon",
+          "object": "F",
+          "icon": "14"
+        },
+        {
+          "type": "set_color",
+          "object": "F",
+          "background_color": "#b45309",
+          "text_color": "white"
+        },
+        {
+          "type": "comment",
+          "object": "D",
+          "text": "Relax D: E improves 12 → 10, and the target F appears at 14.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_color",
+          "object": "E",
+          "background_color": "#0d9488",
+          "text_color": "white"
+        },
+        {
+          "type": "comment",
+          "object": "E",
+          "text": "Nearest unsettled is E = 10 → settle it.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "F",
+          "icon": "13"
+        },
+        {
+          "type": "comment",
+          "object": "F",
+          "text": "Relax E → F: 10 + 3 = 13 beats 14, so F drops to 13.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_color",
+          "object": "F",
+          "background_color": "#0d9488",
+          "text_color": "white"
+        },
+        {
+          "type": "comment",
+          "object": "F",
+          "text": "Only F is left, at 13 → settle it. The target’s distance is final.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_color",
+          "object": "A",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "C",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "B",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "D",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "E",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "F",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "ac",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "bc",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "bd",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "de",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "ef",
+          "color": "#16a34a"
+        },
+        {
+          "type": "comment",
+          "text": "Shortest path A→C→B→D→E→F = 13. Each badge is that node’s final shortest distance from A.",
+          "keep_until_end": true
+        }
+      ]
+    },
+    {
+      "type": "wait",
+      "duration": 1600
+    }
+  ]
+}

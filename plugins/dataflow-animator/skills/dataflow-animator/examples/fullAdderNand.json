@@ -1,0 +1,1033 @@
+{
+  "direction": "circuit",
+  "nodes": [
+    {
+      "id": "A",
+      "type": "signal",
+      "text": "A"
+    },
+    {
+      "id": "B",
+      "type": "signal",
+      "text": "B"
+    },
+    {
+      "id": "Cin",
+      "type": "signal",
+      "text": "$C_{in}$"
+    },
+    {
+      "id": "x1",
+      "type": "nand_gate",
+      "text": "NAND"
+    },
+    {
+      "id": "x2",
+      "type": "nand_gate",
+      "text": "NAND"
+    },
+    {
+      "id": "x3",
+      "type": "nand_gate",
+      "text": "NAND"
+    },
+    {
+      "id": "ab",
+      "type": "nand_gate",
+      "text": "NAND"
+    },
+    {
+      "id": "x5",
+      "type": "nand_gate",
+      "text": "NAND"
+    },
+    {
+      "id": "x6",
+      "type": "nand_gate",
+      "text": "NAND"
+    },
+    {
+      "id": "x7",
+      "type": "nand_gate",
+      "text": "NAND"
+    },
+    {
+      "id": "nSum",
+      "type": "nand_gate",
+      "text": "NAND"
+    },
+    {
+      "id": "nCout",
+      "type": "nand_gate",
+      "text": "NAND"
+    },
+    {
+      "id": "sumOut",
+      "type": "signal",
+      "text": "Sum"
+    },
+    {
+      "id": "coutOut",
+      "type": "signal",
+      "text": "$C_{out}$"
+    }
+  ],
+  "connections": [
+    {
+      "id": "w0",
+      "from": "A",
+      "to": "x1:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w1",
+      "from": "B",
+      "to": "x1:b",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w2",
+      "from": "A",
+      "to": "x2:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w3",
+      "from": "x1:y",
+      "to": "x2:b",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w4",
+      "from": "x1:y",
+      "to": "x3:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w5",
+      "from": "B",
+      "to": "x3:b",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w6",
+      "from": "x2:y",
+      "to": "ab:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w7",
+      "from": "x3:y",
+      "to": "ab:b",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w8",
+      "from": "ab:y",
+      "to": "x5:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w9",
+      "from": "Cin",
+      "to": "x5:b",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w10",
+      "from": "ab:y",
+      "to": "x6:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w11",
+      "from": "x5:y",
+      "to": "x6:b",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w12",
+      "from": "x5:y",
+      "to": "x7:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w13",
+      "from": "Cin",
+      "to": "x7:b",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w14",
+      "from": "x6:y",
+      "to": "nSum:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w15",
+      "from": "x7:y",
+      "to": "nSum:b",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w16",
+      "from": "x5:y",
+      "to": "nCout:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w17",
+      "from": "x1:y",
+      "to": "nCout:b",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w18",
+      "from": "nSum:y",
+      "to": "sumOut",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w19",
+      "from": "nCout:y",
+      "to": "coutOut",
+      "color": "#9aa4b2"
+    }
+  ],
+  "packets": [],
+  "timeline": [
+    {
+      "type": "comment",
+      "text": "A full adder sums three bits — A, B and a carry-in — into a Sum and a carry-out. Nine NAND gates; green wires carry a 1, so you can follow the carry through the network."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "A",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "A",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "B",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "B",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "Cin",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "Cin",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "sumOut",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "sumOut",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "coutOut",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "coutOut",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "w0",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w1",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w2",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w3",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w4",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w5",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w6",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w7",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w8",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w9",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w10",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w11",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w12",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w13",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w14",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w15",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w16",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w17",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w18",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w19",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "comment",
+          "text": "0 + 0 + 0 = 0. Sum 0, Cout 0.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "A",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "A",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "B",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "B",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "Cin",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "Cin",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "sumOut",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "sumOut",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "coutOut",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "coutOut",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "w0",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w1",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w2",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w3",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w4",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w5",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w6",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w7",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w8",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w9",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w10",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w11",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w12",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w13",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w14",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w15",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w16",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w17",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w18",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w19",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "comment",
+          "text": "0 + 0 + 1 = 1. The carry-in alone flips the Sum to 1; Cout 0.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "A",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "A",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "B",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "B",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "Cin",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "Cin",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "sumOut",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "sumOut",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "coutOut",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "coutOut",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "w0",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w1",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w2",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w3",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w4",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w5",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w6",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w7",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w8",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w9",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w10",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w11",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w12",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w13",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w14",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w15",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w16",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w17",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w18",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w19",
+          "color": "#16a34a"
+        },
+        {
+          "type": "comment",
+          "text": "0 + 1 + 1 = 10₂. Two ones make a carry: Sum 0, Cout 1.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "A",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "A",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "B",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "B",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "Cin",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "Cin",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "sumOut",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "sumOut",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "coutOut",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "coutOut",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "w0",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w1",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w2",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w3",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w4",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w5",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w6",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w7",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w8",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w9",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w10",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w11",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w12",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w13",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w14",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w15",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w16",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w17",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w18",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w19",
+          "color": "#16a34a"
+        },
+        {
+          "type": "comment",
+          "text": "1 + 0 + 1 = 10₂. Same from A and Cin: Sum 0, Cout 1.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "A",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "A",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "B",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "B",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "Cin",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "Cin",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "sumOut",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "sumOut",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "coutOut",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "coutOut",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "w0",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w1",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w2",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w3",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w4",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w5",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w6",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w7",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w8",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w9",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w10",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w11",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w12",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w13",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w14",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w15",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w16",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w17",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w18",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w19",
+          "color": "#16a34a"
+        },
+        {
+          "type": "comment",
+          "text": "1 + 1 + 1 = 11₂. All three high: Sum 1 AND Cout 1 — binary three.",
+          "keep_until_end": true
+        }
+      ]
+    },
+    {
+      "type": "wait",
+      "duration": 2500
+    }
+  ]
+}

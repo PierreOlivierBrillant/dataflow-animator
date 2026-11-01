@@ -1,0 +1,250 @@
+{
+  "direction": "left-to-right",
+  "nodes": [
+    {
+      "id": "client",
+      "type": "laptop",
+      "text": "Client",
+      "icon": "react",
+      "lane": 1
+    },
+    {
+      "id": "gw",
+      "type": "server",
+      "text": "Gateway",
+      "icon": "graphql",
+      "lane": 2
+    },
+    {
+      "id": "users",
+      "type": "server",
+      "text": "Users Subgraph",
+      "lane": 3
+    },
+    {
+      "id": "orders",
+      "type": "server",
+      "text": "Orders Subgraph",
+      "lane": 3
+    },
+    {
+      "id": "reviews",
+      "type": "server",
+      "text": "Reviews Subgraph",
+      "lane": 3
+    }
+  ],
+  "connections": [
+    {
+      "from": "client",
+      "to": "gw",
+      "style": "dotted"
+    },
+    {
+      "from": "gw",
+      "to": "users",
+      "style": "dotted"
+    },
+    {
+      "from": "gw",
+      "to": "orders",
+      "style": "dotted"
+    },
+    {
+      "from": "gw",
+      "to": "reviews",
+      "style": "dotted"
+    }
+  ],
+  "packets": [
+    {
+      "id": "query",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "POST /graphql",
+        "body": {
+          "type": "text",
+          "value": "{ user { name orders reviews } }"
+        }
+      }
+    },
+    {
+      "id": "qU",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "user(id)"
+      }
+    },
+    {
+      "id": "qO",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "orders(userId)"
+      }
+    },
+    {
+      "id": "qR",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "reviews(userId)"
+      }
+    },
+    {
+      "id": "rU",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "name",
+        "body": {
+          "type": "text",
+          "value": "\"Alice\""
+        }
+      }
+    },
+    {
+      "id": "rO",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "orders",
+        "body": {
+          "type": "text",
+          "value": "[ 3 orders ]"
+        }
+      }
+    },
+    {
+      "id": "rR",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "reviews",
+        "body": {
+          "type": "text",
+          "value": "[ 5 reviews ]"
+        }
+      }
+    },
+    {
+      "id": "merged",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "200 OK",
+        "body": {
+          "type": "text",
+          "value": "{ name, orders, reviews }",
+          "language": "json"
+        }
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "type": "comment",
+      "object": "client",
+      "text": "1. The client sends a single request that touches multiple domains"
+    },
+    {
+      "type": "move",
+      "object": "query",
+      "from": "client",
+      "to": "gw"
+    },
+    {
+      "type": "comment",
+      "object": "gw",
+      "text": "2. The gateway plans the request and queries each subgraph in parallel"
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "move",
+          "object": "qU",
+          "from": "gw",
+          "to": "users"
+        },
+        {
+          "type": "move",
+          "object": "qO",
+          "from": "gw",
+          "to": "orders",
+          "delay_ms": 200
+        },
+        {
+          "type": "move",
+          "object": "qR",
+          "from": "gw",
+          "to": "reviews",
+          "delay_ms": 400
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "loading",
+          "object": "users"
+        },
+        {
+          "type": "loading",
+          "object": "orders"
+        },
+        {
+          "type": "loading",
+          "object": "reviews"
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "text": "3. Each service responds for its part of the graph"
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "move",
+          "object": "rU",
+          "from": "users",
+          "to": "gw"
+        },
+        {
+          "type": "move",
+          "object": "rO",
+          "from": "orders",
+          "to": "gw",
+          "delay_ms": 250
+        },
+        {
+          "type": "move",
+          "object": "rR",
+          "from": "reviews",
+          "to": "gw",
+          "delay_ms": 500
+        }
+      ]
+    },
+    {
+      "type": "loading",
+      "id": "stitch",
+      "object": "gw",
+      "duration": 1000
+    },
+    {
+      "type": "comment",
+      "object": "gw",
+      "text": "4. The gateway recombines a single object from the three responses",
+      "wait_for": "stitch"
+    },
+    {
+      "type": "move",
+      "object": "merged",
+      "from": "gw",
+      "to": "client"
+    },
+    {
+      "type": "comment",
+      "object": "client",
+      "text": "One request, one response — federation is invisible on the client side ✅"
+    }
+  ]
+}

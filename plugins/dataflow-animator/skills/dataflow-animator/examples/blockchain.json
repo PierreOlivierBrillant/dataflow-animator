@@ -1,0 +1,246 @@
+{
+  "direction": "left-to-right",
+  "nodes": [
+    {
+      "id": "wallet",
+      "type": "mobile",
+      "text": "Wallet",
+      "lane": 1
+    },
+    {
+      "id": "mempool",
+      "type": "server",
+      "text": "Mempool",
+      "lane": 2
+    },
+    {
+      "id": "m1",
+      "type": "desktop",
+      "text": "Miner A",
+      "lane": 3
+    },
+    {
+      "id": "m2",
+      "type": "desktop",
+      "text": "Miner B",
+      "lane": 3
+    },
+    {
+      "id": "m3",
+      "type": "desktop",
+      "text": "Miner C",
+      "lane": 3
+    },
+    {
+      "id": "chain",
+      "type": "database",
+      "text": "Blockchain",
+      "lane": 4
+    }
+  ],
+  "connections": [
+    {
+      "from": "wallet",
+      "to": "mempool",
+      "style": "dotted"
+    },
+    {
+      "from": "mempool",
+      "to": "m1",
+      "style": "dotted"
+    },
+    {
+      "from": "mempool",
+      "to": "m2",
+      "style": "dotted"
+    },
+    {
+      "from": "mempool",
+      "to": "m3",
+      "style": "dotted"
+    },
+    {
+      "from": "m2",
+      "to": "chain",
+      "style": "dotted"
+    }
+  ],
+  "packets": [
+    {
+      "id": "tx",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "signed tx",
+        "body": {
+          "type": "text",
+          "value": "0.5 ₿ → Bob\nfee 0.0002 ₿"
+        }
+      }
+    },
+    {
+      "id": "p1",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "tx"
+      }
+    },
+    {
+      "id": "p2",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "tx"
+      }
+    },
+    {
+      "id": "p3",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "tx"
+      }
+    },
+    {
+      "id": "block",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "block #842,317",
+        "body": {
+          "type": "text",
+          "value": "nonce found · hash 0000a3f…"
+        }
+      }
+    },
+    {
+      "id": "gossip1",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "new block"
+      }
+    },
+    {
+      "id": "gossip3",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "new block"
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "type": "comment",
+      "object": "wallet",
+      "text": "1. The wallet signs a transaction and broadcasts it to the network"
+    },
+    {
+      "type": "move",
+      "object": "tx",
+      "from": "wallet",
+      "to": "mempool"
+    },
+    {
+      "type": "set_content",
+      "object": "mempool",
+      "content": {
+        "type": "text",
+        "value": "⏳ waiting to be mined"
+      },
+      "keep_until": "mined"
+    },
+    {
+      "type": "comment",
+      "object": "mempool",
+      "text": "2. The transaction joins the mempool: all miners pick it up"
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "move",
+          "object": "p1",
+          "from": "mempool",
+          "to": "m1"
+        },
+        {
+          "type": "move",
+          "object": "p2",
+          "from": "mempool",
+          "to": "m2"
+        },
+        {
+          "type": "move",
+          "object": "p3",
+          "from": "mempool",
+          "to": "m3"
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "text": "3. Miners search in parallel for a valid nonce (proof of work)."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "loading",
+          "object": "m1"
+        },
+        {
+          "type": "loading",
+          "object": "m2"
+        },
+        {
+          "type": "loading",
+          "object": "m3"
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "object": "m2",
+      "text": "4. Miner B finds the nonce first and forges the block 🎉"
+    },
+    {
+      "type": "move",
+      "id": "mined",
+      "object": "block",
+      "from": "m2",
+      "to": "chain"
+    },
+    {
+      "type": "set_content",
+      "object": "mempool",
+      "content": {
+        "type": "text",
+        "value": "✅ included in block"
+      },
+      "keep_until_end": true
+    },
+    {
+      "type": "comment",
+      "object": "chain",
+      "text": "5. The block is added; B propagates it to the other nodes, which verify it"
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "move",
+          "object": "gossip1",
+          "from": "m2",
+          "to": "m1"
+        },
+        {
+          "type": "move",
+          "object": "gossip3",
+          "from": "m2",
+          "to": "m3",
+          "delay_ms": 250
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "text": "As further blocks are mined, the transaction accumulates confirmations."
+    }
+  ]
+}

@@ -1,0 +1,162 @@
+{
+  "direction": "circuit",
+  "nodes": [
+    {
+      "id": "battery",
+      "type": "battery",
+      "text": "Battery",
+      "value": 9,
+      "unit": "V"
+    },
+    {
+      "id": "sw",
+      "type": "switch",
+      "text": "Switch",
+      "closed": false
+    },
+    {
+      "id": "R",
+      "type": "resistor",
+      "value": 10,
+      "unit": "kΩ"
+    },
+    {
+      "id": "C",
+      "type": "capacitor",
+      "value": 100,
+      "unit": "µF"
+    }
+  ],
+  "connections": [
+    {
+      "from": "battery:+",
+      "to": "sw:a"
+    },
+    {
+      "from": "sw:b",
+      "to": "R:a"
+    },
+    {
+      "from": "R:b",
+      "to": "C:a"
+    },
+    {
+      "from": "C:b",
+      "to": "battery:-"
+    }
+  ],
+  "packets": [],
+  "timeline": [
+    {
+      "type": "comment",
+      "text": "An RC circuit: a 10 kΩ resistor charges a 100 µF capacitor from a 9 V battery. Closing the switch starts a transient — the capacitor voltage rises exponentially with time constant τ = R·C = 1 s."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "toggle",
+          "object": "sw",
+          "closed": true
+        },
+        {
+          "type": "comment",
+          "object": "sw",
+          "text": "Close the switch — the capacitor begins to charge through the resistor.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "flow",
+          "route": [
+            "battery:+",
+            "sw:a",
+            "sw:b",
+            "R:a",
+            "R:b",
+            "C:a",
+            "C:b",
+            "battery:-"
+          ],
+          "color": "#f59e0b",
+          "duration": 3000,
+          "count": 6
+        },
+        {
+          "type": "set_icon",
+          "object": "C",
+          "icon": "0.0"
+        },
+        {
+          "type": "comment",
+          "text": "t = 0: the capacitor is empty (0 V), so the full 9 V is across R and the current is maximal, I = V ⁄ R.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "flow",
+          "route": [
+            "battery:+",
+            "sw:a",
+            "sw:b",
+            "R:a",
+            "R:b",
+            "C:a",
+            "C:b",
+            "battery:-"
+          ],
+          "color": "#f59e0b",
+          "duration": 3000,
+          "count": 6
+        },
+        {
+          "type": "set_icon",
+          "object": "C",
+          "icon": "5.7"
+        },
+        {
+          "type": "comment",
+          "text": "t = τ = R·C = 1 s: Vc has risen to 63 % of 9 V ≈ 5.7 V. As Vc grows it opposes the source, so the current has fallen.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "C",
+          "icon": "9.0"
+        },
+        {
+          "type": "set_color",
+          "object": "C",
+          "border_color": "#16a34a",
+          "text_color": "#16a34a"
+        },
+        {
+          "type": "highlight",
+          "object": "C"
+        },
+        {
+          "type": "comment",
+          "text": "t ≈ 5τ: the capacitor is essentially fully charged (9 V). It now blocks DC — the current stops.",
+          "keep_until_end": true
+        }
+      ]
+    },
+    {
+      "type": "wait",
+      "duration": 2500
+    }
+  ]
+}

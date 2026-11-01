@@ -1,0 +1,105 @@
+{
+  "direction": "circuit",
+  "nodes": [
+    {
+      "id": "battery",
+      "type": "battery",
+      "text": "Battery",
+      "value": 9,
+      "unit": "V"
+    },
+    {
+      "id": "sw",
+      "type": "switch",
+      "text": "Switch",
+      "closed": false
+    },
+    {
+      "id": "R1",
+      "type": "resistor",
+      "value": 220,
+      "unit": "Ω"
+    },
+    {
+      "id": "led",
+      "type": "led",
+      "text": "LED"
+    }
+  ],
+  "connections": [
+    {
+      "from": "battery:+",
+      "to": "sw:a"
+    },
+    {
+      "from": "sw:b",
+      "to": "R1:a"
+    },
+    {
+      "from": "R1:b",
+      "to": "led:a"
+    },
+    {
+      "from": "led:b",
+      "to": "battery:-"
+    }
+  ],
+  "packets": [],
+  "timeline": [
+    {
+      "type": "comment",
+      "text": "A series loop: a 9 V battery, a switch, a 220 Ω resistor and an LED. No coordinates — the loop is auto-arranged. The switch is open, so no current flows."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "toggle",
+          "object": "sw",
+          "closed": true
+        },
+        {
+          "type": "comment",
+          "object": "sw",
+          "text": "Close the switch — the loop is now complete.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "flow",
+          "route": [
+            "battery:+",
+            "sw:a",
+            "sw:b",
+            "R1:a",
+            "R1:b",
+            "led:a",
+            "led:b",
+            "battery:-"
+          ],
+          "color": "#f59e0b",
+          "count": 8,
+          "keep_until_end": true
+        },
+        {
+          "type": "highlight",
+          "object": "led",
+          "keep_until_end": true
+        },
+        {
+          "type": "comment",
+          "text": "Conventional current flows + → − through the resistor and the LED, which lights up.",
+          "keep_until_end": true
+        }
+      ]
+    },
+    {
+      "type": "wait",
+      "duration": 3000
+    }
+  ]
+}

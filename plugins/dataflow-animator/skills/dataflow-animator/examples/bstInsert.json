@@ -1,0 +1,169 @@
+{
+  "direction": "tree",
+  "tree": {
+    "root": "8",
+    "children": {
+      "4": {
+        "left": "2",
+        "right": "6"
+      },
+      "6": {
+        "right": "7"
+      },
+      "8": {
+        "left": "4",
+        "right": "12"
+      },
+      "12": {
+        "left": "10",
+        "right": "14"
+      }
+    }
+  },
+  "nodes": [
+    {
+      "id": "8",
+      "type": "circle",
+      "body": "8",
+      "background_color": "steelblue",
+      "text_color": "white"
+    },
+    {
+      "id": "4",
+      "type": "circle",
+      "body": "4",
+      "background_color": "steelblue",
+      "text_color": "white"
+    },
+    {
+      "id": "12",
+      "type": "circle",
+      "body": "12",
+      "background_color": "steelblue",
+      "text_color": "white"
+    },
+    {
+      "id": "2",
+      "type": "circle",
+      "body": "2",
+      "background_color": "steelblue",
+      "text_color": "white"
+    },
+    {
+      "id": "6",
+      "type": "circle",
+      "body": "6",
+      "background_color": "steelblue",
+      "text_color": "white"
+    },
+    {
+      "id": "10",
+      "type": "circle",
+      "body": "10",
+      "background_color": "steelblue",
+      "text_color": "white"
+    },
+    {
+      "id": "14",
+      "type": "circle",
+      "body": "14",
+      "background_color": "steelblue",
+      "text_color": "white"
+    },
+    {
+      "id": "7",
+      "type": "circle",
+      "body": "7",
+      "background_color": "seagreen",
+      "text_color": "white",
+      "visible": false
+    }
+  ],
+  "packets": [
+    {
+      "id": "k",
+      "kind": "subicon",
+      "icon": "7"
+    }
+  ],
+  "timeline": [
+    {
+      "type": "comment",
+      "text": "Inserting into a binary search tree: smaller keys go left, larger keys go right. We want to add the key 7."
+    },
+    {
+      "type": "comment",
+      "object": "8",
+      "text": "7 starts as an orphan, outside the tree, at the root. We compare it with each node to find its place."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "move",
+          "object": "k",
+          "from": "8",
+          "to": "4",
+          "duration": 900
+        },
+        {
+          "type": "comment",
+          "object": "8",
+          "text": "Compare with 8: 7 < 8 → the new key belongs in the LEFT subtree.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "move",
+          "object": "k",
+          "from": "4",
+          "to": "6",
+          "duration": 900
+        },
+        {
+          "type": "comment",
+          "object": "4",
+          "text": "Compare with 4: 7 > 4 → go to the RIGHT.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "object": "6",
+      "text": "Compare with 6: 7 > 6 → go right. But 6 has no right child — the search stops here."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_visible",
+          "object": "7",
+          "visible": true,
+          "duration": 500
+        },
+        {
+          "type": "comment",
+          "object": "6",
+          "text": "That empty spot is where 7 belongs: we place it there…",
+          "duration": 1500
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "object": "7",
+      "text": "…then connect it as the right child of 6."
+    },
+    {
+      "type": "comment",
+      "object": "7",
+      "text": "Done — 7 is now part of the tree, and it stays a valid binary search tree.",
+      "keep_until_end": true
+    }
+  ]
+}

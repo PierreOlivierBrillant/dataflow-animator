@@ -35,18 +35,49 @@ alors le format dans chaque conversation, **valide lui-même sa spec** avec un
 script fourni, et répond avec un **lien qui ouvre l'animation** dans le
 playground.
 
-[Télécharger le skill](pathname:///claude/dataflow-animator-skill.zip) (un zip
-contenant un dossier `dataflow-animator/`).
+### En plugin (recommandé)
 
-- **claude.ai** (et l'application de bureau Claude) : Paramètres → Capacités →
-  Skills → téléversez le zip. Les skills exigent que **l'exécution de code et la
-  création de fichiers** soient activées sur la même page de paramètres.
+Le skill est publié comme plugin, dans une marketplace qui n'est autre que le
+dépôt GitHub du projet. Rien à télécharger, et les mises à jour suivent le
+projet.
+
+- **claude.ai** (et l'application de bureau Claude) : Personnaliser → Plugins →
+  Ajouter → **Ajouter une marketplace**, saisissez
+  `PierreOlivierBrillant/dataflow-animator`, puis ajoutez le plugin **DataFlow
+  Animator**. Il est enregistré sur votre compte : Claude Code connecté au même
+  compte le reçoit aussi.
+- **Claude Code** :
+
+```bash
+/plugin marketplace add PierreOlivierBrillant/dataflow-animator
+```
+
+```bash
+/plugin install dataflow-animator@dataflow-animator
+```
+
+Pour récupérer une version plus récente : **Rechercher des mises à jour** sur la
+page du plugin dans claude.ai, ou `/plugin marketplace update dataflow-animator`
+dans Claude Code.
+
+### En zip
+
+[Télécharger le skill](pathname:///claude/dataflow-animator-skill.zip) (un zip
+contenant un dossier `dataflow-animator/`, identique à celui du plugin).
+
+- **claude.ai** (et l'application de bureau Claude) : Personnaliser → Skills →
+  téléversez le zip.
 - **Claude Code** : décompressez-le dans votre dossier de skills personnels, ou
   dans le `.claude/skills/` d'un projet pour le partager avec son équipe.
 
 ```bash
 unzip dataflow-animator-skill.zip -d ~/.claude/skills/
 ```
+
+### Utilisation
+
+Sur claude.ai, les scripts du skill s'exécutent dans l'environnement
+d'exécution de code de Claude, qui doit être activé (Paramètres → Capacités).
 
 Il suffit ensuite de demander : _« Anime un flux OAuth 2.0 avec code
 d'autorisation »_. Claude lit le guide, choisit les exemples les plus proches,

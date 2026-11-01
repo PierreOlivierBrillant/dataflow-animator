@@ -1,0 +1,166 @@
+{
+  "direction": "left-to-right",
+  "nodes": [
+    {
+      "id": "client",
+      "type": "laptop",
+      "text": "Browser",
+      "icon": "chrome",
+      "lane": 1
+    },
+    {
+      "id": "server",
+      "type": "server",
+      "text": "HTTPS server",
+      "icon": "nginx",
+      "lane": 2
+    }
+  ],
+  "connections": [
+    {
+      "from": "client",
+      "to": "server",
+      "style": "dotted",
+      "arrow_head": "both"
+    }
+  ],
+  "packets": [
+    {
+      "id": "hello",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "ClientHello",
+        "body": {
+          "type": "text",
+          "value": "TLS 1.3\nkey_share\ncipher_suites"
+        }
+      }
+    },
+    {
+      "id": "shello",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "ServerHello + Certificate",
+        "body": {
+          "type": "text",
+          "value": "key_share\ncertificate\nFinished"
+        }
+      }
+    },
+    {
+      "id": "finished",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "Finished 🔒",
+        "body": {
+          "type": "text",
+          "value": "handshake verified"
+        }
+      }
+    },
+    {
+      "id": "get",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "GET / 🔒",
+        "body": {
+          "type": "text",
+          "value": "Application Data (encrypted)"
+        }
+      }
+    },
+    {
+      "id": "page",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "200 OK 🔒",
+        "body": {
+          "type": "text",
+          "value": "<html> … </html>"
+        }
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "type": "comment",
+      "object": "client",
+      "text": "1. The browser offers its cipher suites and its key share (ClientHello)"
+    },
+    {
+      "type": "move",
+      "object": "hello",
+      "from": "client",
+      "to": "server"
+    },
+    {
+      "type": "loading",
+      "object": "server",
+      "duration": 1000
+    },
+    {
+      "type": "comment",
+      "object": "server",
+      "text": "2. The server picks the suite, sends its certificate and its key share"
+    },
+    {
+      "type": "move",
+      "object": "shello",
+      "from": "server",
+      "to": "client"
+    },
+    {
+      "type": "comment",
+      "object": "client",
+      "text": "3. The browser validates the certificate and derives the session key"
+    },
+    {
+      "type": "loading",
+      "object": "client",
+      "duration": 1000
+    },
+    {
+      "type": "move",
+      "object": "finished",
+      "from": "client",
+      "to": "server"
+    },
+    {
+      "type": "arrow",
+      "from": "client",
+      "to": "server",
+      "text": "🔒 encrypted channel established",
+      "style": "solid",
+      "arrow_head": "both",
+      "keep_until_end": true
+    },
+    {
+      "type": "comment",
+      "text": "From here on, everything is encrypted with the session key: Application Data."
+    },
+    {
+      "type": "move",
+      "object": "get",
+      "from": "client",
+      "to": "server"
+    },
+    {
+      "type": "loading",
+      "id": "render",
+      "object": "server",
+      "duration": 900
+    },
+    {
+      "type": "move",
+      "object": "page",
+      "from": "server",
+      "to": "client",
+      "wait_for": "render"
+    },
+    {
+      "type": "comment",
+      "object": "client",
+      "text": "Page loaded over a secure connection ✅"
+    }
+  ]
+}

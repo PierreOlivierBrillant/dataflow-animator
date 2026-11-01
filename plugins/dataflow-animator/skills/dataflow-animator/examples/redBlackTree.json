@@ -1,0 +1,241 @@
+{
+  "direction": "tree",
+  "tree": {
+    "root": "40",
+    "children": {
+      "10": {
+        "left": "5"
+      },
+      "20": {
+        "left": "10",
+        "right": "30"
+      },
+      "40": {
+        "left": "20",
+        "right": "60"
+      },
+      "60": {
+        "left": "55",
+        "right": "70"
+      }
+    }
+  },
+  "nodes": [
+    {
+      "id": "40",
+      "type": "circle",
+      "body": "40",
+      "background_color": "#1f2937",
+      "text_color": "white"
+    },
+    {
+      "id": "20",
+      "type": "circle",
+      "body": "20",
+      "background_color": "#1f2937",
+      "text_color": "white"
+    },
+    {
+      "id": "60",
+      "type": "circle",
+      "body": "60",
+      "background_color": "#1f2937",
+      "text_color": "white"
+    },
+    {
+      "id": "10",
+      "type": "circle",
+      "body": "10",
+      "background_color": "crimson",
+      "text_color": "white"
+    },
+    {
+      "id": "30",
+      "type": "circle",
+      "body": "30",
+      "background_color": "crimson",
+      "text_color": "white"
+    },
+    {
+      "id": "55",
+      "type": "circle",
+      "body": "55",
+      "background_color": "crimson",
+      "text_color": "white"
+    },
+    {
+      "id": "70",
+      "type": "circle",
+      "body": "70",
+      "background_color": "crimson",
+      "text_color": "white"
+    },
+    {
+      "id": "5",
+      "type": "circle",
+      "body": "5",
+      "background_color": "crimson",
+      "text_color": "white",
+      "visible": false
+    }
+  ],
+  "packets": [
+    {
+      "id": "k",
+      "kind": "subicon",
+      "icon": "5"
+    }
+  ],
+  "timeline": [
+    {
+      "type": "comment",
+      "text": "A valid red-black tree: the root is black, no red node has a red child, and every path holds the same number of black nodes."
+    },
+    {
+      "type": "comment",
+      "object": "40",
+      "text": "Insert the key 5. In a red-black tree, a NEW node is always RED."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "move",
+          "object": "k",
+          "from": "40",
+          "to": "20",
+          "duration": 900
+        },
+        {
+          "type": "comment",
+          "object": "40",
+          "text": "5 < 40 → go LEFT",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "move",
+          "object": "k",
+          "from": "20",
+          "to": "10",
+          "duration": 900
+        },
+        {
+          "type": "comment",
+          "object": "20",
+          "text": "5 < 20 → go LEFT",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "object": "10",
+      "text": "5 < 10 → 10’s left child is empty: this is the spot"
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_visible",
+          "object": "5",
+          "visible": true,
+          "duration": 500
+        },
+        {
+          "type": "comment",
+          "object": "10",
+          "text": "5 is placed at the empty spot, in red…",
+          "duration": 1500
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "object": "5",
+      "text": "…then linked to its parent 10."
+    },
+    {
+      "type": "comment",
+      "object": "5",
+      "text": "Problem: 5 is red and its parent 10 is red too — a red-red violation, which is forbidden."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "highlight",
+          "object": "30",
+          "duration": 2200
+        },
+        {
+          "type": "comment",
+          "object": "30",
+          "text": "We look at the UNCLE (the parent’s sibling): node 30. It is RED → this is the recolor case.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_color",
+          "object": "10",
+          "background_color": "#1f2937"
+        },
+        {
+          "type": "set_color",
+          "object": "30",
+          "background_color": "#1f2937"
+        },
+        {
+          "type": "comment",
+          "text": "Recolor the parent 10 and the uncle 30 to BLACK.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_color",
+          "object": "20",
+          "background_color": "crimson"
+        },
+        {
+          "type": "comment",
+          "object": "20",
+          "text": "Recolor the grandparent 20 to RED to keep the black counts equal.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "highlight",
+          "object": "40",
+          "duration": 2200
+        },
+        {
+          "type": "comment",
+          "object": "40",
+          "text": "20’s parent (40) is black, so 20 being red creates no new violation — we can stop.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "text": "Valid red-black tree again ✓",
+      "keep_until_end": true
+    }
+  ]
+}

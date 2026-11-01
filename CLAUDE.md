@@ -65,6 +65,7 @@ npm run test:integration -w @dataflow-animator/react
 npm run test -w @dataflow-animator/docs   # docs unit tests (schema-validate every demo, both locales)
 npm run check:schema
 npm run check:subicons   # generated sub-icon glyph data is fresh
+npm run check:claude-plugin   # the plugin's committed skill folder matches the kit
 ```
 
 **If you touched `package.json` or the lockfile, run `npm ci` (not `npm install`)
@@ -291,23 +292,35 @@ Pitfalls already encountered in this repo — check them when you touch the affe
   warning surviving a restart does NOT mean it is real: check the dist first, and if the exports are
   there, the cure is `npm run clear -w @dataflow-animator/docs`, not a change to any barrel.
 
+- **The Claude plugin commits a GENERATED copy of the skill**: `plugins/dataflow-animator/skills/`
+  is what `buildSkill` (`apps/docs/src/claude-kit/kit.ts`) produces from the schema, the pins and
+  the gallery demos — the same folder the site's zip carries. It is committed because a plugin
+  marketplace (`.claude-plugin/marketplace.json`, read by `/plugin marketplace add` and by
+  claude.ai's "Add marketplace") is fetched from git, not from the site. Editing a demo, the
+  schema or `claude-kit/` therefore means `npm run generate:claude-plugin`; `check:claude-plugin`
+  fails otherwise. Never edit that folder by hand, and never add a `version` to `plugin.json`:
+  without one, every commit is an update, while a pinned version freezes users on it until the
+  string changes.
+
 ## Available scripts (quick reference)
 
 Monorepo root:
 
-| Script                  | Effect                                                                                                                                                                                                                                  |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run dev`           | Builds the libs, then `scripts/dev.mjs`: core + react watchers, and the site only ONCE THEY HAVE WRITTEN their first bundle (see the truncation-window vigilance point). The element is absent on purpose: the site does not consume it |
-| `npm run build`         | Full build (all three packages + site)                                                                                                                                                                                                  |
-| `npm run build:lib`     | Core build (isolated typecheck included), then react, then element                                                                                                                                                                      |
-| `npm run build:docs`    | Site build only                                                                                                                                                                                                                         |
-| `npm run lint`          | ESLint on all workspaces that expose it                                                                                                                                                                                                 |
-| `npm run format:check`  | Checks Prettier formatting                                                                                                                                                                                                              |
-| `npm run format:write`  | Applies Prettier                                                                                                                                                                                                                        |
-| `npm test`              | vitest tests of core, react and element (each has its own coverage threshold)                                                                                                                                                           |
-| `npm run test:coverage` | Same, with coverage thresholds                                                                                                                                                                                                          |
-| `npm run deadcode`      | knip — dead code detection                                                                                                                                                                                                              |
-| `npm run check:schema`  | Verifies core's generated JSON Schema is fresh                                                                                                                                                                                          |
+| Script                           | Effect                                                                                                                                                                                                                                  |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run dev`                    | Builds the libs, then `scripts/dev.mjs`: core + react watchers, and the site only ONCE THEY HAVE WRITTEN their first bundle (see the truncation-window vigilance point). The element is absent on purpose: the site does not consume it |
+| `npm run build`                  | Full build (all three packages + site)                                                                                                                                                                                                  |
+| `npm run build:lib`              | Core build (isolated typecheck included), then react, then element                                                                                                                                                                      |
+| `npm run build:docs`             | Site build only                                                                                                                                                                                                                         |
+| `npm run lint`                   | ESLint on all workspaces that expose it                                                                                                                                                                                                 |
+| `npm run format:check`           | Checks Prettier formatting                                                                                                                                                                                                              |
+| `npm run format:write`           | Applies Prettier                                                                                                                                                                                                                        |
+| `npm test`                       | vitest tests of core, react and element (each has its own coverage threshold)                                                                                                                                                           |
+| `npm run test:coverage`          | Same, with coverage thresholds                                                                                                                                                                                                          |
+| `npm run deadcode`               | knip — dead code detection                                                                                                                                                                                                              |
+| `npm run check:schema`           | Verifies core's generated JSON Schema is fresh                                                                                                                                                                                          |
+| `npm run generate:claude-plugin` | Regenerates the Claude plugin's committed skill folder from the kit                                                                                                                                                                     |
+| `npm run check:claude-plugin`    | CI guard: that folder matches what the kit builds                                                                                                                                                                                       |
 
 Package (`packages/core/` — published as `@dataflow-animator/core`):
 

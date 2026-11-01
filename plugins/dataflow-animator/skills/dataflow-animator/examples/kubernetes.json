@@ -1,0 +1,238 @@
+{
+  "direction": "left-to-right",
+  "nodes": [
+    {
+      "id": "cli",
+      "type": "laptop",
+      "text": "kubectl",
+      "lane": 1
+    },
+    {
+      "id": "api",
+      "type": "server",
+      "text": "API Server",
+      "icon": "k8s",
+      "lane": 2
+    },
+    {
+      "id": "etcd",
+      "type": "database",
+      "text": "etcd",
+      "icon": "db",
+      "lane": 3
+    },
+    {
+      "id": "sched",
+      "type": "server",
+      "text": "Scheduler",
+      "lane": 3
+    },
+    {
+      "id": "kubelet",
+      "type": "server",
+      "text": "Kubelet",
+      "lane": 4
+    },
+    {
+      "id": "pod",
+      "type": "server",
+      "text": "Pod",
+      "icon": "docker",
+      "lane": 5
+    }
+  ],
+  "zones": [
+    {
+      "id": "cp",
+      "contains": [
+        "api",
+        "etcd",
+        "sched"
+      ],
+      "color": "#2563eb",
+      "label": "Control Plane"
+    },
+    {
+      "contains": [
+        "kubelet",
+        "pod"
+      ],
+      "color": "#16a34a",
+      "label": "Compute Node"
+    }
+  ],
+  "connections": [
+    {
+      "from": "cli",
+      "to": "api",
+      "style": "dotted"
+    },
+    {
+      "from": "api",
+      "to": "etcd",
+      "style": "dotted"
+    },
+    {
+      "from": "api",
+      "to": "sched",
+      "style": "dotted"
+    },
+    {
+      "from": "api",
+      "to": "kubelet",
+      "style": "dotted"
+    },
+    {
+      "from": "kubelet",
+      "to": "pod",
+      "style": "dotted"
+    }
+  ],
+  "packets": [
+    {
+      "id": "apply",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "apply Deployment",
+        "body": {
+          "type": "text",
+          "value": "replicas: 1"
+        }
+      }
+    },
+    {
+      "id": "persist",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "write",
+        "body": {
+          "type": "text",
+          "value": "desired spec"
+        }
+      }
+    },
+    {
+      "id": "watch",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "unassigned pod"
+      }
+    },
+    {
+      "id": "bind",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "bind → node A"
+      }
+    },
+    {
+      "id": "create",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "create container",
+        "body": {
+          "type": "text",
+          "value": "image app:1.4.0"
+        }
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "type": "comment",
+      "object": "cli",
+      "text": "1. We declare the desired state: kubectl apply -f deploy.yaml"
+    },
+    {
+      "type": "set_content",
+      "object": "cli",
+      "content": {
+        "type": "code",
+        "language": "bash",
+        "value": "$ kubectl apply -f deploy.yaml"
+      },
+      "keep_until": "sch"
+    },
+    {
+      "type": "move",
+      "object": "apply",
+      "from": "cli",
+      "to": "api",
+      "duration": 1300
+    },
+    {
+      "type": "comment",
+      "object": "api",
+      "text": "2. The API Server validates and persists the desired state in etcd"
+    },
+    {
+      "type": "move",
+      "object": "persist",
+      "from": "api",
+      "to": "etcd"
+    },
+    {
+      "type": "comment",
+      "object": "sched",
+      "text": "3. The scheduler spots an unassigned pod and picks a node for it"
+    },
+    {
+      "type": "move",
+      "id": "sch",
+      "object": "watch",
+      "from": "api",
+      "to": "sched"
+    },
+    {
+      "type": "loading",
+      "id": "decide",
+      "object": "sched",
+      "duration": 1000
+    },
+    {
+      "type": "move",
+      "object": "bind",
+      "from": "sched",
+      "to": "api",
+      "wait_for": "decide"
+    },
+    {
+      "type": "comment",
+      "object": "kubelet",
+      "text": "4. The kubelet of the chosen node receives the order and starts the container"
+    },
+    {
+      "type": "move",
+      "object": "create",
+      "from": "api",
+      "to": "kubelet"
+    },
+    {
+      "type": "move",
+      "object": "create",
+      "from": "kubelet",
+      "to": "pod"
+    },
+    {
+      "type": "loading",
+      "id": "boot",
+      "object": "pod",
+      "duration": 1200
+    },
+    {
+      "type": "set_content",
+      "object": "pod",
+      "content": {
+        "type": "text",
+        "value": "🟢 Running"
+      },
+      "keep_until_end": true,
+      "wait_for": "boot"
+    },
+    {
+      "type": "comment",
+      "object": "pod",
+      "text": "Pod is running — desired state achieved ✅"
+    }
+  ]
+}

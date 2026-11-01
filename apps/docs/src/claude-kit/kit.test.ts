@@ -5,6 +5,7 @@ import { dataFlowSchema } from '@dataflow-animator/react';
 import { COMPONENT_PINS } from '../../../../packages/core/src/engine/pins';
 import {
   buildKit,
+  buildSkill,
   PROMPT_PATH,
   SKILL_NAME,
   SKILL_ZIP_PATH,
@@ -165,5 +166,18 @@ describe('Claude kit', () => {
       (f) => f.path === SKILL_ZIP_PATH
     )?.content;
     expect(again).toEqual(zip);
+  });
+
+  it('gives the plugin exactly the folder the zip carries', () => {
+    const skill = buildSkill(inputs);
+    expect(skill.map((f) => `${SKILL_NAME}/${f.path}`).sort()).toEqual(
+      [...entries.keys()].sort()
+    );
+    const decoder = new TextDecoder();
+    for (const f of skill) {
+      const content =
+        typeof f.content === 'string' ? f.content : decoder.decode(f.content);
+      expect(entries.get(`${SKILL_NAME}/${f.path}`)).toBe(content);
+    }
   });
 });

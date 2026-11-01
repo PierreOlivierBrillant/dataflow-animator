@@ -1,0 +1,192 @@
+{
+  "direction": "circular",
+  "nodes": [
+    {
+      "id": "orch",
+      "type": "server",
+      "text": "Orchestrator",
+      "icon": "go",
+      "main": true
+    },
+    {
+      "id": "inv",
+      "type": "server",
+      "text": "Inventory",
+      "icon": "postgres",
+      "lane": 1
+    },
+    {
+      "id": "pay",
+      "type": "server",
+      "text": "Payment",
+      "icon": "Pay",
+      "lane": 2
+    },
+    {
+      "id": "ship",
+      "type": "server",
+      "text": "Shipping",
+      "icon": "node",
+      "lane": 3
+    },
+    {
+      "id": "mail",
+      "type": "server",
+      "text": "Notification",
+      "icon": "redis",
+      "lane": 4
+    }
+  ],
+  "packets": [
+    {
+      "id": "cmdInv",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "reserve stock"
+      }
+    },
+    {
+      "id": "cmdPay",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "charge"
+      }
+    },
+    {
+      "id": "cmdShip",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "prepare package"
+      }
+    },
+    {
+      "id": "cmdMail",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "notify customer"
+      }
+    },
+    {
+      "id": "okInv",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "reserved ✅"
+      }
+    },
+    {
+      "id": "okPay",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "paid ✅"
+      }
+    },
+    {
+      "id": "okShip",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "ready ✅"
+      }
+    },
+    {
+      "id": "okMail",
+      "kind": "http_packet",
+      "packet_content": {
+        "header": "sent ✅"
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "type": "comment",
+      "object": "orch",
+      "text": "An order arrives: the orchestrator coordinates all services around it."
+    },
+    {
+      "type": "comment",
+      "object": "orch",
+      "text": "1. It triggers each step, slightly staggered"
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "move",
+          "object": "cmdInv",
+          "from": "orch",
+          "to": "inv"
+        },
+        {
+          "type": "move",
+          "object": "cmdPay",
+          "from": "orch",
+          "to": "pay",
+          "delay_ms": 300
+        },
+        {
+          "type": "move",
+          "object": "cmdShip",
+          "from": "orch",
+          "to": "ship",
+          "delay_ms": 600
+        },
+        {
+          "type": "move",
+          "object": "cmdMail",
+          "from": "orch",
+          "to": "mail",
+          "delay_ms": 900
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "text": "2. Each service does its work then confirms to the orchestrator."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "move",
+          "object": "okInv",
+          "from": "inv",
+          "to": "orch"
+        },
+        {
+          "type": "move",
+          "object": "okPay",
+          "from": "pay",
+          "to": "orch",
+          "delay_ms": 300
+        },
+        {
+          "type": "move",
+          "object": "okShip",
+          "from": "ship",
+          "to": "orch",
+          "delay_ms": 600
+        },
+        {
+          "type": "move",
+          "object": "okMail",
+          "from": "mail",
+          "to": "orch",
+          "delay_ms": 900
+        }
+      ]
+    },
+    {
+      "type": "set_content",
+      "object": "orch",
+      "content": {
+        "type": "text",
+        "value": "✅ order processed"
+      },
+      "keep_until_end": true
+    },
+    {
+      "type": "comment",
+      "object": "orch",
+      "text": "All confirmations received: the order is complete 🎉"
+    }
+  ]
+}

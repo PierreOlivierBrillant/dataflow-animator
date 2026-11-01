@@ -39,6 +39,9 @@ jobs:
       - name: Check sub-icon data is fresh
         run: npm run check:subicons
 
+      - name: Check the Claude plugin's skill is fresh
+        run: npm run check:claude-plugin
+
       - name: Run Prettier
         run: npm run format:check
 

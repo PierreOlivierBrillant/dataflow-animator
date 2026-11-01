@@ -1,0 +1,20 @@
+{
+  "name": "dataflow-animator",
+  "displayName": "DataFlow Animator",
+  "description": "Writes DataFlow Animator specs (protocols, architectures, algorithms, circuits), validates them, and answers with a link that plays the animation in the online playground.",
+  "author": {
+    "name": "PierreOlivierBrillant",
+    "url": "https://github.com/PierreOlivierBrillant"
+  },
+  "homepage": "https://pierreolivierbrillant.github.io/dataflow-animator/docs/claude/",
+  "repository": "https://github.com/PierreOlivierBrillant/dataflow-animator",
+  "license": "MIT",
+  "keywords": [
+    "animation",
+    "diagram",
+    "data-flow",
+    "protocol",
+    "algorithm",
+    "circuit"
+  ]
+}

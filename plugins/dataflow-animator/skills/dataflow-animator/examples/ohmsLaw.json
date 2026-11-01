@@ -1,0 +1,203 @@
+{
+  "direction": "circuit",
+  "nodes": [
+    {
+      "id": "batt",
+      "type": "battery",
+      "x": 0.14,
+      "y": 0.3,
+      "text": "Battery",
+      "value": 12,
+      "unit": "V"
+    },
+    {
+      "id": "amm",
+      "type": "ammeter",
+      "x": 0.4,
+      "y": 0.3,
+      "text": "Ammeter"
+    },
+    {
+      "id": "jTR",
+      "type": "junction",
+      "x": 0.66,
+      "y": 0.3
+    },
+    {
+      "id": "R1",
+      "type": "resistor",
+      "x": 0.66,
+      "y": 0.57,
+      "rotation": 90,
+      "value": 6,
+      "unit": "Ω"
+    },
+    {
+      "id": "jBR",
+      "type": "junction",
+      "x": 0.66,
+      "y": 0.84
+    },
+    {
+      "id": "jBL",
+      "type": "junction",
+      "x": 0.1,
+      "y": 0.84
+    },
+    {
+      "id": "volt",
+      "type": "voltmeter",
+      "x": 0.88,
+      "y": 0.57,
+      "rotation": 90,
+      "text": "Voltmeter"
+    }
+  ],
+  "connections": [
+    {
+      "from": "batt:+",
+      "to": "amm:a"
+    },
+    {
+      "from": "amm:b",
+      "to": "jTR"
+    },
+    {
+      "from": "jTR",
+      "to": "R1:a"
+    },
+    {
+      "from": "R1:b",
+      "to": "jBR"
+    },
+    {
+      "from": "jBR",
+      "to": "jBL"
+    },
+    {
+      "from": "jBL",
+      "to": "batt:-"
+    },
+    {
+      "from": "jTR",
+      "to": "volt:a"
+    },
+    {
+      "from": "volt:b",
+      "to": "jBR"
+    }
+  ],
+  "packets": [],
+  "timeline": [
+    {
+      "type": "comment",
+      "text": "Ohm’s law ties together the four quantities of a circuit. A 12 V battery, a 6 Ω resistor, an ammeter (in series) and a voltmeter (across the resistor)."
+    },
+    {
+      "type": "flow",
+      "route": [
+        "batt:+",
+        "amm:a",
+        "amm:b",
+        "jTR",
+        "R1:a",
+        "R1:b",
+        "jBR",
+        "jBL",
+        "batt:-"
+      ],
+      "color": "#f59e0b",
+      "count": 8,
+      "keep_until_end": true
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "batt",
+          "icon": "12 V"
+        },
+        {
+          "type": "comment",
+          "object": "batt",
+          "text": "VOLTAGE (potential difference, in volts) is the “push” the battery provides: 12 V. It is measured ACROSS a component — the voltmeter is in parallel.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "volt",
+          "icon": "12 V"
+        },
+        {
+          "type": "highlight",
+          "object": "volt"
+        },
+        {
+          "type": "comment",
+          "object": "volt",
+          "text": "Notice the current does NOT flow through the voltmeter: it has a near-infinite resistance, so it reads the voltage without drawing current or disturbing the loop. That is why it goes in parallel.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "amm",
+          "icon": "2 A"
+        },
+        {
+          "type": "highlight",
+          "object": "amm"
+        },
+        {
+          "type": "comment",
+          "object": "amm",
+          "text": "CURRENT (amperage, in amperes) is the flow of charge THROUGH the loop — the ammeter (in series, so ALL the current passes through it) reads I = V ÷ R = 12 ÷ 6 = 2 A.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "highlight",
+          "object": "R1"
+        },
+        {
+          "type": "comment",
+          "object": "R1",
+          "text": "RESISTANCE (in ohms) is the opposition to that flow. Ohm’s law: V = I · R. A bigger resistor → less current for the same voltage.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "highlight",
+          "object": "R1"
+        },
+        {
+          "type": "comment",
+          "text": "POWER (wattage, in watts) is the energy delivered per second: P = V · I = 12 × 2 = 24 W, dissipated as heat in the resistor.",
+          "keep_until_end": true
+        }
+      ]
+    },
+    {
+      "type": "wait",
+      "duration": 2500
+    }
+  ]
+}

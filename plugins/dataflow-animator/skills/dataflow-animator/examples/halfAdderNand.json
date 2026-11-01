@@ -1,0 +1,591 @@
+{
+  "direction": "circuit",
+  "nodes": [
+    {
+      "id": "A",
+      "type": "signal",
+      "text": "A"
+    },
+    {
+      "id": "B",
+      "type": "signal",
+      "text": "B"
+    },
+    {
+      "id": "n1",
+      "type": "nand_gate",
+      "text": "NAND"
+    },
+    {
+      "id": "n2",
+      "type": "nand_gate",
+      "text": "NAND"
+    },
+    {
+      "id": "n3",
+      "type": "nand_gate",
+      "text": "NAND"
+    },
+    {
+      "id": "nSum",
+      "type": "nand_gate",
+      "text": "NAND"
+    },
+    {
+      "id": "nCarry",
+      "type": "nand_gate",
+      "text": "NAND"
+    },
+    {
+      "id": "sumOut",
+      "type": "signal",
+      "text": "Sum"
+    },
+    {
+      "id": "carryOut",
+      "type": "signal",
+      "text": "Carry"
+    }
+  ],
+  "connections": [
+    {
+      "id": "w0",
+      "from": "A",
+      "to": "n1:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w1",
+      "from": "B",
+      "to": "n1:b",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w2",
+      "from": "A",
+      "to": "n2:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w3",
+      "from": "n1:y",
+      "to": "n2:b",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w4",
+      "from": "n1:y",
+      "to": "n3:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w5",
+      "from": "B",
+      "to": "n3:b",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w6",
+      "from": "n2:y",
+      "to": "nSum:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w7",
+      "from": "n3:y",
+      "to": "nSum:b",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w8",
+      "from": "n1:y",
+      "to": "nCarry:a",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w9",
+      "from": "n1:y",
+      "to": "nCarry:b",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w10",
+      "from": "nSum:y",
+      "to": "sumOut",
+      "color": "#9aa4b2"
+    },
+    {
+      "id": "w11",
+      "from": "nCarry:y",
+      "to": "carryOut",
+      "color": "#9aa4b2"
+    }
+  ],
+  "packets": [],
+  "timeline": [
+    {
+      "type": "comment",
+      "text": "The same half-adder, but built ONLY from NAND gates. Watch the wires: green carries a 1, grey a 0 — trace how five NANDs reproduce the XOR (Sum) and AND (Carry)."
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "A",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "A",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "B",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "B",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "sumOut",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "sumOut",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "carryOut",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "carryOut",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "w0",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w1",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w2",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w3",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w4",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w5",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w6",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w7",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w8",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w9",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w10",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w11",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "comment",
+          "text": "0 + 0 → every NAND resolves to Sum 0, Carry 0.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "A",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "A",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "B",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "B",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "sumOut",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "sumOut",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "carryOut",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "carryOut",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "w0",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w1",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w2",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w3",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w4",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w5",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w6",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w7",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w8",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w9",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w10",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w11",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "comment",
+          "text": "0 + 1 → the four-NAND XOR gives Sum 1; the AND term gives Carry 0. Result 01.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "A",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "A",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "B",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "B",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "sumOut",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "sumOut",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "carryOut",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "carryOut",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_color",
+          "object": "w0",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w1",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w2",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w3",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w4",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w5",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w6",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w7",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w8",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w9",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w10",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w11",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "comment",
+          "text": "1 + 0 → symmetric to the previous case: Sum 1, Carry 0. Result 01.",
+          "keep_until_next": true
+        }
+      ]
+    },
+    {
+      "type": "parallel",
+      "actions": [
+        {
+          "type": "set_icon",
+          "object": "A",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "A",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "B",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "B",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_icon",
+          "object": "sumOut",
+          "icon": "0"
+        },
+        {
+          "type": "set_color",
+          "object": "sumOut",
+          "background_color": "#e5e7eb",
+          "text_color": "#334155"
+        },
+        {
+          "type": "set_icon",
+          "object": "carryOut",
+          "icon": "1"
+        },
+        {
+          "type": "set_color",
+          "object": "carryOut",
+          "background_color": "#16a34a",
+          "text_color": "white"
+        },
+        {
+          "type": "set_color",
+          "object": "w0",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w1",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w2",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w3",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w4",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w5",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w6",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w7",
+          "color": "#16a34a"
+        },
+        {
+          "type": "set_color",
+          "object": "w8",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w9",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w10",
+          "color": "#9aa4b2"
+        },
+        {
+          "type": "set_color",
+          "object": "w11",
+          "color": "#16a34a"
+        },
+        {
+          "type": "comment",
+          "text": "1 + 1 → XOR gives Sum 0, but the shared NAND term makes Carry 1. Result 10.",
+          "keep_until_end": true
+        }
+      ]
+    },
+    {
+      "type": "wait",
+      "duration": 2500
+    }
+  ]
+}
