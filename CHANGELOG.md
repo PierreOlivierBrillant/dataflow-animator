@@ -105,6 +105,8 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   tells an animated panel apart from a still image. An `html` panel is
   transcribed as its WORDS, with the markup stripped.
 
+- **A `flutter` sub-icon badge**, drawn with the Flutter logo.
+
 ### Changed
 
 - **The derived reading time reads the new modes properly.** An `html` panel is

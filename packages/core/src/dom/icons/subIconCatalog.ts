@@ -40,6 +40,7 @@ export const SUB_ICON_CATALOG: Record<string, SubIconDef> = {
   express: { icon: 'SiExpress', color: '#64748b' },
   firebase: { icon: 'SiFirebase', color: '#FFCA28' },
   firefox: { icon: 'SiFirefoxbrowser', color: '#FF7139' },
+  flutter: { icon: 'SiFlutter', color: '#027DFD' },
   git: { icon: 'SiGit', color: '#F05032' },
   go: { icon: 'SiGo', color: '#00ADD8' },
   'google pay': { icon: 'SiGooglepay', color: '#4285F4' },
