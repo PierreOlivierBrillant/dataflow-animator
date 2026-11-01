@@ -30,6 +30,11 @@ export const ZONE_PADDING = 20;
  *  text never overlaps the highest node's background — regardless of z-index. */
 export const ZONE_LABEL_EXTRA_TOP = 20;
 
+/** Offset (px) of a zone's label from the zone's top-left corner. The
+ *  horizontal one is also the room the label keeps from the RIGHT border. */
+export const ZONE_LABEL_INSET_X = 12;
+export const ZONE_LABEL_INSET_Y = 8;
+
 /** Vertical space (px) between the bottom of a node's visual and its label. */
 export const NODE_LABEL_GAP = 6;
 

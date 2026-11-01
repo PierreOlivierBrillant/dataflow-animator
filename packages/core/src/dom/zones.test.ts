@@ -1,9 +1,10 @@
 /** @vitest-environment jsdom */
 import { describe, expect, it } from 'vitest';
 import {
-  buildZoneLabel,
   buildZoneRect,
   computeZoneBounds,
+  createZoneLabel,
+  placeZoneLabel,
   zoneKey,
 } from './zones';
 import type { GeometryMap, NodeGeom } from '../engine/geometry';
@@ -109,6 +110,56 @@ describe('computeZoneBounds', () => {
       {}
     );
   });
+
+  it('widens around its middle to fit the label and its insets', () => {
+    const bounds = computeZoneBounds(
+      [{ id: 'z', contains: ['a'], label: 'Client · untrusted' }],
+      map(geom({ id: 'a' })),
+      { labelWidths: { z: 136 } }
+    ).z;
+
+    // 136 + 2 × ZONE_LABEL_INSET_X (12) = 160, centred on the node at x = 100.
+    expect(bounds.width).toBe(160);
+    expect(bounds.x).toBe(20);
+  });
+
+  it('ignores a label narrower than the members, and a zone with no label', () => {
+    const zones: Zone[] = [
+      { id: 'short', contains: ['a'], label: 'DB' },
+      { id: 'bare', contains: ['a'] },
+    ];
+    const bounds = computeZoneBounds(zones, map(geom({ id: 'a' })), {
+      labelWidths: { short: 20, bare: 500 },
+    });
+
+    expect(bounds.short.width).toBe(80);
+    expect(bounds.bare.width).toBe(80);
+  });
+
+  it('leans the label widening away from a stage edge', () => {
+    const bounds = computeZoneBounds(
+      [{ id: 'z', contains: ['a'], label: 'Edge' }],
+      map(geom({ id: 'a', x: 40 })),
+      { labelWidths: { z: 136 }, stage: { width: 800, height: 600 } }
+    ).z;
+
+    // Members span 20..60, padded 0..80: no room on the left, so the whole
+    // 80px of widening goes right. The 2px stage inset clips the left side.
+    expect(bounds.x).toBe(2);
+    expect(bounds.x + bounds.width).toBe(160);
+  });
+
+  it('clips a zone whose members reach past the stage edge', () => {
+    const bounds = computeZoneBounds(
+      [{ id: 'z', contains: ['a'] }],
+      map(geom({ id: 'a', x: 790, y: 590 })),
+      { stage: { width: 800, height: 600 } }
+    ).z;
+
+    expect(bounds.x + bounds.width).toBe(798);
+    expect(bounds.y + bounds.height).toBe(598);
+    expect(bounds.x).toBe(750);
+  });
 });
 
 describe('buildZoneRect', () => {
@@ -138,24 +189,33 @@ describe('buildZoneRect', () => {
   });
 });
 
-describe('buildZoneLabel', () => {
-  it('offsets the label from the box origin', () => {
-    const el = buildZoneLabel(
-      { id: 'z', contains: [], label: 'Backend' },
-      { x: 10, y: 20, width: 300, height: 200 }
-    );
+describe('createZoneLabel / placeZoneLabel', () => {
+  it('builds an unplaced label, then offsets it from the box origin', () => {
+    const el = createZoneLabel({ id: 'z', contains: [], label: 'Backend' });
 
     expect(el.getAttribute('class')).toBe('rdfa-zone-label');
+    expect(el.style.left).toBe('');
+    expect(el.textContent).toBe('Backend');
+
+    placeZoneLabel(el, { x: 10, y: 20, width: 300, height: 200 });
+
     expect(el.style.left).toBe('22px');
     expect(el.style.top).toBe('28px');
-    expect(el.textContent).toBe('Backend');
+  });
+
+  it('carries the zone colour', () => {
+    const el = createZoneLabel({
+      id: 'z',
+      contains: [],
+      label: 'Backend',
+      color: '#f00',
+    });
+
+    expect(el.style.getPropertyValue('--rdfa-zone-color')).toBe('#f00');
   });
 
   it('renders rich text in the label', () => {
-    const el = buildZoneLabel(
-      { id: 'z', contains: [], label: 'zone $x$' },
-      { x: 0, y: 0, width: 1, height: 1 }
-    );
+    const el = createZoneLabel({ id: 'z', contains: [], label: 'zone $x$' });
 
     expect(el.querySelector('.rdfa-tex')).not.toBeNull();
   });

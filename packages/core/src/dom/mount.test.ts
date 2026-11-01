@@ -323,7 +323,7 @@ describe('mountStage — convergence', () => {
 });
 
 /**
- * The convergence run WRITES sizes back (the common code font scale resizes a
+ * The convergence run WRITES sizes back (a code block's font fit resizes its
  * panel), so running it inside the observer's delivery cycle makes the browser
  * report "ResizeObserver loop completed with undelivered notifications". These
  * assert the deferral that keeps the write out of that cycle —

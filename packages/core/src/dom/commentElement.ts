@@ -1,4 +1,11 @@
-import type { NodeGeom } from '../engine/geometry';
+import { nodeFootprint, type NodeGeom } from '../engine/geometry';
+import {
+  anchoredBox,
+  anchorOf,
+  planAnchored,
+  planFree,
+  type BubblePlan,
+} from '../engine/overlayPlacement';
 import { clamp } from '../engine/timeline';
 import { h, px, setStyle } from './el';
 import { appendRichText } from './richtext';
@@ -17,22 +24,22 @@ import { appendRichText } from './richtext';
  * built once, after the convergence loop.
  */
 
-/** Margin (px) kept between a bubble and the stage edges. `CommentBubble`'s. */
-const PAD = 8;
-
-/** Gap (px) between the bubble and the node it points at. */
-const NODE_GAP = 8;
-
 /** Half the tail's base (px) — the tail never leaves the bubble's rounded ends. */
 const TAIL_INSET = 14;
 
 export interface CommentElementOptions {
-  /** Anchor node. Absent = omniscient bubble, centred at the top of the stage. */
+  /** Anchor node. Absent = omniscient bubble. */
   node?: NodeGeom;
   text: string;
   opacity: number;
   stageW: number;
   stageH: number;
+  /**
+   * Where `planBubbles` decided the bubble goes, clear of what else shares its
+   * screen time. Absent, it is placed against its own node only: above it (or
+   * below when there is no room above), or centred at the top of the stage.
+   */
+  plan?: BubblePlan;
 }
 
 /** A retained bubble: the element plus the tail `apply` repositions. */
@@ -95,57 +102,53 @@ export function applyCommentElement(
   handle: CommentElement,
   options: CommentElementOptions
 ): void {
-  const { node, opacity, stageW, stageH } = options;
+  const { node, opacity, stageW, stageH, plan } = options;
   const { el, tail, omniscient } = handle;
 
-  const w = el.offsetWidth;
-  const h0 = el.offsetHeight;
-  const degenerate = w === 0 || h0 === 0;
+  const size = { w: el.offsetWidth, h: el.offsetHeight };
+  const stage = { w: stageW, h: stageH };
+  const degenerate = size.w === 0 || size.h === 0;
+  const visibility = degenerate ? 'hidden' : 'visible';
 
   // `omniscient` and `node` are decided together at creation, but they are two
   // values as far as the type system is concerned — testing both narrows `node`
   // and keeps the pair honest if a caller ever mismatches them.
   if (omniscient || !node) {
-    let left = stageW / 2 - w / 2;
-    if (w > 0 && stageW > 0) {
-      left = clamp(left, PAD, Math.max(PAD, stageW - w - PAD));
-    }
+    const free =
+      plan && 'free' in plan ? plan.free : planFree(undefined, size, stage, []);
     setStyle(el, {
-      left: px(left),
-      top: px(PAD),
+      left: px(free.left),
+      top: px(free.top),
       opacity: String(opacity),
-      visibility: degenerate ? 'hidden' : 'visible',
+      visibility,
     });
     return;
   }
 
-  const nodeTop = node.y - node.height / 2;
-  const nodeBottom = node.y + node.height / 2;
-  // Not enough room above → flip below the node (and flip the tail with it).
+  // The plan is a SIDE and a distance, not a position: the box is rebuilt from
+  // the node as it is this frame, so the bubble follows a node that moves.
+  const anchor = anchorOf(node);
+  const anchored =
+    plan && 'anchored' in plan
+      ? plan.anchored
+      : planAnchored(anchor, size, stage, [nodeFootprint(node)]);
+  const box = anchoredBox(anchor, anchored, size, stage);
   // The class is TOGGLED, not just added: in retained mode a bubble whose anchor
   // drifts back up must lose the modifier again, which a build-once path never
   // had to care about.
-  const below = h0 > 0 && nodeTop - NODE_GAP - h0 < PAD;
-  el.classList.toggle('rdfa-comment--below', below);
-
-  let top = below ? nodeBottom + NODE_GAP : nodeTop - NODE_GAP - h0;
-  if (h0 > 0 && stageH > 0) {
-    top = clamp(top, PAD, Math.max(PAD, stageH - h0 - PAD));
-  }
-  let left = node.x - w / 2;
-  if (w > 0 && stageW > 0) {
-    left = clamp(left, PAD, Math.max(PAD, stageW - w - PAD));
-  }
+  el.classList.toggle('rdfa-comment--below', anchored.side === 'below');
   // The tail keeps pointing at the node even when the bubble is pushed off the
   // node's axis by an edge clamp.
   const tailX =
-    w > 0 ? clamp(node.x - left, TAIL_INSET, w - TAIL_INSET) : w / 2;
+    size.w > 0
+      ? clamp(node.x - box.x, TAIL_INSET, size.w - TAIL_INSET)
+      : size.w / 2;
 
   setStyle(el, {
-    left: px(left),
-    top: px(top),
+    left: px(box.x),
+    top: px(box.y),
     opacity: String(opacity),
-    visibility: degenerate ? 'hidden' : 'visible',
+    visibility,
   });
   if (tail) setStyle(tail, { left: px(tailX) });
 }

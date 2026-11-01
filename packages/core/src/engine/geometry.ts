@@ -142,6 +142,28 @@ function labelBounds(
 }
 
 /**
+ * What a node covers on the stage: its visual body plus, when it has one, the
+ * label under it. What an overlay placed AROUND a node has to keep clear of.
+ */
+export function nodeFootprint(node: NodeGeom): {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+} {
+  const body = bodyBounds(node);
+  const label = labelBounds(node);
+  if (!label) return body;
+  const x = Math.min(body.x, label.x);
+  return {
+    x,
+    y: body.y,
+    w: Math.max(body.x + body.w, label.x + label.w) - x,
+    h: label.y + label.h - body.y,
+  };
+}
+
+/**
  * Returns entry/exit t parameters of a p1→p2 segment in a rect,
  * or null if no intersection (slabs method).
  */

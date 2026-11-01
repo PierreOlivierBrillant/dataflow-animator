@@ -2,10 +2,12 @@
 import { describe, expect, it } from 'vitest';
 import {
   applyCodeFontScale,
+  CODE_LEGIBLE_SCALE,
   applyContentFrame,
   applyContentScreen,
   buildContentPanel,
   measureCodeFit,
+  NATURAL_CODE_FIT,
   type CodeFitTarget,
 } from './contentElement';
 import type { Highlighter } from '../types';
@@ -124,18 +126,19 @@ describe('buildContentPanel — mode dispatch', () => {
 describe('applyCodeFontScale', () => {
   /** jsdom reports no layout, so `measureCodeFit` is exercised separately. */
   const target = () => ({ pre: document.createElement('pre'), baseFont: 20 });
+  const shrunk = (scale: number) => ({ scale, wrap: false });
 
   it('writes the scaled font size', () => {
     const t = target();
-    applyCodeFontScale(t, 0.5);
+    applyCodeFontScale(t, shrunk(0.5));
 
     expect(t.pre.style.fontSize).toBe('10px');
   });
 
   it('REMOVES the declaration at scale 1 rather than writing the base size', () => {
     const t = target();
-    applyCodeFontScale(t, 0.5);
-    applyCodeFontScale(t, 1);
+    applyCodeFontScale(t, shrunk(0.5));
+    applyCodeFontScale(t, shrunk(1));
 
     // React passes `undefined` here and drops the style entirely; a leftover
     // `20px` would pin the size against a stylesheet that scales with the player.
@@ -144,39 +147,128 @@ describe('applyCodeFontScale', () => {
 
   it('leaves an unmeasured block alone', () => {
     const pre = document.createElement('pre');
-    applyCodeFontScale({ pre }, 0.5);
+    applyCodeFontScale({ pre }, { scale: 0.5, wrap: true });
 
     expect(pre.style.fontSize).toBe('');
+    expect(pre.hasAttribute('class')).toBe(false);
   });
 
   it('never scales below 1px', () => {
     const t = { pre: document.createElement('pre'), baseFont: 2 };
-    applyCodeFontScale(t, 0.01);
+    applyCodeFontScale(t, shrunk(0.01));
 
     expect(t.pre.style.fontSize).toBe('1px');
+  });
+
+  it('turns wrapping on, then off without leaving an empty class', () => {
+    const t = target();
+    applyCodeFontScale(t, { scale: CODE_LEGIBLE_SCALE, wrap: true });
+
+    expect(t.pre.className).toBe('rdfa-code-wrap');
+    expect(t.pre.style.fontSize).toBe(`${20 * CODE_LEGIBLE_SCALE}px`);
+
+    applyCodeFontScale(t, NATURAL_CODE_FIT);
+
+    // A fresh mount never had the attribute; an update must not leave `class=""`.
+    expect(t.pre.hasAttribute('class')).toBe(false);
+    expect(t.pre.hasAttribute('style')).toBe(false);
   });
 });
 
 describe('measureCodeFit', () => {
-  it('reports 1 and records the base font when nothing overflows', () => {
+  it('reports the natural fit and records the base font when nothing overflows', () => {
     // jsdom gives every box a zero size, so `natural* > avail*` is never true —
     // which is exactly the "fits" branch.
     const pre = document.createElement('pre');
     document.body.appendChild(pre);
     const t: CodeFitTarget = { pre };
 
-    expect(measureCodeFit(t)).toBe(1);
+    expect(measureCodeFit(t)).toEqual(NATURAL_CODE_FIT);
     expect(t.baseFont).toBeGreaterThan(0);
   });
 
-  it('restores an already-applied inline font size', () => {
+  it('restores an already-applied inline font size and wrapping', () => {
     const pre = document.createElement('pre');
     pre.style.fontSize = '7px';
+    pre.className = 'rdfa-code-wrap';
     document.body.appendChild(pre);
 
     measureCodeFit({ pre });
 
     expect(pre.style.fontSize).toBe('7px');
+    expect(pre.className).toBe('rdfa-code-wrap');
+  });
+
+  /**
+   * A `<pre>` whose layout follows its font: `width` columns of 0.6em, one
+   * line per `\n` — or per wrapped row once `.rdfa-code-wrap` is on. jsdom
+   * computes no layout, so the reads `measureCodeFit` makes are stubbed.
+   */
+  function laidOut(lines: number[], box: { w: number; maxH: number }) {
+    const body = document.createElement('div');
+    const pre = document.createElement('pre');
+    body.appendChild(pre);
+    document.body.appendChild(body);
+    // Read the way `measureCodeFit` reads it, so the stub and the code agree on
+    // the base size whatever jsdom resolves it to.
+    const font = () => parseFloat(getComputedStyle(pre).fontSize) || 12.5;
+    const charW = () => font() * 0.6;
+    const lineH = () => font() * 1.5;
+    const rows = () =>
+      pre.classList.contains('rdfa-code-wrap')
+        ? lines.reduce(
+            (n, len) => n + Math.max(1, Math.ceil((len * charW()) / box.w)),
+            0
+          )
+        : lines.length;
+    Object.defineProperties(pre, {
+      scrollWidth: { get: () => Math.max(...lines) * charW() },
+      scrollHeight: { get: () => rows() * lineH() },
+      clientWidth: { get: () => box.w },
+    });
+    Object.defineProperty(body, 'clientHeight', {
+      get: () => Math.min(rows() * lineH(), box.maxH),
+    });
+    body.style.maxHeight = `${box.maxH}px`;
+    pre.style.fontSize = '';
+    return pre;
+  }
+
+  /** The base size the stubs lay out at — whatever jsdom resolves. */
+  const baseFont = () =>
+    parseFloat(getComputedStyle(document.body).fontSize) || 12.5;
+
+  it('only shrinks a block that stays legible', () => {
+    // 50 columns into 80 % of their natural width: above the floor.
+    const natural = 50 * baseFont() * 0.6;
+    const w = natural * 0.8;
+    const fit = measureCodeFit({ pre: laidOut([50, 10], { w, maxH: 600 }) });
+
+    expect(fit.wrap).toBe(false);
+    expect(fit.scale).toBeCloseTo((w - 2) / natural, 5);
+  });
+
+  it('wraps at the legibility floor rather than shrinking past it', () => {
+    // 600px into 200px would be 0.33 — a third of the base size.
+    const fit = measureCodeFit({
+      pre: laidOut([50, 10], { w: 200, maxH: 600 }),
+    });
+
+    expect(fit).toEqual({ scale: CODE_LEGIBLE_SCALE, wrap: true });
+  });
+
+  it('goes below the floor only as far as the wrapped lines need to fit', () => {
+    // Twelve long lines: wrapped at the floor they need 36 rows, far more than
+    // the 200px of height on offer.
+    const lines = Array.from({ length: 12 }, () => 50);
+    const fit = measureCodeFit({ pre: laidOut(lines, { w: 200, maxH: 200 }) });
+
+    expect(fit.wrap).toBe(true);
+    expect(fit.scale).toBeLessThan(CODE_LEGIBLE_SCALE);
+    // Never below the unwrapped fit, which always holds.
+    expect(fit.scale).toBeGreaterThanOrEqual(
+      (200 - 2) / (50 * baseFont() * 0.6)
+    );
   });
 });
 

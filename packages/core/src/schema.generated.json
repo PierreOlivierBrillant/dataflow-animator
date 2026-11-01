@@ -494,9 +494,11 @@
         "css",
         "jsx",
         "tsx",
-        "http"
+        "http",
+        "dart",
+        "plaintext"
       ],
-      "description": "Languages supported by the syntax highlighting engine (Prism)."
+      "description": "Languages supported by the syntax highlighting engine (Prism). `plaintext` is the explicit \"no highlighting\": raw output, a log, a prompt — a `code` panel left with no `language` at all draws a compiler warning instead."
     },
     "BlockPin": {
       "type": "object",

@@ -102,7 +102,9 @@ Mutates the content of a node. The content follows the `ObjectContent` shape, sh
 with `node.content` (see [`content`](../concepts/nodes.mdx#content--initial-content)):
 
 - **`code`**: dark terminal with Prism highlighting, no URL bar; the
-  font adjusts to fit the longest line without wrapping.
+  font shrinks to fit the longest line, down to a legibility floor — past it,
+  long lines wrap at the panel's edge instead. A panel near the edge of the
+  stage extends toward the free side.
 - **`text`**: browser window with a configurable URL bar (`url`).
 - **`image`**: image (`value` = path/URL) displayed in a window, or an
   **animated sequence** (`frames`).
@@ -126,6 +128,22 @@ the wrapping object.
     type: 'code',
     language: 'javascript',
     value: 'const add = (a, b) => a + b;',
+  },
+}
+```
+
+Always set `language` on code: without it the panel is drawn uncoloured and
+the compiler reports a warning. `plaintext` states that a plain rendering is
+meant (a log, raw output). A Flutter screen, in Dart:
+
+```ts
+{
+  type: 'set_content',
+  object: 'phone',
+  content: {
+    type: 'code',
+    language: 'dart',
+    value: "final res = await FirebaseFunctions.instance\n    .httpsCallable('summarize')\n    .call({'text': article});",
   },
 }
 ```
@@ -305,15 +323,23 @@ Displays a text bubble fading in near a node, identified by `object`.
 }
 ```
 
-**Omniscient comment**: omit `object` to display the bubble **at the top
-of the scene** rather than next to a node — ideal for a general narration that
-is not attached to any specific component.
+**Omniscient comment**: omit `object` to display the bubble **above the
+diagram**, centred in the free space there, rather than next to a node — ideal
+for a general narration that is not attached to any specific component.
+
+**Where a bubble lands.** A bubble keeps clear of what shares the screen with
+it: nodes, zone labels, earlier bubbles, and the whole path of every packet that
+flies while it is shown. An attached bubble goes above its node, else below it,
+else further away on whichever side clears; an omniscient one takes the free
+band above the diagram, else slides aside, else takes the band below. The place
+is chosen once for the bubble's whole lifetime, so it never jumps when a packet
+arrives.
 
 ```ts
 { type: 'comment', text: 'Step 2 — Authentication' }
 ```
 
-Below, an omniscient comment (top of the scene) followed by two bubbles
+Below, an omniscient comment (above the diagram) followed by two bubbles
 attached to nodes:
 
 <DataFlowPlayer spec={commentExample} mode="auto" height={320} />

@@ -79,9 +79,9 @@ Content modes for `set_content` (action) and `content` (static object).
 
 ## HighlightLanguage
 
-Languages supported by the syntax highlighting engine (Prism).
+Languages supported by the syntax highlighting engine (Prism). `plaintext` is the explicit "no highlighting": raw output, a log, a prompt — a `code` panel left with no `language` at all draws a compiler warning instead.
 
-`"javascript" | "js" | "typescript" | "ts" | "json" | "sql" | "bash" | "sh" | "shell" | "python" | "py" | "csharp" | "cs" | "html" | "xml" | "markup" | "css" | "jsx" | "tsx" | "http"`
+`"javascript" | "js" | "typescript" | "ts" | "json" | "sql" | "bash" | "sh" | "shell" | "python" | "py" | "csharp" | "cs" | "html" | "xml" | "markup" | "css" | "jsx" | "tsx" | "http" | "dart" | "plaintext"`
 
 ## BlockPin
 

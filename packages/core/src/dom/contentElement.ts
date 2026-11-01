@@ -49,15 +49,51 @@ export interface CodeFitTarget {
 }
 
 /**
- * Measures the shrink ratio this code block would need ON ITS OWN to fit, and
- * records its base font size — the port of `CodeBlock`'s layout effect.
- *
- * Reads at the BASE font (the inline size is cleared for the duration and
- * restored before returning), so `natural*` and `avail*` are both expressed in
- * the same units no matter what scale is currently applied. That is what makes
- * the fixed point stable rather than oscillating with its own output.
+ * How a code block is drawn: its font as a share of the base size, and whether
+ * its lines wrap.
  */
-export function measureCodeFit(target: CodeFitTarget): number {
+export interface CodeFit {
+  scale: number;
+  wrap: boolean;
+}
+
+/** The fit of a block that needs nothing: base size, no wrapping. */
+export const NATURAL_CODE_FIT: CodeFit = { scale: 1, wrap: false };
+
+/**
+ * The smallest share of the base size code is shrunk to — 8 design px out of
+ * 12.5. Below it a block WRAPS instead.
+ *
+ * Shrinking without a floor is what made a long line unreadable: a 45-column
+ * line in a panel squeezed between a node and the stage edge came out at a
+ * third of its size, while the room under it stayed empty. Wrapping spends
+ * that height on legibility. The floor is relative rather than in pixels
+ * because everything else on the stage is: a thumbnail is small all over.
+ */
+export const CODE_LEGIBLE_SCALE = 0.64;
+
+/** Halvings of the bracket a block whose wrapped lines still overflow is fit in. */
+const WRAP_SEARCH_STEPS = 6;
+
+/** Class that lets a `<pre>` wrap — see `.rdfa-code-wrap` in the stylesheet. */
+const WRAP_CLASS = 'rdfa-code-wrap';
+
+/**
+ * Measures the fit this code block needs ON ITS OWN, and records its base font
+ * size — the port of `CodeBlock`'s layout effect, plus the legibility floor.
+ *
+ * Reads at the BASE font and unwrapped (the inline size and the wrap class are
+ * cleared for the duration and restored before returning), so `natural*` and
+ * `avail*` are both expressed in the same units no matter what fit is currently
+ * applied. That is what makes the fixed point stable rather than oscillating
+ * with its own output.
+ *
+ * A block that would have to go below {@link CODE_LEGIBLE_SCALE} wraps at that
+ * scale instead, or — if even its wrapped lines overflow the panel's height —
+ * at the largest scale between its unwrapped fit and the floor that holds them.
+ * Unwrapped fit is always a solution: at that size no line reaches the edge.
+ */
+export function measureCodeFit(target: CodeFitTarget): CodeFit {
   const el = target.pre;
   // The <pre> has its own padding (which does NOT depend on the font): we
   // subtract it to only reason about the TEXT area.
@@ -69,7 +105,9 @@ export function measureCodeFit(target: CodeFitTarget): number {
     (parseFloat(preCs.paddingTop) || 0) +
     (parseFloat(preCs.paddingBottom) || 0);
   const applied = el.style.fontSize;
+  const wrapped = el.classList.contains(WRAP_CLASS);
   el.style.removeProperty('font-size');
+  if (wrapped) el.classList.remove(WRAP_CLASS);
   const base = parseFloat(getComputedStyle(el).fontSize) || FALLBACK_BASE_FONT;
   const naturalW = el.scrollWidth - padX;
   const naturalH = el.scrollHeight - padY;
@@ -77,38 +115,84 @@ export function measureCodeFit(target: CodeFitTarget): number {
   // Available height = body height (bounded by max-height), minus <pre> padding.
   const body = el.parentElement;
   const availH = (body ? body.clientHeight : el.clientHeight) - padY;
-  // Restored through the CSSOM rather than by assigning back a possibly-empty
-  // string: `el.style.fontSize = ''` materialises an empty `style=""` attribute
-  // on a block that never had one, which is a DOM difference the mount-vs-update
-  // gate would (rightly) report even though nothing renders differently.
-  if (applied) el.style.setProperty('font-size', applied);
-  else pruneEmptyStyle(el);
 
   const ratioW =
     availW > 0 && naturalW > availW ? (availW - FIT_SAFETY) / naturalW : 1;
   const ratioH =
     availH > 0 && naturalH > availH ? (availH - FIT_SAFETY) / naturalH : 1;
+  const unwrapped = Math.min(ratioW, ratioH, 1);
+
+  let fit: CodeFit = { scale: unwrapped, wrap: false };
+  if (unwrapped < CODE_LEGIBLE_SCALE) {
+    // Wrapped lines grow the body up to its ceiling, not just to the height it
+    // has now — so the room is the max-height.
+    const ceiling = body ? parseFloat(getComputedStyle(body).maxHeight) : NaN;
+    const roomH = (Number.isFinite(ceiling) ? ceiling : availH) - padY;
+    el.classList.add(WRAP_CLASS);
+    const holds = (scale: number): boolean => {
+      el.style.setProperty('font-size', `${base * scale}px`);
+      return el.scrollHeight - padY <= roomH - FIT_SAFETY;
+    };
+    let scale = CODE_LEGIBLE_SCALE;
+    if (!holds(scale)) {
+      let low = unwrapped;
+      let high = CODE_LEGIBLE_SCALE;
+      for (let i = 0; i < WRAP_SEARCH_STEPS; i++) {
+        const mid = (low + high) / 2;
+        if (holds(mid)) low = mid;
+        else high = mid;
+      }
+      scale = low;
+    }
+    el.classList.remove(WRAP_CLASS);
+    el.style.removeProperty('font-size');
+    fit = { scale, wrap: true };
+  }
+
+  // Restored through the CSSOM rather than by assigning back a possibly-empty
+  // string: `el.style.fontSize = ''` materialises an empty `style=""` attribute
+  // on a block that never had one, which is a DOM difference the mount-vs-update
+  // gate would (rightly) report even though nothing renders differently. Same
+  // for the class.
+  if (applied) el.style.setProperty('font-size', applied);
+  else pruneEmptyStyle(el);
+  if (wrapped) el.classList.add(WRAP_CLASS);
+  else pruneEmptyClass(el);
+
   target.baseFont = base;
-  return Math.min(ratioW, ratioH, 1);
+  return fit;
 }
 
 /**
- * Writes the COMMON font scale onto a code block, so every code panel in the
- * stage renders at exactly the same size.
+ * Writes a block's fit: its font scale and its wrapping.
+ *
+ * Each block gets its OWN fit. They used to share the smallest one, so that
+ * every panel on the stage rendered at the same size — which let the most
+ * cramped panel shrink a roomy one to the same unreadable size.
  *
  * A scale of 1 (or a block not yet measured) REMOVES the inline size rather
  * than writing `1×base`: `CodeBlock` passes `undefined` there, and React drops
  * the declaration entirely. Leaving a rounded `12.5px` behind instead would
  * pin the size against a stylesheet that scales with the player.
  */
-export function applyCodeFontScale(target: CodeFitTarget, scale: number): void {
+export function applyCodeFontScale(target: CodeFitTarget, fit: CodeFit): void {
   const { pre, baseFont } = target;
-  if (baseFont == null || scale >= 1) {
+  if (fit.wrap && baseFont != null) pre.classList.add(WRAP_CLASS);
+  else if (pre.classList.contains(WRAP_CLASS)) {
+    pre.classList.remove(WRAP_CLASS);
+    pruneEmptyClass(pre);
+  }
+  if (baseFont == null || fit.scale >= 1) {
     pre.style.removeProperty('font-size');
     pruneEmptyStyle(pre);
     return;
   }
-  setStyle(pre, { 'font-size': `${Math.max(1, baseFont * scale)}px` });
+  setStyle(pre, { 'font-size': `${Math.max(1, baseFont * fit.scale)}px` });
+}
+
+/** `class=""` left behind by a removed token — see `pruneEmptyStyle`. */
+function pruneEmptyClass(el: HTMLElement): void {
+  if (el.getAttribute('class') === '') el.removeAttribute('class');
 }
 
 /**

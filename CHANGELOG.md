@@ -110,6 +110,12 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   `ollama`, `huggingface`, `perplexity`, `copilot`, `qwen`, `kimi` / `moonshot`,
   `minimax`, `openrouter`, `grok` and `zhipu` / `glm`.
 
+- **`dart` and `plaintext` highlight languages.** Dart for Flutter code;
+  `plaintext` to state that a code panel is meant uncoloured — a log, raw output.
+  A `code` content with no `language` at all now compiles with a non-blocking
+  warning: it used to render as plain text with nothing to say it was an
+  omission.
+
 ### Changed
 
 - **The derived reading time reads the new modes properly.** An `html` panel is
@@ -125,6 +131,36 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   dragging keeps seeking, the pointer captured so it may leave the bar; playback
   is suspended for the drag and resumed on release. Touch drags scrub instead of
   scrolling the page.
+
+- **Code stays readable.** A `code` panel shrank its font until its longest line
+  fit, with no lower bound, and every code panel on the stage then took the
+  SMALLEST font among them — one cramped panel pulled a roomy one down with it,
+  both to a third of their size. Each panel now fits on its own, and stops
+  shrinking at 64 % of the base size: past that floor, long lines wrap at the
+  panel's edge, the way a terminal wraps, spending the panel's height instead of
+  its legibility.
+
+- **A panel that shrinks to fit uses the room on its free side.** A panel's
+  width was twice its node's distance to the nearest obstacle, edge or neighbour
+  — so code on a node near the stage edge got a sliver, and shrank to match,
+  while the stage beside it stayed empty. Each side is now bounded on its own,
+  and a `code`, `image` or `html` screen panel too wide to stay centred slides
+  toward the room (its node moves with it while it is shown). Two neighbours that
+  both open a panel at some point share the distance between them, decided
+  before the first frame, so neither shrinks when the other appears. Panels that
+  wrap — `text`, plain `html`, `table` — lose lines, not legibility, to a narrow
+  slot, and stay centred; so do all panels in trees and circuits, whose nodes
+  move or are rescaled after placement.
+
+- **Comment bubbles keep clear of the rest of the stage.** A bubble went above
+  its node, or top-centre of the stage, whatever was there: on the packet leaving
+  the node, on another bubble, on a zone's label. It now weighs a few candidate
+  places against the nodes, the zone labels, the earlier bubbles it is shown
+  with and the whole path of every packet in flight during its lifetime, and
+  takes the first that covers the least. Decided once per bubble — it never jumps
+  when a packet arrives. An omniscient bubble is centred in the free band above
+  the diagram instead of pinned to the stage's top edge, and a bubble placed
+  below its node now clears the node's label.
 
 ### Fixed
 
@@ -160,6 +196,25 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   so hovering changed next to nothing. The hover is now the text colour at 10 %,
   which contrasts with the bar by construction, and a disabled button no longer
   reacts to the pointer.
+
+- **A packet keeps its shape all the way across the stage.** An absolutely
+  positioned box with `left` set and no width shrinks to fit `stage − left`, so a
+  packet flying right was rewrapped narrower and taller every frame — by the
+  right-hand node, an HTTP packet with a JSON body was a column of a few
+  characters. Packets, comment bubbles and nodes are now sized `max-content`
+  (capped as before), the rule node labels already followed. The same bug was
+  squeezing a `set_content` panel on any node placed right of 60 %.
+
+- **A packet stays on the stage.** It rides its path centred, so a card wider
+  than a node, leaving or reaching a node near an edge, hung half off-stage. It
+  is now kept 8 px inside the stage, as a comment bubble is.
+
+- **A zone fits its label, and stays on the stage.** Its width came from its
+  members alone, so a long label over a narrow member ran into, then past, the
+  right border. A zone is now at least as wide as its label plus the label's
+  inset on both sides — widened toward the stage interior when it sits against
+  an edge. And when a member's panel grows against an edge, the zone is clipped
+  to the stage instead of losing its border.
 
 ## 2.0.0 — 2026-08-24
 

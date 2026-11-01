@@ -41,6 +41,17 @@ describe('highlightCode', () => {
     expect(output).toMatch(/<span class="token /);
   });
 
+  it('dart (Flutter): tokenized output', () => {
+    const output = highlightCode("final res = await call('resumer');", 'dart');
+    expect(output).toMatch(/<span class="token keyword">final<\/span>/);
+  });
+
+  it('plaintext: never tokenized — the explicit "no highlighting"', () => {
+    const output = highlightCode('GET /api <200>', 'plaintext');
+    expect(output).not.toMatch(/<span/);
+    expect(output).toContain('&lt;200');
+  });
+
   it('html alias (→ markup): tokenized output', () => {
     const output = highlightCode('<div>hello</div>', 'html');
     expect(output).toMatch(/<span class="token /);

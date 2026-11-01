@@ -103,7 +103,9 @@ avec le champ [`content`](../concepts/nodes.mdx#content--contenu-initial) d'un
 nœud. Cinq modes via `type` :
 
 - **`code`** : terminal sombre avec coloration Prism, sans barre d'URL ; la
-  police s'ajuste pour faire tenir la ligne la plus longue sans wrap.
+  police rétrécit pour faire tenir la ligne la plus longue, jusqu'à un plancher
+  de lisibilité — au-delà, les lignes trop longues passent à la ligne au bord du
+  panneau. Un panneau proche du bord de la scène s'étend du côté libre.
 - **`text`** : fenêtre de navigateur avec barre d'URL paramétrable (`url`).
 - **`image`** : image (`value` = chemin/URL) affichée dans une fenêtre, ou
   **séquence animée** (`frames`).
@@ -127,6 +129,23 @@ Mode `code` :
     type: 'code',
     language: 'javascript',
     value: 'const add = (a, b) => a + b;',
+  },
+}
+```
+
+Renseignez toujours `language` sur du code : sans lui, le panneau est dessiné
+sans couleurs et le compilateur émet un avertissement. `plaintext` indique qu'un
+rendu brut est voulu (un journal, une sortie de commande). Un écran Flutter, en
+Dart :
+
+```ts
+{
+  type: 'set_content',
+  object: 'telephone',
+  content: {
+    type: 'code',
+    language: 'dart',
+    value: "final res = await FirebaseFunctions.instance\n    .httpsCallable('resumer')\n    .call({'texte': article});",
   },
 }
 ```
@@ -311,15 +330,24 @@ Affiche une bulle de texte en fondu près d'un nœud, identifié par `object`.
 }
 ```
 
-**Commentaire omniscient** : omettez `object` pour afficher la bulle **en haut
-de la scène** plutôt qu'à côté d'un nœud — idéal pour une narration générale qui
-ne se rattache à aucun composant précis.
+**Commentaire omniscient** : omettez `object` pour afficher la bulle **au-dessus
+du diagramme**, centrée dans l'espace libre, plutôt qu'à côté d'un nœud — idéal
+pour une narration générale qui ne se rattache à aucun composant précis.
+
+**Où se pose une bulle.** Une bulle évite ce qui partage l'écran avec elle : les
+nœuds, les étiquettes de zone, les bulles précédentes et tout le trajet de
+chaque paquet qui circule pendant qu'elle est affichée. Une bulle attachée se
+place au-dessus de son nœud, sinon en dessous, sinon plus loin du côté qui se
+dégage ; une bulle omnisciente prend la bande libre au-dessus du diagramme,
+sinon se décale sur le côté, sinon prend la bande du dessous. La place est
+choisie une fois pour toute la durée de la bulle : elle ne saute jamais à
+l'arrivée d'un paquet.
 
 ```ts
 { type: 'comment', text: 'Étape 2 — Authentification' }
 ```
 
-Ci-dessous, un commentaire omniscient (en haut de la scène) suivi de deux
+Ci-dessous, un commentaire omniscient (au-dessus du diagramme) suivi de deux
 bulles attachées à des nœuds :
 
 <DataFlowPlayer spec={commentExample} mode="auto" height={320} />

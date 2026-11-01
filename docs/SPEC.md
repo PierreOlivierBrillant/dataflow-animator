@@ -351,10 +351,23 @@ The timeline compiles an array of ordered actions. See
 3. **parallel**: encapsulates child actions executed at the same timestamp.
 4. **loading**: spinner attached to a target node (simulates processing).
 5. **set_content**: mutates the content of a node. Mode `code` (terminal + Prism highlighting,
-   **without URL bar**; the code never wraps, its font
-   adjusts to fit), `text`/`image` (browser window with URL bar
-   configurable via `content.url`), `table`, or `html` — see §5.1.
-6. **comment**: fading text bubble near a node (`object`).
+   **without URL bar**; each panel shrinks its own font to fit, down to a
+   legibility floor of 64 % of the base size, then wraps long lines at the
+   panel's edge), `text`/`image` (browser window with URL bar
+   configurable via `content.url`), `table`, or `html` — see §5.1. A panel's
+   room is bounded side by side: the stage edge, or the nearest neighbour on
+   that side — two neighbours that both show a panel at some point share the
+   distance between them. Outside `tree` and `circuit`, a panel that SHRINKS to
+   fit (`code`, `image`, an `html` screen) and is wider than its centred share
+   slides toward the side that has the room (its node moves with it while it is
+   shown); a panel that wraps (`text`, plain `html`, `table`) stays centred.
+6. **comment**: fading text bubble near a node (`object`), or above the diagram
+   without one. Bubbles are placed around what shares their screen time — nodes,
+   zone labels, earlier bubbles, and the whole swept path of every packet in
+   flight while they show — once per bubble, so a place never changes mid-life.
+   An attached bubble tries above its node, below it, then each side moved clear
+   of the obstacles; an omniscient one tries the free band above the diagram
+   (centred, then against each edge), then the band below.
 7. **highlight**: highlights (pulsing halo) a static node or connection (by `object` = id).
 8. **wait**: dead time — no clip emitted, the step simply occupies `duration` ms
    (default 1000) to freeze the image before the next step.
@@ -671,6 +684,9 @@ clamp(0, (0.62 − l) × 1000, 1) 0 0)` (black/white according to luminance). `-
 - A missing reference (missing required field, unknown `wait_for` id...) produces a
   **non-blocking warning** (visible with `debug`) rather than a crash.
 - Syntax highlighting: **Prism** (dependency), replaceable via the `highlight` option.
+  `plaintext` is the explicit "no highlighting"; a `code` content (a
+  `set_content`'s or a node's own) with no `language` at all compiles with a
+  **non-blocking warning**, since it renders uncoloured with no sign why.
 - **Scoped** styles under `.rdfa-` + CSS variables. Two independent axes: the
   `theme` option picks a **palette** (`default`, `dots`, `blueprint`, `pcb`,
   `chalk`, `terminal`, `paper`, `neon`), the `mode` option picks its **light or

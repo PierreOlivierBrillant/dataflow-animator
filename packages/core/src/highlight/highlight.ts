@@ -15,6 +15,7 @@ import 'prismjs/components/prism-bash.js';
 import 'prismjs/components/prism-csharp.js';
 import 'prismjs/components/prism-python.js';
 import 'prismjs/components/prism-http.js';
+import 'prismjs/components/prism-dart.js';
 
 import type { Highlighter } from '../types';
 

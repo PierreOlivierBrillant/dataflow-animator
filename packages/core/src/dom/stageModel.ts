@@ -5,6 +5,7 @@ import {
   computeContentLimits,
   computePlacements,
   type ContentLimit,
+  type ContentRoom,
 } from '../engine/placements';
 import { circuitFrameAspect, letterbox, type Frame } from './frame';
 import { DESIGN_H } from './stageConstants';
@@ -56,6 +57,11 @@ export interface StageModelInput {
   metrics: StageMetrics;
   density: Density;
   labelSides?: Map<string, 'left' | 'right'>;
+  /** Nodes currently showing a panel that shrinks to fit (`shrinksToFit`):
+   *  they get the off-centre limits and slide into their room. */
+  slidingNodes?: ReadonlySet<string>;
+  /** Nodes that show a panel at SOME point — known in advance from the spec. */
+  panelNodes?: ReadonlySet<string>;
 }
 
 export function buildStageModel(input: StageModelInput): StageModel {
@@ -104,20 +110,36 @@ export function buildStageModel(input: StageModelInput): StageModel {
   // (positions are FIXED and known in advance): beyond this, the content
   // shrinks. Computed in DESIGN space — constant for a given aspect — then
   // scaled by k, exactly like every other length here.
+  //
+  // Panels slide off-centre into free room only where nodes sit still in stage
+  // space: a tree glides them through rotations, and a circuit is compressed
+  // into its frame after placement — both keep the centred, symmetric limit.
   const designLimits = computeContentLimits(
     layout,
     designW,
     DESIGN_H,
     design.scale,
     design.contentMaxW,
-    design.contentMaxH
+    design.contentMaxH,
+    {
+      slide: !isCircuit && direction !== 'tree',
+      panelNodes: input.panelNodes,
+    }
   );
   const contentLimits: Record<string, ContentLimit> = {};
+  const rooms: Record<string, ContentRoom> = {};
   for (const id in designLimits) {
-    contentLimits[id] = {
-      maxW: designLimits[id].maxW * k,
-      maxH: designLimits[id].maxH * k,
-    };
+    const { slide } = designLimits[id];
+    const sliding = slide && input.slidingNodes?.has(id);
+    const limit = sliding ? slide : designLimits[id];
+    contentLimits[id] = { maxW: limit.maxW * k, maxH: limit.maxH * k };
+    if (sliding)
+      rooms[id] = {
+        left: slide.room.left * k,
+        right: slide.room.right * k,
+        up: slide.room.up * k,
+        down: slide.room.down * k,
+      };
   }
 
   // Resolve the layout's `pinNudge` — a fraction of a node's height, the only
@@ -159,7 +181,8 @@ export function buildStageModel(input: StageModelInput): StageModel {
         width,
         height,
         undefined,
-        labelSides
+        labelSides,
+        rooms
       );
 
   // Compress the (0..1) placements into the centred circuit frame, so nodes and

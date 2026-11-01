@@ -986,3 +986,41 @@ describe('compile — omniscient comment', () => {
     expect(clip.nextToId).toBe('a');
   });
 });
+
+describe('compile — code panels with no language', () => {
+  const code = (language?: string): Action => ({
+    type: 'set_content',
+    id: 'sc',
+    object: 'a',
+    content: {
+      type: 'code',
+      value: 'x = 1',
+      ...(language ? { language } : {}),
+    },
+  });
+
+  it('warns, naming the action, when a set_content code has no language', () => {
+    const { warnings } = compile(specOf([code()]));
+    expect(warnings).toEqual([
+      'set_content "sc": code with no "language" is not highlighted — set one, or "plaintext".',
+    ]);
+  });
+
+  it('warns for a node whose own content is code with no language', () => {
+    const { warnings } = compile({
+      nodes: [
+        { id: 'a', type: 'client', content: { type: 'code', value: 'x' } },
+      ],
+      packets,
+      timeline: [],
+    });
+    expect(warnings).toEqual([
+      'node "a" content: code with no "language" is not highlighted — set one, or "plaintext".',
+    ]);
+  });
+
+  it('stays quiet once a language is set, plaintext included', () => {
+    expect(compile(specOf([code('dart')])).warnings).toEqual([]);
+    expect(compile(specOf([code('plaintext')])).warnings).toEqual([]);
+  });
+});

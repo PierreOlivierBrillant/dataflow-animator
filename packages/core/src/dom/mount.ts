@@ -17,6 +17,7 @@ import {
   type SetContentClip,
 } from '../engine/timeline';
 import { computeLayout, treeEdgeStyle, type LayoutMap } from '../engine/layout';
+import { shrinksToFit } from '../engine/placements';
 import { easeTravel } from '../engine/easing';
 import type { Density } from '../engine/scale';
 import {
@@ -27,9 +28,19 @@ import {
   connection,
   pathTip,
   pointAtArc,
+  type Connection,
   type GeometryMap,
   type NodeGeom,
 } from '../engine/geometry';
+import {
+  confine,
+  planBubbles,
+  unionBox,
+  type BubblePlan,
+  type Box,
+  type Size,
+  type TimedObstacle,
+} from '../engine/overlayPlacement';
 import { refNode } from '../engine/pins';
 import { highlightCode } from '../highlight/highlight';
 import { contentFrameIndex } from '../engine/contentFrames';
@@ -47,7 +58,12 @@ import {
   type CommentElement,
   type CommentElementOptions,
 } from './commentElement';
-import { applyCodeFontScale, measureCodeFit } from './contentElement';
+import {
+  applyCodeFontScale,
+  measureCodeFit,
+  NATURAL_CODE_FIT,
+  type CodeFit,
+} from './contentElement';
 import {
   applyPacketPose,
   createPacketElement,
@@ -57,10 +73,12 @@ import { netColorMap } from './netColors';
 import { HOP_RADIUS, lerp } from './stageConstants';
 import { reconcileKeyed, reorder, type KeyedItem } from './reconcile';
 import {
-  buildZoneLabel,
   buildZoneRect,
   computeZoneBounds,
+  createZoneLabel,
+  placeZoneLabel,
   zoneKey,
+  zoneLabelBox,
 } from './zones';
 import {
   buildFlowPath,
@@ -161,14 +179,32 @@ const CIRCUIT_EXTRA_PASSES = 12;
  */
 const CODE_FIT_EPSILON = 0.005;
 
+/** Points (path progress) a packet's swept box is sampled at. */
+const SWEEP_SAMPLES = [0, 0.25, 0.5, 0.75, 1];
+
 /**
- * The convergence state. Geometry is not the whole picture: a `code` panel also
- * negotiates a COMMON font scale across every code block on the stage, and that
- * scale changes the panels' size — so it belongs in the same fixed point rather
- * than in a loop of its own.
+ * The convergence state. Geometry is not the whole picture: each `code` panel
+ * also negotiates its font fit (scale, wrapping), and that fit changes the
+ * panel's size — so it belongs in the same fixed point rather than in a loop
+ * of its own.
  */
 interface FrameMetrics extends StageMetrics {
-  codeFontScale: number;
+  /** By node id. A node absent from the map has no code block. */
+  codeFits: Record<string, CodeFit>;
+}
+
+function sameCodeFits(
+  a: Record<string, CodeFit>,
+  b: Record<string, CodeFit>
+): boolean {
+  const keys = Object.keys(a);
+  if (keys.length !== Object.keys(b).length) return false;
+  return keys.every(
+    (id) =>
+      b[id] !== undefined &&
+      a[id].scale === b[id].scale &&
+      a[id].wrap === b[id].wrap
+  );
 }
 
 /** What the last convergence pass produced, reused to build the wire layer. */
@@ -207,7 +243,7 @@ interface FlowElement {
  *
  * Two states deliberately survive across updates and make the rendering
  * path-dependent, faithfully to React: `iconGeomByNode` (captured once, never
- * rewritten) and `codeRatios` (gated by a deadband). See `update` below.
+ * rewritten) and `codeFits` (gated by a deadband). See `update` below.
  *
  * The layers are split by what can move what. Overlays (arrows, packets,
  * comments, zones) are absolutely positioned: they read the settled geometry and cannot
@@ -222,6 +258,15 @@ export function mountStage(
   options: StageOptions = {}
 ): StageHandle {
   const { timeline } = compile(spec);
+  // Every node that shows a panel at some point. Known before the first frame,
+  // so two neighbours that will both open one split the room between them
+  // from the start — never re-negotiated when the second one opens.
+  const panelNodes = new Set<string>(
+    spec.nodes.filter((node) => node.content).map((node) => node.id)
+  );
+  for (const clip of timeline.clips)
+    if (clip.kind === 'set_content')
+      panelNodes.add((clip as SetContentClip).objectId);
 
   const root = h('div', { class: 'rdfa-stage' });
 
@@ -284,6 +329,9 @@ export function mountStage(
   let nodeOrder: HTMLElement[] = [];
   let zoneRects: HTMLElement[] = [];
   let zoneLabels: HTMLElement[] = [];
+  /** The same zones as boxes, for what has to keep clear of them. */
+  let zoneBoxes: Box[] = [];
+  let zoneLabelBoxes: Box[] = [];
 
   // ─── Per-frame state, refreshed by `refreshFrame` ─────────────────────────
   let currentT = t;
@@ -391,8 +439,8 @@ export function mountStage(
    */
   const iconGeomByNode: Record<string, NodeGeom> = {};
 
-  /** Per-block fit ratios, gated by the same deadband `handleCodeFit` applies. */
-  const codeRatios: Record<string, number> = {};
+  /** Per-block fits, gated by the same deadband `handleCodeFit` applies. */
+  const codeFits: Record<string, CodeFit> = {};
 
   const captureIconGeometry = (geometry: GeometryMap): void => {
     for (const id of activeContentNodeIds) {
@@ -465,10 +513,9 @@ export function mountStage(
         setChanged = true;
         handle.el.remove();
         // A node that left takes its code block with it, exactly as an
-        // unmounting `CodeBlock` drops its entry on the React side. Leaving the
-        // ratio behind would keep pinning the COMMON font scale to a panel that
-        // is no longer drawn.
-        delete codeRatios[key];
+        // unmounting `CodeBlock` drops its entry on the React side. A fit left
+        // behind would be handed to the next panel that node shows.
+        delete codeFits[key];
       },
     });
     nodeOrder = handles.map((handle) => handle.el);
@@ -476,30 +523,32 @@ export function mountStage(
   };
 
   /**
-   * Re-measures every code block and returns the COMMON scale: the minimum
-   * across all of them, so no block overflows and — more visibly — every block
-   * on the stage renders at exactly the same size.
-   *
-   * `Math.min(1, ...[])` is 1, which is also React's value before any block has
-   * reported, so an all-text stage costs nothing.
+   * Re-measures every code block and returns each one's own fit, keyed by node.
+   * A block that fits as it is stores nothing, so an all-text stage costs
+   * nothing and compares equal pass after pass.
    */
-  const measureCodeFontScale = (): number => {
+  const measureCodeFits = (): Record<string, CodeFit> => {
     for (const [id, handle] of nodeEls) {
       const target = handle.codeFit;
       if (!target) {
-        delete codeRatios[id];
+        delete codeFits[id];
         continue;
       }
-      const ratio = measureCodeFit(target);
-      if (Math.abs((codeRatios[id] ?? 1) - ratio) >= CODE_FIT_EPSILON)
-        codeRatios[id] = ratio;
+      const fit = measureCodeFit(target);
+      const prev = codeFits[id] ?? NATURAL_CODE_FIT;
+      if (
+        fit.wrap !== prev.wrap ||
+        Math.abs(prev.scale - fit.scale) >= CODE_FIT_EPSILON
+      )
+        codeFits[id] = fit;
     }
-    return Math.min(1, ...Object.values(codeRatios));
+    return { ...codeFits };
   };
 
-  const applyCodeScale = (scale: number): void => {
-    for (const handle of nodeEls.values()) {
-      if (handle.codeFit) applyCodeFontScale(handle.codeFit, scale);
+  const applyCodeFits = (fits: Record<string, CodeFit>): void => {
+    for (const [id, handle] of nodeEls) {
+      if (handle.codeFit)
+        applyCodeFontScale(handle.codeFit, fits[id] ?? NATURAL_CODE_FIT);
     }
   };
 
@@ -519,10 +568,16 @@ export function mountStage(
       metrics,
       density,
       labelSides,
+      slidingNodes: new Set(
+        Object.keys(contentByNode).filter((id) =>
+          shrinksToFit(contentByNode[id].content)
+        )
+      ),
+      panelNodes,
     });
     setStyle(root, model.stageVars);
     applyNodes(model);
-    applyCodeScale(metrics.codeFontScale);
+    applyCodeFits(metrics.codeFits);
     captureIconGeometry(metrics.geometry);
     settled = { metrics, layout, autoRotation, labelSides, model };
     settledStamp++;
@@ -531,7 +586,7 @@ export function mountStage(
   const maxPasses =
     BASE_PASSES + (initialModel.frameAspect ? CIRCUIT_EXTRA_PASSES : 0);
 
-  const initialFrame: FrameMetrics = { ...INITIAL_METRICS, codeFontScale: 1 };
+  const initialFrame: FrameMetrics = { ...INITIAL_METRICS, codeFits: {} };
 
   const run = (): { passes: number; converged: boolean } =>
     settle<FrameMetrics>({
@@ -540,10 +595,10 @@ export function mountStage(
         // Order is free: `measureCodeFit` restores the inline font before
         // returning, so the geometry read sees exactly the DOM the pass
         // started with either way.
-        const codeFontScale = measureCodeFontScale();
-        return { ...tracker.measure(previous), codeFontScale };
+        const codeFits = measureCodeFits();
+        return { ...tracker.measure(previous), codeFits };
       },
-      same: (a, b) => a.codeFontScale === b.codeFontScale && sameMetrics(a, b),
+      same: (a, b) => sameCodeFits(a.codeFits, b.codeFits) && sameMetrics(a, b),
       apply: applyMetrics,
       maxPasses,
     });
@@ -627,17 +682,49 @@ export function mountStage(
     for (const el of zoneLabels) el.remove();
     zoneRects = [];
     zoneLabels = [];
-    const bounds = computeZoneBounds(spec.zones, settled.metrics.geometry);
+    zoneBoxes = [];
+    zoneLabelBoxes = [];
+    const { geometry, width, height } = settled.metrics;
+    // Labels first: a zone is at least as wide as its label, so their widths
+    // are an input of the bounds. `nowrap` makes the reading position-free.
+    const labels = new Map<string, HTMLElement>();
     (spec.zones ?? []).forEach((zone, i) => {
-      const b = bounds[zoneKey(zone, i)];
-      if (!b) return;
+      if (!zone.label) return;
+      const label = createZoneLabel(zone);
+      root.appendChild(label);
+      labels.set(zoneKey(zone, i), label);
+    });
+    // Read after every append, so the batch costs one layout.
+    const labelSizes = new Map(
+      Array.from(labels, ([key, el]) => [
+        key,
+        { w: el.offsetWidth, h: el.offsetHeight },
+      ])
+    );
+    const labelWidths: Record<string, number> = {};
+    for (const [key, size] of labelSizes) labelWidths[key] = size.w;
+    const bounds = computeZoneBounds(spec.zones, geometry, {
+      labelWidths,
+      stage: { width, height },
+    });
+    (spec.zones ?? []).forEach((zone, i) => {
+      const key = zoneKey(zone, i);
+      const b = bounds[key];
+      const label = labels.get(key);
+      if (!b) {
+        label?.remove();
+        return;
+      }
       const rect = buildZoneRect(zone, b);
       zoneRects.push(rect);
       root.appendChild(rect);
-      if (zone.label) {
-        const label = buildZoneLabel(zone, b);
+      zoneBoxes.push({ x: b.x, y: b.y, w: b.width, h: b.height });
+      const labelSize = labelSizes.get(key);
+      if (label && labelSize) {
+        placeZoneLabel(label, b);
         zoneLabels.push(label);
-        root.appendChild(label);
+        const lb = zoneLabelBox(b, labelSize.w, labelSize.h);
+        zoneLabelBoxes.push({ x: lb.x, y: lb.y, w: lb.width, h: lb.height });
       }
     });
     zoneStamp = settledStamp;
@@ -728,6 +815,139 @@ export function mountStage(
   };
 
   /**
+   * The path a `move` clip's packet rides: the SAME `connection()` an arrow
+   * between its two nodes draws. Undefined while either node has no geometry.
+   */
+  const movePath = (
+    clip: MoveClip,
+    geometry: GeometryMap,
+    wires: ReturnType<typeof wireData>
+  ): Connection | undefined => {
+    const f = geometry[refNode(clip.fromId)];
+    const tg = geometry[refNode(clip.toId)];
+    if (!f || !tg) return undefined;
+    const { portOffsets, ctx } = wires;
+    // Same key fallback as the arrow clips: a move along an existing
+    // connection adopts its port spread.
+    let moveKey = clip.id;
+    if (!portOffsets[moveKey]) {
+      const matchingLine = lineConnections.find(
+        (c) => c.from === refNode(clip.fromId) && c.to === refNode(clip.toId)
+      );
+      if (matchingLine) moveKey = matchingLine.key;
+    }
+    const movePorts = ctx.portsFor(moveKey, clip.fromId, clip.toId);
+    return connection(
+      f,
+      tg,
+      Object.values(geometry),
+      movePorts.start,
+      movePorts.end,
+      undefined,
+      ctx.axisFor(clip.fromId, clip.toId),
+      ctx.contourFor(clip.fromId),
+      ctx.contourFor(clip.toId)
+    );
+  };
+
+  /**
+   * Where every comment bubble of the timeline goes, decided once per settled
+   * geometry — see `planBubbles`. Each bubble avoids the nodes, the zone
+   * labels, the earlier bubbles it is on screen with, and the WHOLE path of
+   * every packet that flies while it is shown, so its place holds for its
+   * lifetime instead of jumping when a packet arrives.
+   *
+   * That needs the size of bubbles and packets that are not on screen yet, so
+   * they are built off-screen (hidden, in the overlay so they style as the real
+   * ones do), measured in one batch — one layout — and dropped. Their size does
+   * not depend on where they sit: both are `width: max-content`.
+   */
+  let planStamp = -1;
+  let bubblePlans = new Map<string, BubblePlan>();
+  const commentPlans = (
+    wires: ReturnType<typeof wireData>
+  ): Map<string, BubblePlan> => {
+    if (planStamp === settledStamp) return bubblePlans;
+    planStamp = settledStamp;
+    const { geometry, width, height } = settled.metrics;
+    const comments: CommentClip[] = [];
+    const moves: MoveClip[] = [];
+    for (const clip of timeline.clips) {
+      if (clip.kind === 'comment') comments.push(clip as CommentClip);
+      else if (clip.kind === 'move') moves.push(clip as MoveClip);
+    }
+    if (comments.length === 0 || !width || !height) {
+      bubblePlans = new Map();
+      return bubblePlans;
+    }
+
+    const probes = new Map<string, HTMLElement>();
+    for (const clip of comments)
+      probes.set(
+        `comment:${clip.id}`,
+        createCommentElement(clip.text, !clip.nextToId).el
+      );
+    for (const clip of moves) {
+      const object = packetById.get(clip.objectId);
+      const key = `packet:${clip.objectId}`;
+      if (object && !probes.has(key))
+        probes.set(key, createPacketElement(object, highlight));
+    }
+    for (const el of probes.values()) {
+      el.style.visibility = 'hidden';
+      overlay.appendChild(el);
+    }
+    const sizes = new Map<string, Size>();
+    for (const [key, el] of probes)
+      sizes.set(key, { w: el.offsetWidth, h: el.offsetHeight });
+    for (const el of probes.values()) el.remove();
+
+    const timed: TimedObstacle[] = [];
+    for (const clip of moves) {
+      const size = sizes.get(`packet:${clip.objectId}`);
+      const conn = movePath(clip, geometry, wires);
+      if (!size || !conn) continue;
+      // Sampled rather than just its two ends, for a path that curves.
+      const swept = unionBox(
+        SWEEP_SAMPLES.map((u) => {
+          const pt = pathTip(conn, u);
+          return {
+            x: confine(pt.x, size.w, width) - size.w / 2,
+            y: confine(pt.y, size.h, height) - size.h / 2,
+            w: size.w,
+            h: size.h,
+          };
+        })
+      );
+      if (swept)
+        timed.push({
+          box: swept,
+          startMs: clip.startMs,
+          untilMs: clip.visibleUntilMs,
+        });
+    }
+
+    bubblePlans = planBubbles({
+      bubbles: comments
+        .slice()
+        .sort((a, b) => a.startMs - b.startMs)
+        .map((clip) => ({
+          id: clip.id,
+          anchorId: clip.nextToId,
+          startMs: clip.startMs,
+          untilMs: clip.visibleUntilMs,
+        })),
+      geometry,
+      stage: { w: width, h: height },
+      sizeOf: (id) => sizes.get(`comment:${id}`),
+      fixed: zoneLabelBoxes,
+      timed,
+      zones: zoneBoxes,
+    });
+    return bubblePlans;
+  };
+
+  /**
    * Reconciles every layer that depends on the settled geometry but cannot
    * influence it: zones, wires, arrows, flow charges, packets, comment bubbles.
    *
@@ -740,7 +960,8 @@ export function mountStage(
 
     const model = frameModel();
     const { metrics } = settled;
-    const { portOffsets, ctx, circuit, routeByNodePair } = wireData();
+    const wires = wireData();
+    const { portOffsets, ctx, circuit, routeByNodePair } = wires;
     const effectiveGeometry = effectiveGeometryNow(model);
     // Identity when nothing is mid-crossfade.
     const obstacles = Object.values(effectiveGeometry);
@@ -939,31 +1160,9 @@ export function mountStage(
     for (const a of active) {
       if (a.clip.kind !== 'move') continue;
       const clip = a.clip as MoveClip;
-      const f = effectiveGeometry[refNode(clip.fromId)];
-      const tg = effectiveGeometry[refNode(clip.toId)];
       const object = packetById.get(clip.objectId);
-      if (!f || !tg || !object) continue;
-      // Same key fallback as the arrow clips: a move along an existing
-      // connection adopts its port spread.
-      let moveKey = clip.id;
-      if (!portOffsets[moveKey]) {
-        const matchingLine = lineConnections.find(
-          (c) => c.from === refNode(clip.fromId) && c.to === refNode(clip.toId)
-        );
-        if (matchingLine) moveKey = matchingLine.key;
-      }
-      const movePorts = ctx.portsFor(moveKey, clip.fromId, clip.toId);
-      const conn = connection(
-        f,
-        tg,
-        obstacles,
-        movePorts.start,
-        movePorts.end,
-        undefined,
-        ctx.axisFor(clip.fromId, clip.toId),
-        ctx.contourFor(clip.fromId),
-        ctx.contourFor(clip.toId)
-      );
+      const conn = object && movePath(clip, effectiveGeometry, wires);
+      if (!object || !conn) continue;
       const pt = pathTip(conn, easeTravel(a.progress));
       const opacity = clipOpacity(clip, currentT);
       packetDesired.push({
@@ -975,6 +1174,7 @@ export function mountStage(
             y: pt.y,
             opacity,
             scale: 0.8 + 0.2 * opacity,
+            stage: { width: metrics.width, height: metrics.height },
           },
         },
       });
@@ -997,6 +1197,7 @@ export function mountStage(
     // in this order and `.rdfa-comment` (z-index 6) has no z-index of its own to
     // fall back on, so document order is what decides overlap.
     const commentDesired: KeyedItem<CommentElementOptions>[] = [];
+    const plans = commentPlans(wires);
     for (const a of active) {
       if (a.clip.kind !== 'comment') continue;
       const clip = a.clip as CommentClip;
@@ -1019,6 +1220,7 @@ export function mountStage(
           opacity: clipOpacity(clip, currentT),
           stageW: metrics.width,
           stageH: metrics.height,
+          plan: plans.get(clip.id),
         },
       });
     }
@@ -1064,7 +1266,7 @@ export function mountStage(
 
   /**
    * The observer notifies from INSIDE the browser's resize-delivery loop, and
-   * `resettle` writes sizes back: the common code font scale shrinks a panel,
+   * `resettle` writes sizes back: a code block's font fit shrinks its panel,
    * which resizes the very node whose notification is being handled. That
    * second-order change cannot be delivered in the same cycle, and the browser
    * reports the leftover as "ResizeObserver loop completed with undelivered

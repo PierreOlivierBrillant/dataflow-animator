@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 import { describe, expect, it } from 'vitest';
-import { buildPacketElement } from './packetElement';
+import { applyPacketPose, buildPacketElement } from './packetElement';
 import type { Highlighter, Packet } from '../types';
 
 /** A marker highlighter, so a test can tell the highlighted path was taken. */
@@ -40,6 +40,56 @@ describe('buildPacketElement — wrapper', () => {
 
     expect(el.className).toBe('rdfa-packet rdfa-packet-mystery');
     expect(el.childNodes).toHaveLength(0);
+  });
+});
+
+describe('applyPacketPose — stage confinement', () => {
+  /** jsdom lays nothing out: the card's size has to be given. */
+  const sized = (width: number, height: number): HTMLElement => {
+    const el = buildPacketElement(
+      { id: 'p', kind: 'http_packet' },
+      {
+        x: 0,
+        y: 0,
+      }
+    );
+    Object.defineProperty(el, 'offsetWidth', { value: width });
+    Object.defineProperty(el, 'offsetHeight', { value: height });
+    return el;
+  };
+  const stage = { width: 400, height: 300 };
+
+  it('pulls a card centred near an edge back inside, 8px from it', () => {
+    const el = sized(200, 100);
+    applyPacketPose(el, { x: 30, y: 290, stage });
+
+    expect(el.style.left).toBe('108px');
+    expect(el.style.top).toBe('242px');
+  });
+
+  it('leaves a card that already fits where the path put it', () => {
+    const el = sized(200, 100);
+    applyPacketPose(el, { x: 200, y: 150, stage });
+
+    expect(el.style.left).toBe('200px');
+    expect(el.style.top).toBe('150px');
+  });
+
+  it('pins a card larger than the stage to the start edge', () => {
+    const el = sized(200, 400);
+    applyPacketPose(el, { x: 200, y: 150, stage });
+
+    expect(el.style.top).toBe('208px');
+  });
+
+  it('does not confine without a stage, nor a card with no size yet', () => {
+    const free = sized(200, 100);
+    applyPacketPose(free, { x: 30, y: 20 });
+    const unmeasured = sized(0, 0);
+    applyPacketPose(unmeasured, { x: 30, y: 20, stage });
+
+    expect(free.style.left).toBe('30px');
+    expect(unmeasured.style.left).toBe('30px');
   });
 });
 

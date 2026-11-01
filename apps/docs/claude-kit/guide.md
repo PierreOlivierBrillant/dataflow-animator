@@ -205,6 +205,12 @@ true`. `set_color`, `set_icon`, `set_visible`, `toggle`, `rotate` are STATE:
   `circuit`), or `lane` in `circular`/`tree`/`graph` (ignored).
 - **`connections` in a tree** — the tree draws its own edges.
 - **A packet never moved** — it is never shown.
+- **`code` with no `language`** — drawn uncoloured, and the compiler warns. Set
+  the one the code is in (`"dart"` for Flutter, `"javascript"`, `"json"`,
+  `"http"`…), or `"plaintext"` for raw output that is not code.
+- **Long lines of code in a narrow panel.** A panel shrinks its font down to a
+  floor, then wraps. Keep lines short (≲ 45 columns) and break call chains on
+  `.`, as code is formatted for a phone screen — it reads better than wrapped.
 - **Long text in a shape's `body`** — cropped. Use a `simple_node`.
 - **`wait` after a `comment`** to "give time to read" — remove both the `wait`
   and any `duration`: the comment already gets its reading time.

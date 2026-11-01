@@ -239,6 +239,15 @@ interface Ctx {
   packetsRead: Set<string>;
 }
 
+/**
+ * A `code` panel with no `language` renders as plain text, which reads as a
+ * rendering bug rather than as the omission it is — so it is reported. Writing
+ * `plaintext` says the plain rendering is meant.
+ */
+function missingLanguage(where: string): string {
+  return `${where}: code with no "language" is not highlighted — set one, or "plaintext".`;
+}
+
 function makeId(ctx: Ctx, action: Action): string {
   return action.id ?? `${action.type}-${ctx.counter++}`;
 }
@@ -450,6 +459,8 @@ function compileAction(
         ctx.warnings.push(`set_content "${id}": object/content required.`);
         break;
       }
+      if (action.content.type === 'code' && !action.content.language)
+        ctx.warnings.push(missingLanguage(`set_content "${id}"`));
       const clip: SetContentClip = {
         ...base,
         kind: 'set_content',
@@ -785,6 +796,10 @@ export function compile(spec: DataFlowSpec): CompileResult {
       return ctx.referenceLayout;
     },
   };
+
+  for (const node of spec.nodes)
+    if (node.content?.type === 'code' && !node.content.language)
+      ctx.warnings.push(missingLanguage(`node "${node.id}" content`));
 
   const steps: Step[] = [];
   let cursor = 0;

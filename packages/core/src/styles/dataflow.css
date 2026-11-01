@@ -354,6 +354,10 @@
   flex-direction: column;
   align-items: center;
   z-index: 3;
+  /* Position-independent size: with `width: auto`, a node placed right of
+     60% got `100% − left` to shrink into, so the same panel wrapped narrower
+     on the right side of the stage than on the left. */
+  width: max-content;
   max-width: 40%;
   text-align: center;
 }
@@ -932,8 +936,14 @@
   background: var(--rdfa-surface);
   border: 1px solid var(--rdfa-border);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  max-width: calc(
-    var(--rdfa-maxw, 240px) * var(--rdfa-content-scale, 1) * 0.92
+  /* Sized by its content, never by where it is. An absolute box with `left`
+     set and `width: auto` shrinks to fit `containing block − left`, so a packet
+     flying toward the right edge used to rewrap, narrower and taller every
+     frame, until its text was unreadable. Same reason as `.rdfa-node-label`. */
+  width: max-content;
+  max-width: min(
+    calc(var(--rdfa-maxw, 240px) * var(--rdfa-content-scale, 1) * 0.92),
+    calc(100% - 16px)
   );
   overflow-wrap: anywhere;
   text-align: left;
@@ -1051,7 +1061,14 @@
 .rdfa-comment {
   position: absolute;
   z-index: 6;
-  max-width: calc(var(--rdfa-maxw, 240px) * var(--rdfa-content-scale, 1));
+  /* `applyCommentElement` measures the bubble and THEN places it: that is only
+     sound if its size cannot depend on its `left` (see `.rdfa-packet`). The
+     16px matches the 8px margin it keeps from each stage edge. */
+  width: max-content;
+  max-width: min(
+    calc(var(--rdfa-maxw, 240px) * var(--rdfa-content-scale, 1)),
+    calc(100% - 16px)
+  );
   padding: calc(8px * var(--rdfa-content-scale, 1))
     calc(12px * var(--rdfa-content-scale, 1));
   border-radius: 10px;
@@ -1428,6 +1445,16 @@
   /* Réinitialise l'overflow:auto que des hôtes (Docusaurus & co.) posent sur <pre> :
      sinon une barre de défilement horizontale réapparaît dans le terminal. */
   overflow: hidden;
+}
+
+/* Set by `applyCodeFontScale` when shrinking a block further would take it
+   below the legibility floor (`CODE_LEGIBLE_SCALE`): its long lines wrap
+   instead, spending the panel's height rather than its font size. At the
+   column, as a terminal does — breaking at spaces instead strands an indent
+   alone on a blank row whenever the token after it is too long for the line. */
+.rdfa-content-body pre.rdfa-code-wrap {
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 
 /* ---------- Coloration Prism (scopée) ---------- */

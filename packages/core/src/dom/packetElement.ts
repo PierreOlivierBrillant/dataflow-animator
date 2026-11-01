@@ -1,6 +1,7 @@
 import type { Highlighter, Packet } from '../types';
 import { isPanelNode } from '../render/nodeKinds';
 import { escapeHtml } from '../highlight/highlight';
+import { confine } from '../engine/overlayPlacement';
 import { h, px, setStyle, type Child } from './el';
 import { buildPanel } from './nodeElement';
 import { renderSubIcon } from './icons/subIcons';
@@ -47,6 +48,12 @@ export interface PacketPose {
   opacity?: number;
   /** Scale (slight "pop" on appearance/disappearance). Default: 1. */
   scale?: number;
+  /**
+   * Stage size (px). When given, the card is kept inside it: the path's point
+   * is where the packet WANTS to be, and a card several times wider than a node
+   * cannot sit centred on a node near the edge without half of it off-stage.
+   */
+  stage?: { width: number; height: number };
 }
 
 /** Highlighter-or-plain content zone shared by the HTTP and SQL kinds. */
@@ -251,9 +258,17 @@ export function createPacketElement(
   );
 }
 
-/** Writes the current pose. The whole of a packet's per-frame cost. */
+/**
+ * Writes the current pose. The whole of a packet's per-frame cost.
+ *
+ * Confinement reads the card's LAYOUT size, which the pop `scale` does not
+ * touch and which `.rdfa-packet`'s `width: max-content` keeps independent of
+ * `left` — so the read is the same at every point of the flight.
+ */
 export function applyPacketPose(el: HTMLElement, pose: PacketPose): void {
-  const { x, y, opacity = 1, scale = 1 } = pose;
+  const { opacity = 1, scale = 1, stage } = pose;
+  const x = stage ? confine(pose.x, el.offsetWidth, stage.width) : pose.x;
+  const y = stage ? confine(pose.y, el.offsetHeight, stage.height) : pose.y;
   setStyle(el, {
     left: px(x),
     top: px(y),

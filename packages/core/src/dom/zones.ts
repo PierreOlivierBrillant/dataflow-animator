@@ -4,6 +4,8 @@ import { h, px, setStyle } from './el';
 import {
   NODE_LABEL_GAP,
   ZONE_LABEL_EXTRA_TOP,
+  ZONE_LABEL_INSET_X,
+  ZONE_LABEL_INSET_Y,
   ZONE_PADDING,
 } from './stageConstants';
 import { appendRichText } from './richtext';
@@ -29,17 +31,33 @@ export function zoneKey(zone: Zone, index: number): string {
   return zone.id ?? `__zone_${index}`;
 }
 
+export interface ZoneBoundsOptions {
+  /** Measured width (px) of each zone's label, by {@link zoneKey}. */
+  labelWidths?: Record<string, number>;
+  /** Stage size (px): a zone is kept inside it. */
+  stage?: { width: number; height: number };
+}
+
 /**
  * Computes the bounds (px, relative to the stage) of each zone. Inner zones are
  * resolved before the zones that contain them.
+ *
+ * Two things a zone answers for besides its members, both because a frame is
+ * read as a whole: it is at least as wide as its label (which is `nowrap`, so
+ * a short member under a long label used to leave the text running into, then
+ * past, the right border), and it never leaves the stage — a member whose
+ * panel grows against an edge costs the zone its padding on that side, not
+ * its border.
  *
  * Origin: `Stage.tsx` `computeZoneBounds`.
  */
 export function computeZoneBounds(
   zones: Zone[] | undefined,
-  geometry: GeometryMap
+  geometry: GeometryMap,
+  options: ZoneBoundsOptions = {}
 ): Record<string, ZoneBounds> {
   if (!zones?.length) return {};
+  const { labelWidths, stage } = options;
 
   const keys = zones.map(zoneKey);
   const computed: Record<string, ZoneBounds> = {};
@@ -76,12 +94,20 @@ export function computeZoneBounds(
     }
     if (minX === Infinity) return false;
     const topExtra = zone.label ? ZONE_LABEL_EXTRA_TOP : 0;
-    computed[key] = {
-      x: minX - ZONE_PADDING,
-      y: minY - ZONE_PADDING - topExtra,
-      width: maxX - minX + 2 * ZONE_PADDING,
-      height: maxY - minY + 2 * ZONE_PADDING + topExtra,
-    };
+    const labelW = zone.label ? (labelWidths?.[key] ?? 0) : 0;
+    const [x0, x1] = fitSpan(
+      minX - ZONE_PADDING,
+      maxX + ZONE_PADDING,
+      labelW > 0 ? labelW + 2 * ZONE_LABEL_INSET_X : 0,
+      stage?.width
+    );
+    const [y0, y1] = fitSpan(
+      minY - ZONE_PADDING - topExtra,
+      maxY + ZONE_PADDING,
+      0,
+      stage?.height
+    );
+    computed[key] = { x: x0, y: y0, width: x1 - x0, height: y1 - y0 };
     return true;
   };
 
@@ -97,6 +123,46 @@ export function computeZoneBounds(
   return computed;
 }
 
+/** Room (px) kept between a zone's border and the stage edge. */
+const STAGE_INSET = 2;
+
+/**
+ * One axis of a zone: `[lo, hi]` widened to `minSize` around its middle, then
+ * kept inside `[0, extent]`.
+ *
+ * The widening only exists for the label, so it may lean: what does not fit on
+ * the side of an edge goes to the other side instead of off-stage. Whatever
+ * still overflows after that is the zone's own members — clipped, since moving
+ * the frame would uncover them.
+ */
+function fitSpan(
+  lo: number,
+  hi: number,
+  minSize: number,
+  extent: number | undefined
+): [number, number] {
+  const missing = minSize - (hi - lo);
+  if (missing > 0) {
+    let before = missing / 2;
+    let after = missing / 2;
+    if (extent) {
+      const roomBefore = Math.max(0, lo - STAGE_INSET);
+      const roomAfter = Math.max(0, extent - STAGE_INSET - hi);
+      if (before > roomBefore) {
+        after += before - roomBefore;
+        before = roomBefore;
+      } else if (after > roomAfter) {
+        before += after - roomAfter;
+        after = roomAfter;
+      }
+    }
+    lo -= before;
+    hi += after;
+  }
+  if (!extent) return [lo, hi];
+  return [Math.max(lo, STAGE_INSET), Math.min(hi, extent - STAGE_INSET)];
+}
+
 export function buildZoneRect(zone: Zone, bounds: ZoneBounds): HTMLElement {
   const el = h('div', { class: 'rdfa-zone' });
   setStyle(el, {
@@ -109,14 +175,33 @@ export function buildZoneRect(zone: Zone, bounds: ZoneBounds): HTMLElement {
   return el;
 }
 
-/** Label offsets are hard-coded from the zone box origin, as in the JSX. */
-export function buildZoneLabel(zone: Zone, bounds: ZoneBounds): HTMLElement {
+/**
+ * The label, not yet placed. It is measured before the zones are computed —
+ * its width is one of their inputs — and only then positioned.
+ */
+export function createZoneLabel(zone: Zone): HTMLElement {
   const el = h('span', { class: 'rdfa-zone-label' });
-  setStyle(el, {
-    left: px(bounds.x + 12),
-    top: px(bounds.y + 8),
-    '--rdfa-zone-color': zone.color,
-  });
+  setStyle(el, { '--rdfa-zone-color': zone.color });
   appendRichText(el, zone.label ?? '');
   return el;
+}
+
+/** Where a label of the given size sits in its zone, in stage px. */
+export function zoneLabelBox(
+  bounds: ZoneBounds,
+  width: number,
+  height: number
+): ZoneBounds {
+  return {
+    x: bounds.x + ZONE_LABEL_INSET_X,
+    y: bounds.y + ZONE_LABEL_INSET_Y,
+    width,
+    height,
+  };
+}
+
+/** Pins a label to its zone's top-left corner. */
+export function placeZoneLabel(el: HTMLElement, bounds: ZoneBounds): void {
+  const box = zoneLabelBox(bounds, 0, 0);
+  setStyle(el, { left: px(box.x), top: px(box.y) });
 }

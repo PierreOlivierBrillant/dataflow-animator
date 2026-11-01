@@ -3,6 +3,7 @@ import {
   computePlacements,
   computeContentLimits,
   PLACEMENT_PAD,
+  shrinksToFit,
 } from './placements';
 import type { GeometryMap } from './geometry';
 
@@ -174,5 +175,124 @@ describe('computeContentLimits', () => {
     const layout = { a: { cx: 0.5, cy: 0.5 } };
     const r = computeContentLimits(layout, 0, 600, 1, 900, 500);
     expect(r.a).toEqual({ maxW: 900, maxH: 500 });
+  });
+
+  describe('slide', () => {
+    // a near the left edge, b in the middle: a's panel used to get twice its
+    // distance to the edge, while the room toward b went unused.
+    const layout = { a: { cx: 0.1, cy: 0.5 }, b: { cx: 0.5, cy: 0.5 } };
+
+    it('bounds each side on its own and adds them up', () => {
+      const r = computeContentLimits(layout, 1000, 600, 1, 900, 500, {
+        slide: true,
+      });
+      // left: 100 - 6 = 94 ; right: dx=400 - gap 68 = 332.
+      expect(r.a.slide?.room).toEqual({
+        left: 94,
+        right: 332,
+        up: 294,
+        down: 294,
+      });
+      expect(r.a.slide?.maxW).toBe(426);
+      // The centred limits are still there, for a panel that does not slide.
+      expect(r.a.maxW).toBe(188);
+    });
+
+    it('has no sliding limits without it', () => {
+      const r = computeContentLimits(layout, 1000, 600, 1, 900, 500);
+      expect(r.a.maxW).toBe(188);
+      expect(r.a.slide).toBeUndefined();
+    });
+
+    it('meets a neighbour that shows a panel too halfway', () => {
+      const r = computeContentLimits(layout, 1000, 600, 1, 900, 500, {
+        slide: true,
+        panelNodes: new Set(['b']),
+      });
+      // (400 - margin 40) / 2 = 180, short of the 332 up to b's icon.
+      expect(r.a.slide?.room.right).toBe(180);
+      // The centred limit ignores it, as before.
+      expect(r.a.maxW).toBe(188);
+    });
+
+    it('never counts the room on a side the neighbour margin overruns', () => {
+      // b is 20px away: its margin covers a's centre, so a's panel may only
+      // extend leftward (94px) — not leftward minus the overrun.
+      const tight = { a: { cx: 0.1, cy: 0.5 }, b: { cx: 0.12, cy: 0.5 } };
+      const r = computeContentLimits(tight, 1000, 600, 1, 900, 500, {
+        slide: true,
+      });
+      expect(r.a.slide?.maxW).toBe(94);
+    });
+  });
+});
+
+describe('shrinksToFit', () => {
+  it('is true for what scales down, false for what wraps', () => {
+    expect(shrinksToFit({ type: 'code', value: 'x' })).toBe(true);
+    expect(shrinksToFit({ type: 'image', value: 'a.png' })).toBe(true);
+    expect(
+      shrinksToFit({ type: 'html', value: '<p/>', screen_width: 800 })
+    ).toBe(true);
+    expect(shrinksToFit({ type: 'html', value: '<p/>' })).toBe(false);
+    expect(shrinksToFit({ type: 'text', value: 'x' })).toBe(false);
+    expect(shrinksToFit({ value: 'x' })).toBe(false);
+  });
+});
+
+describe('computePlacements — rooms', () => {
+  const geo: GeometryMap = {
+    a: { id: 'a', x: 0, y: 0, width: 400, height: 100 },
+  };
+  const layout = { a: { cx: 0.1, cy: 0.5 } };
+  const room = { left: 94, right: 332, up: 294, down: 294 };
+
+  it('slides a panel wider than its centred share toward the free side', () => {
+    const r = computePlacements(layout, geo, 1000, 600, undefined, undefined, {
+      a: room,
+    });
+    // Its left edge stops at the room's (100 - 94 = 6): centre at 6 + 200.
+    expect(r.a.cx * 1000).toBeCloseTo(206);
+    expect(r.a.cy).toBeCloseTo(0.5);
+  });
+
+  it('leaves a panel that fits centred where it is', () => {
+    const small: GeometryMap = {
+      a: { id: 'a', x: 0, y: 0, width: 150, height: 100 },
+    };
+    const r = computePlacements(
+      layout,
+      small,
+      1000,
+      600,
+      undefined,
+      undefined,
+      {
+        a: room,
+      }
+    );
+    expect(r.a.cx).toBeCloseTo(0.1);
+  });
+
+  it('slides away from a neighbour, not only from an edge', () => {
+    const mid = { a: { cx: 0.5, cy: 0.5 } };
+    const r = computePlacements(mid, geo, 1000, 600, undefined, undefined, {
+      a: { left: 400, right: 100, up: 294, down: 294 },
+    });
+    // Right edge stops 100px right of 500: centre at 600 - 200.
+    expect(r.a.cx * 1000).toBeCloseTo(400);
+  });
+
+  it('only moves the nodes it is given a room for', () => {
+    const r = computePlacements(layout, geo, 1000, 600);
+    // The edge clamp alone: half-width 200 + pad 6.
+    expect(r.a.cx * 1000).toBeCloseTo(206);
+    const centred = computePlacements(
+      { a: { cx: 0.5, cy: 0.5 } },
+      geo,
+      1000,
+      600
+    );
+    expect(centred.a.cx).toBeCloseTo(0.5);
   });
 });

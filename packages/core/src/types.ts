@@ -158,7 +158,11 @@ export type PathShape =
 /** Content modes for `set_content` (action) and `content` (static object). */
 export type ContentType = 'image' | 'text' | 'code' | 'table' | 'html';
 
-/** Languages supported by the syntax highlighting engine (Prism). */
+/**
+ * Languages supported by the syntax highlighting engine (Prism). `plaintext`
+ * is the explicit "no highlighting": raw output, a log, a prompt — a `code`
+ * panel left with no `language` at all draws a compiler warning instead.
+ */
 export type HighlightLanguage =
   | 'javascript'
   | 'js'
@@ -179,7 +183,9 @@ export type HighlightLanguage =
   | 'css'
   | 'jsx'
   | 'tsx'
-  | 'http';
+  | 'http'
+  | 'dart'
+  | 'plaintext';
 
 export interface ObjectContent {
   /**
