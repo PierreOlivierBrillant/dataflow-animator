@@ -157,6 +157,45 @@ describe('mountStage — dynamic clips', () => {
     );
   });
 
+  it('shows a folded packet’s card while it is read, then only its token', () => {
+    // Three lanes, so a→b is a short hop the card is too wide for.
+    const folding: Partial<DataFlowSpec> = {
+      nodes: [
+        { id: 'a', type: 'server', text: 'A', lane: 1 },
+        { id: 'b', type: 'database', text: 'B', lane: 2 },
+        { id: 'c', type: 'client', text: 'C', lane: 3 },
+      ],
+      packets: [
+        {
+          id: 'big',
+          kind: 'http_packet',
+          packet_content: {
+            header: '200 OK\nContent-Type: application/json',
+            body: {
+              type: 'text',
+              value: '{\n  "result": { "summary": "The college opens…" }\n}',
+            },
+          },
+        },
+      ],
+      timeline: [{ type: 'move', id: 'm1', object: 'big', from: 'a', to: 'b' }],
+    };
+    const { timeline } = compile({ ...spec, ...folding });
+    const move = timeline.clips.find((c) => c.kind === 'move')!;
+    const card = '.rdfa-overlay .rdfa-packet:not(.rdfa-packet--token)';
+    const token = '.rdfa-overlay .rdfa-packet--token';
+
+    const reading = mount(folding, (move.startMs + move.animStartMs) / 2);
+    expect(reading.container.querySelector(card)).not.toBeNull();
+    expect(reading.container.querySelector(token)).toBeNull();
+
+    const travelling = mount(folding, (move.animStartMs + move.endMs) / 2);
+    expect(travelling.container.querySelector(card)).toBeNull();
+    expect(travelling.container.querySelector(token)?.textContent).toBe(
+      '200 OK'
+    );
+  });
+
   it('draws a live arrow clip in the SVG, after the baseline connections', () => {
     // Probe the middle of the arrow clip's own window (read off the compiled
     // timeline — steps carry holds, so a guessed instant would be brittle).

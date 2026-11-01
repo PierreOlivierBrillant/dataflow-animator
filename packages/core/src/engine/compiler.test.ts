@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Action, DataFlowSpec } from '../types';
 import { compile, STEP_GAP } from './compiler';
+import type { MoveClip } from './timeline';
 import { appearHold, arriveHold } from './motionTime';
 import { FADE_MS } from './timeline';
 import { evaluate } from './timeline';
@@ -1022,5 +1023,66 @@ describe('compile — code panels with no language', () => {
   it('stays quiet once a language is set, plaintext included', () => {
     expect(compile(specOf([code('dart')])).warnings).toEqual([]);
     expect(compile(specOf([code('plaintext')])).warnings).toEqual([]);
+  });
+});
+
+describe('compile — packets that fold for their trip', () => {
+  const big: DataFlowSpec['packets'][number] = {
+    id: 'big',
+    kind: 'http_packet',
+    packet_content: {
+      header: '200 OK\nContent-Type: application/json',
+      body: {
+        type: 'text',
+        value: '{\n  "result": { "summary": "The college opens…" }\n}',
+      },
+    },
+  };
+  const three: DataFlowSpec['nodes'] = [
+    { id: 'a', type: 'client', lane: 1 },
+    { id: 'b', type: 'server', lane: 2 },
+    { id: 'c', type: 'database', lane: 3 },
+  ];
+  const leg = (id: string, from: string, to: string): Action => ({
+    type: 'move',
+    id,
+    object: 'big',
+    from,
+    to,
+  });
+  const moves = (spec: DataFlowSpec) =>
+    compile(spec).timeline.clips.filter(
+      (c): c is MoveClip => c.kind === 'move'
+    );
+
+  it('folds a big card to its first line, opened on its first leg only', () => {
+    const [first, second] = moves({
+      nodes: three,
+      packets: [big],
+      timeline: [leg('m1', 'a', 'b'), leg('m2', 'b', 'c')],
+    });
+    expect(first.folded).toEqual({ label: '200 OK', opened: true });
+    expect(second.folded).toEqual({ label: '200 OK', opened: false });
+  });
+
+  it('gives a folded card its whole reading time at the origin', () => {
+    const [folded] = moves({
+      nodes: three,
+      packets: [big],
+      timeline: [leg('m1', 'a', 'b')],
+    });
+    // Past the 1600 ms a travelling card is held for.
+    expect(folded.animStartMs - folded.startMs).toBeGreaterThan(1600);
+  });
+
+  it('leaves a small packet travelling as its card', () => {
+    const [plain] = moves({
+      nodes: three,
+      packets: [
+        { id: 'big', kind: 'http_packet', packet_content: { header: 'GET /' } },
+      ],
+      timeline: [leg('m1', 'a', 'b')],
+    });
+    expect(plain.folded).toBeUndefined();
   });
 });

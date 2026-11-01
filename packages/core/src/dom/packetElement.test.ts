@@ -1,6 +1,10 @@
 /** @vitest-environment jsdom */
 import { describe, expect, it } from 'vitest';
-import { applyPacketPose, buildPacketElement } from './packetElement';
+import {
+  applyPacketPose,
+  buildPacketElement,
+  createPacketTokenElement,
+} from './packetElement';
 import type { Highlighter, Packet } from '../types';
 
 /** A marker highlighter, so a test can tell the highlighted path was taken. */
@@ -339,5 +343,31 @@ describe('buildPacketElement — subicon', () => {
     const el = build({ id: 'p', kind: 'subicon' });
 
     expect(el.querySelector('.rdfa-node-subicon')).not.toBeNull();
+  });
+});
+
+describe('createPacketTokenElement', () => {
+  it('is a one-line pill of the packet’s own box, header-highlighted', () => {
+    const el = createPacketTokenElement(
+      { id: 'p', kind: 'http_packet' },
+      'POST /resumer',
+      highlight
+    );
+    expect(el.className).toBe(
+      'rdfa-packet rdfa-packet-http_packet rdfa-packet--token'
+    );
+    expect(el.querySelector('.rdfa-packet-header')?.innerHTML).toBe(
+      '<mark data-lang="http">POST /resumer</mark>'
+    );
+  });
+
+  it('stays plain text for a kind whose header is not code', () => {
+    const el = createPacketTokenElement(
+      { id: 'p', kind: 'simple_node', body: 'x' },
+      'Go to TLD .com',
+      highlight
+    );
+    expect(el.querySelector('mark')).toBeNull();
+    expect(el.textContent).toBe('Go to TLD .com');
   });
 });

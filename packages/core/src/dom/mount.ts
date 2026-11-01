@@ -18,6 +18,7 @@ import {
 } from '../engine/timeline';
 import { computeLayout, treeEdgeStyle, type LayoutMap } from '../engine/layout';
 import { shrinksToFit } from '../engine/placements';
+import { foldAt, foldEndMs } from '../engine/packetFold';
 import { easeTravel } from '../engine/easing';
 import type { Density } from '../engine/scale';
 import {
@@ -67,6 +68,7 @@ import {
 import {
   applyPacketPose,
   createPacketElement,
+  createPacketTokenElement,
   type PacketPose,
 } from './packetElement';
 import { netColorMap } from './netColors';
@@ -889,9 +891,15 @@ export function mountStage(
       );
     for (const clip of moves) {
       const object = packetById.get(clip.objectId);
+      if (!object) continue;
       const key = `packet:${clip.objectId}`;
-      if (object && !probes.has(key))
+      if (!probes.has(key))
         probes.set(key, createPacketElement(object, highlight));
+      if (clip.folded)
+        probes.set(
+          `token:${clip.id}`,
+          createPacketTokenElement(object, clip.folded.label, highlight)
+        );
     }
     for (const el of probes.values()) {
       el.style.visibility = 'hidden';
@@ -904,25 +912,44 @@ export function mountStage(
 
     const timed: TimedObstacle[] = [];
     for (const clip of moves) {
-      const size = sizes.get(`packet:${clip.objectId}`);
+      const card = sizes.get(`packet:${clip.objectId}`);
+      const token = sizes.get(`token:${clip.id}`);
       const conn = movePath(clip, geometry, wires);
-      if (!size || !conn) continue;
-      // Sampled rather than just its two ends, for a path that curves.
-      const swept = unionBox(
-        SWEEP_SAMPLES.map((u) => {
-          const pt = pathTip(conn, u);
-          return {
-            x: confine(pt.x, size.w, width) - size.w / 2,
-            y: confine(pt.y, size.h, height) - size.h / 2,
-            w: size.w,
-            h: size.h,
-          };
-        })
-      );
+      if (!card || !conn) continue;
+      // Where a box of `size` sits at each sampled point of the path — sampled
+      // rather than just its two ends, for a path that curves.
+      const sweep = (size: Size, samples: number[]) =>
+        unionBox(
+          samples.map((u) => {
+            const pt = pathTip(conn, u);
+            return {
+              x: confine(pt.x, size.w, width) - size.w / 2,
+              y: confine(pt.y, size.h, height) - size.h / 2,
+              w: size.w,
+              h: size.h,
+            };
+          })
+        );
+      // A folded packet's card only ever stands at the origin, and only until
+      // it has folded; the trip is swept by its token alone.
+      const travelling = clip.folded && token ? token : card;
+      if (clip.folded && token && clip.folded.opened) {
+        const held = sweep(card, [0]);
+        if (held)
+          timed.push({
+            box: held,
+            startMs: clip.startMs,
+            untilMs: foldEndMs(clip),
+          });
+      }
+      const swept = sweep(travelling, SWEEP_SAMPLES);
       if (swept)
         timed.push({
           box: swept,
-          startMs: clip.startMs,
+          startMs:
+            clip.folded && token && clip.folded.opened
+              ? clip.animStartMs
+              : clip.startMs,
           untilMs: clip.visibleUntilMs,
         });
     }
@@ -1156,7 +1183,16 @@ export function mountStage(
     // ─── Packets (move clips) ───────────────────────────────────────────────
     // A packet rides the SAME `connection()` path an arrow between the two
     // nodes would draw, at the eased progress of its clip.
-    const packetDesired: KeyedItem<{ object: Packet; pose: PacketPose }>[] = [];
+    //
+    // A FOLDED packet (`packetFold.ts`) is two elements: its card, held where
+    // it was read and fading out as the trip starts, and its token, setting
+    // off from that same point. Two keys, so neither ever turns into the other.
+    const packetDesired: KeyedItem<{
+      object: Packet;
+      pose: PacketPose;
+      token?: string;
+    }>[] = [];
+    const stage = { width: metrics.width, height: metrics.height };
     for (const a of active) {
       if (a.clip.kind !== 'move') continue;
       const clip = a.clip as MoveClip;
@@ -1165,26 +1201,48 @@ export function mountStage(
       if (!object || !conn) continue;
       const pt = pathTip(conn, easeTravel(a.progress));
       const opacity = clipOpacity(clip, currentT);
-      packetDesired.push({
-        key: `packet:${clip.id}`,
-        data: {
-          object,
-          pose: {
-            x: pt.x,
-            y: pt.y,
-            opacity,
-            scale: 0.8 + 0.2 * opacity,
-            stage: { width: metrics.width, height: metrics.height },
+      const pop = 0.8 + 0.2 * opacity;
+      const fold = clip.folded ? foldAt(clip, currentT) : 0;
+      if (fold < 1) {
+        const at = clip.folded ? pathTip(conn, 0) : pt;
+        packetDesired.push({
+          key: `packet:${clip.id}`,
+          data: {
+            object,
+            pose: {
+              x: at.x,
+              y: at.y,
+              opacity: opacity * (1 - fold),
+              scale: pop * (1 - 0.1 * fold),
+              stage,
+            },
           },
-        },
-      });
+        });
+      }
+      if (clip.folded && fold > 0)
+        packetDesired.push({
+          key: `token:${clip.id}`,
+          data: {
+            object,
+            token: clip.folded.label,
+            pose: {
+              x: pt.x,
+              y: pt.y,
+              opacity: opacity * fold,
+              scale: pop,
+              stage,
+            },
+          },
+        });
     }
 
     const packetHandles = reconcileKeyed({
       map: packetEls,
       desired: packetDesired,
       create: (data) => {
-        const el = createPacketElement(data.object, highlight);
+        const el = data.token
+          ? createPacketTokenElement(data.object, data.token, highlight)
+          : createPacketElement(data.object, highlight);
         overlay.appendChild(el);
         return el;
       },

@@ -4,7 +4,7 @@ slug: /concepts/packets
 ---
 
 import { DataFlowPlayer } from '@site/src/components/DataFlowPlayer';
-import { packetsExample } from './_packets/examples';
+import { foldingExample, packetsExample } from './_packets/examples';
 
 Where [nodes](./nodes.mdx) are static, **packets** (`packets`) are the
 **dynamic** objects: the payloads that move from one node to
@@ -174,3 +174,36 @@ timeline: [
 
 See [Action types → `move`](../reference/actions.mdx#move) for durations,
 the bidirectional lane offset and persistence.
+
+## A big packet folds for its trip
+
+A card big enough to read is often too big to travel: wider than the gap it
+crosses, it barely moves, and it hides the scene behind it the whole way. So
+when a packet's card spans **more than half of its trip** and is **at least three
+lines** tall, it is read where it appears: it stands at its origin for its full
+reading time, then **folds** into a one-line token — the first line of its header
+— and the token makes the trip. On a later leg, a packet that was already read
+sets off folded straight away.
+
+There is nothing to declare: the decision follows from the content and the
+length of the trip, and is the same at every player size. A request line or a
+status code alone travels as it is.
+
+```ts
+packets: [
+  { id: 'req', kind: 'http_packet', packet_content: { header: 'GET /orders/42' } },
+  {
+    id: 'res',
+    kind: 'http_packet',
+    packet_content: {
+      header: '200 OK\nContent-Type: application/json',
+      body: { type: 'text', language: 'json', value: '{ "id": 42, … }' },
+    },
+  },
+],
+```
+
+Below, the request travels as its card; the response is read at the API, then
+folds to `200 OK` for the trip back:
+
+<DataFlowPlayer spec={foldingExample} mode="auto" height={320} />

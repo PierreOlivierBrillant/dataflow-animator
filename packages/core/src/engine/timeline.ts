@@ -53,6 +53,13 @@ export interface MoveClip extends ClipBase {
   objectId: string;
   fromId: string;
   toId: string;
+  /**
+   * Present when the packet's card is too big for this trip: it travels FOLDED
+   * to `label`, its first line. `opened` shows the full card at the origin for
+   * the hold, then folds it as the trip starts; false when an earlier leg
+   * already showed it — the packet then starts folded.
+   */
+  folded?: { label: string; opened: boolean };
 }
 
 export interface ArrowClip extends ClipBase {

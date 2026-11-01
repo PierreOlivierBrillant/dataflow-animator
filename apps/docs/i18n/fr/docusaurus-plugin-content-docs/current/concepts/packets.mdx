@@ -4,7 +4,7 @@ slug: /concepts/packets
 ---
 
 import { DataFlowPlayer } from '@site/src/components/DataFlowPlayer';
-import { packetsExample } from './_packets/examples';
+import { foldingExample, packetsExample } from './_packets/examples';
 
 Là où les [nœuds](./nodes.mdx) sont statiques, les **paquets** (`packets`) sont
 les objets **dynamiques** : les charges utiles qui se déplacent d'un nœud à
@@ -177,3 +177,36 @@ timeline: [
 
 Voir [Types d'actions → `move`](../reference/actions.mdx#move) pour les durées,
 le décalage des voies bidirectionnelles et la persistance.
+
+## Un gros paquet se replie pour voyager
+
+Une carte assez grande pour être lue est souvent trop grande pour voyager : plus
+large que l'écart qu'elle franchit, elle bouge à peine et masque la scène pendant
+tout le trajet. Quand la carte d'un paquet couvre **plus de la moitié de son
+trajet** et fait **au moins trois lignes**, elle se lit donc là où elle apparaît :
+elle reste à son origine le temps de sa lecture complète, puis **se replie** en
+une pastille d'une ligne — la première ligne de son en-tête — et c'est la pastille
+qui fait le trajet. Au trajet suivant, un paquet déjà lu part directement replié.
+
+Il n'y a rien à déclarer : la décision découle du contenu et de la longueur du
+trajet, et elle est la même quelle que soit la taille du lecteur. Une ligne de
+requête ou un code de statut seul voyage tel quel.
+
+```ts
+packets: [
+  { id: 'req', kind: 'http_packet', packet_content: { header: 'GET /commandes/42' } },
+  {
+    id: 'res',
+    kind: 'http_packet',
+    packet_content: {
+      header: '200 OK\nContent-Type: application/json',
+      body: { type: 'text', language: 'json', value: '{ "id": 42, … }' },
+    },
+  },
+],
+```
+
+Ci-dessous, la requête voyage sous forme de carte ; la réponse se lit à l'API,
+puis se replie sur `200 OK` pour le retour :
+
+<DataFlowPlayer spec={foldingExample} mode="auto" height={320} />

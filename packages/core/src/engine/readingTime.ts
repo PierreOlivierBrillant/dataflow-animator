@@ -174,6 +174,14 @@ function packetLength(packet: Packet): { length: number; code: boolean } {
 const PACKET_MAX_MS = 1600;
 
 /**
+ * The same, for a packet that travels FOLDED (`packetFold.ts`): its card is
+ * gone once the trip starts, so the hold is all the reading it gets. About
+ * what the card was on screen for before it folded — the hold above plus the
+ * trip it stayed legible through.
+ */
+const FOLDED_PACKET_MAX_MS = 4000;
+
+/**
  * Noticing a packet costs less than noticing a bubble: it appears on the node
  * the reader is already watching, where one is expected.
  */
@@ -188,11 +196,13 @@ const PACKET_ACQUIRE_MS = 220;
  */
 export function packetReadingTime(
   packet: Packet,
-  pace: number
+  pace: number,
+  folded = false
 ): number | undefined {
   const { length, code } = packetLength(packet);
   if (length === 0) return undefined;
   const cps = code ? CPS_BY_CONTENT.code : PROSE_CPS;
   const ms = PACKET_ACQUIRE_MS + (length / cps) * 1000;
-  return Math.round(Math.min(ms, PACKET_MAX_MS) * pace);
+  const ceiling = folded ? FOLDED_PACKET_MAX_MS : PACKET_MAX_MS;
+  return Math.round(Math.min(ms, ceiling) * pace);
 }

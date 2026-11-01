@@ -96,3 +96,41 @@ export const packetsExample: DataFlowSpec = {
     { type: 'move', object: 'lib', from: 'browser', to: 'api', duration: 700 },
   ],
 };
+
+/**
+ * A packet that folds for its trip: the request line travels as it is, while
+ * the JSON response — wider than half the hop — is read at the API, then folds
+ * to its status line for the trip back.
+ */
+export const foldingExample: DataFlowSpec = {
+  direction: 'left-to-right',
+  nodes: [
+    { id: 'app', type: 'mobile', text: 'App', lane: 1 },
+    { id: 'api', type: 'server', text: 'API', icon: 'node', lane: 2 },
+    { id: 'db', type: 'database', text: 'DB', icon: 'postgres', lane: 3 },
+  ],
+  packets: [
+    {
+      id: 'req',
+      kind: 'http_packet',
+      packet_content: { header: 'GET /orders/42' },
+    },
+    {
+      id: 'res',
+      kind: 'http_packet',
+      packet_content: {
+        header: '200 OK\nContent-Type: application/json',
+        body: {
+          type: 'text',
+          language: 'json',
+          value:
+            '{\n  "id": 42,\n  "status": "shipped",\n  "items": ["keyboard", "mouse"]\n}',
+        },
+      },
+    },
+  ],
+  timeline: [
+    { type: 'move', object: 'req', from: 'app', to: 'api' },
+    { type: 'move', object: 'res', from: 'api', to: 'app' },
+  ],
+};

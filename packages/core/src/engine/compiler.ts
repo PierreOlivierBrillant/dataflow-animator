@@ -8,12 +8,14 @@ import type {
   TreeSpec,
 } from '../types';
 import { derivedDuration, packetReadingTime } from './readingTime';
+import { foldedLabel } from './packetFold';
 import { FADE_MS } from './timeline';
 import {
   appearHold,
   arriveHold,
   derivedMoveDuration,
   moveDistance,
+  moveVector,
   REFERENCE_ASPECT,
 } from './motionTime';
 import { refNode } from './pins';
@@ -362,12 +364,25 @@ function compileAction(
   // (120 ms for a 600 ms hop) does not cover `SELECT * FROM users WHERE email=…`,
   // so the hold is at least as long as its content needs. Charged once per
   // packet: the next leg shows the same text.
+  //
+  // A card too big for its trip is read here and FOLDS for the trip
+  // (`packetFold.ts`): with nothing left to read on the way, the hold gets the
+  // whole reading time. Decided in the same reference frame as the trip's
+  // duration, so it holds at every player size.
+  const packet = isMove ? ctx.packetById.get(action.object) : undefined;
+  const trip =
+    packet && action.type === 'move' && action.from && action.to
+      ? moveVector(ctx.layoutOf(), refNode(action.from), refNode(action.to))
+      : undefined;
+  const foldLabel =
+    packet && trip ? foldedLabel(packet, trip.dx, trip.dy) : undefined;
   let readMs = 0;
-  if (isMove && !ctx.packetsRead.has(action.object)) {
-    const packet = ctx.packetById.get(action.object);
-    if (packet) {
-      readMs = packetReadingTime(packet, ctx.pace) ?? 0;
-      if (readMs > 0) ctx.packetsRead.add(action.object);
+  let opened = false;
+  if (packet && !ctx.packetsRead.has(packet.id)) {
+    readMs = packetReadingTime(packet, ctx.pace, foldLabel !== undefined) ?? 0;
+    if (readMs > 0) {
+      ctx.packetsRead.add(packet.id);
+      opened = true;
     }
   }
   const appearMs = isMove
@@ -419,6 +434,7 @@ function compileAction(
         objectId: action.object,
         fromId: action.from,
         toId: action.to,
+        ...(foldLabel ? { folded: { label: foldLabel, opened } } : {}),
       };
       push(clip);
       break;

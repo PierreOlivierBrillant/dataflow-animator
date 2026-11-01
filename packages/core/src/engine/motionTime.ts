@@ -59,19 +59,29 @@ const TRAVEL_SPEED = 180;
 const MIN_MS = 500;
 const MAX_MS = 3000;
 
+/** The trip between two nodes, in the reference frame. `undefined` if unknown. */
+export function moveVector(
+  layout: LayoutMap,
+  fromId: string,
+  toId: string
+): { dx: number; dy: number } | undefined {
+  const from = layout[fromId];
+  const to = layout[toId];
+  if (!from || !to) return undefined;
+  return {
+    dx: (to.cx - from.cx) * REFERENCE_WIDTH,
+    dy: (to.cy - from.cy) * REFERENCE_HEIGHT,
+  };
+}
+
 /** Distance between two nodes, in the reference frame. `undefined` if unknown. */
 export function moveDistance(
   layout: LayoutMap,
   fromId: string,
   toId: string
 ): number | undefined {
-  const from = layout[fromId];
-  const to = layout[toId];
-  if (!from || !to) return undefined;
-  return Math.hypot(
-    (to.cx - from.cx) * REFERENCE_WIDTH,
-    (to.cy - from.cy) * REFERENCE_HEIGHT
-  );
+  const v = moveVector(layout, fromId, toId);
+  return v && Math.hypot(v.dx, v.dy);
 }
 
 /**

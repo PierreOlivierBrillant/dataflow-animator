@@ -2,6 +2,7 @@ import type { Highlighter, Packet } from '../types';
 import { isPanelNode } from '../render/nodeKinds';
 import { escapeHtml } from '../highlight/highlight';
 import { confine } from '../engine/overlayPlacement';
+import { sqlResponseHeader } from '../engine/packetFold';
 import { h, px, setStyle, type Child } from './el';
 import { buildPanel } from './nodeElement';
 import { renderSubIcon } from './icons/subIcons';
@@ -122,18 +123,9 @@ function buildSqlRequestPacket(
 
 /** Port of `SqlResponsePacket`. */
 function buildSqlResponsePacket(object: Packet): Child[] {
-  const content = object.response_content;
-  const rowsLegacy = content?.rows;
-  const header = content?.header;
-  const body = content?.body;
+  const body = object.response_content?.body;
 
-  // User-visible fallback strings, ported verbatim from `Packet.tsx` — the A/B
-  // gate diffs against what React actually renders.
-  const defaultHeader =
-    rowsLegacy != null
-      ? `▦ ${rowsLegacy} ligne${rowsLegacy > 1 ? 's' : ''}`
-      : '▦ résultat';
-  const displayedHeader = header || defaultHeader;
+  const displayedHeader = sqlResponseHeader(object);
 
   const out: Child[] = [
     h('div', { class: 'rdfa-packet-header' }, [displayedHeader]),
@@ -255,6 +247,36 @@ export function createPacketElement(
     'div',
     { class: `rdfa-packet rdfa-packet-${object.kind}${modifier}` },
     build ? build(object, highlight) : []
+  );
+}
+
+/** The language a packet kind's header is highlighted in, if any. */
+const HEADER_LANGUAGE: Partial<Record<Packet['kind'], string>> = {
+  http_packet: 'http',
+  sql_request: 'sql',
+};
+
+/**
+ * The token a FOLDED packet travels as (`packetFold.ts`): its first line, in a
+ * pill of the packet's own box, highlighted like the header it was cut from so
+ * that it reads as the same object as the card it replaces.
+ */
+export function createPacketTokenElement(
+  object: Packet,
+  label: string,
+  highlight?: Highlighter
+): HTMLElement {
+  const language = HEADER_LANGUAGE[object.kind];
+  return h(
+    'div',
+    { class: `rdfa-packet rdfa-packet-${object.kind} rdfa-packet--token` },
+    [
+      zone(
+        'rdfa-packet-header',
+        label,
+        language && highlight ? highlight(label, language) : undefined
+      ),
+    ]
   );
 }
 

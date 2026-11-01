@@ -279,6 +279,14 @@ describe('packetReadingTime', () => {
     expect(packetReadingTime(http('x'.repeat(5000)), 1)).toBe(1600);
   });
 
+  it('caps a FOLDED packet higher: its card is gone once it travels', () => {
+    expect(packetReadingTime(http('x'.repeat(5000)), 1, true)).toBe(4000);
+    // A short one is not padded to the higher ceiling.
+    expect(packetReadingTime(http('200 OK'), 1, true)).toBe(
+      packetReadingTime(http('200 OK'), 1)
+    );
+  });
+
   it('ignores a badge, which is recognised rather than read', () => {
     expect(
       packetReadingTime({ id: 'p', kind: 'subicon', icon: 'postgres' }, 1)

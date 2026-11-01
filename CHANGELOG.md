@@ -7,6 +7,26 @@ here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- **`MoveClip.folded`** on the compiled timeline: `{ label, opened }` when the
+  packet travels folded (see below).
+
+### Changed
+
+- **A packet too big for its trip is read at its origin, then folds to travel.**
+  A card big enough to read was often wider than the gap it crossed: kept on
+  stage, a JSON response 512 px wide moved 160 px between two nodes while
+  covering half the stage — nothing was seen travelling, and the scene was
+  hidden the whole way. A card that spans more than half its trip and is at
+  least three lines tall now stands at its origin for its full reading time,
+  then folds into a one-line token — the first line of its header — which makes
+  the trip. Its origin hold is capped at 4 s instead of 1.6 s, since it is no
+  longer readable on the way. Small packets travel as before; across the
+  gallery, 7 of 271 trips fold.
+
 ## 2.1.0 — 2026-11-01
 
 ### Added
