@@ -55,19 +55,27 @@ cœur. Voir [Localiser le chrome](./components.mdx#labels).
 
 **Le lecteur se pilote au clavier** dès que `controls` est actif :
 
-| Touche   | Ce qu'elle fait                                                  |
-| -------- | ---------------------------------------------------------------- |
-| `Espace` | lecture / pause — sur la scène, pas sur un bouton qui a le focus |
-| `→`      | joue jusqu'à l'arrêt suivant, comme le bouton « étape suivante » |
-| `←`      | met en pause et saute à l'arrêt précédent                        |
-| `Échap`  | ferme la fenêtre JSON                                            |
+| Touche   | Ce qu'elle fait                                                                             |
+| -------- | ------------------------------------------------------------------------------------------- |
+| `Espace` | lecture / pause — sur la scène ou la barre de progression, pas sur un bouton qui a le focus |
+| `→`      | joue jusqu'à l'arrêt suivant, comme le bouton « étape suivante »                            |
+| `←`      | met en pause et saute à l'arrêt précédent                                                   |
+| `Échap`  | ferme la fenêtre JSON                                                                       |
 
 Deux exclusions découlent du fait que les raccourcis vivent sur la racine du
 lecteur. `Espace` **active** déjà un bouton qui a le focus : il ne reste donc un
 raccourci que si le focus n'est sur rien d'activable — sinon appuyer sur
-« étape suivante » basculerait la lecture. Et aucun raccourci ne se déclenche
+« étape suivante » basculerait la lecture. La barre de progression est un
+curseur, pas un bouton à presser : `Espace` y bascule donc aussi la lecture. Et
+aucun raccourci ne se déclenche
 depuis la fenêtre JSON, qui est modale et dont le contenu défile avec les
 flèches.
+
+**La tête de lecture se glisse.** Appuyer sur la barre de progression s'y rend
+aussitôt, et glisser continue tant que le bouton est maintenu — le pointeur peut
+quitter la barre. La lecture est suspendue pendant le geste et reprend au
+relâchement. L'appui donne le focus au lecteur, pas à la barre : `Espace` met
+donc en pause juste après.
 
 **Les registres sont globaux.** `registerNodeIcon` et `registerSubIcon` mutent
 un registre au niveau module, partagé par tous les lecteurs de la page.

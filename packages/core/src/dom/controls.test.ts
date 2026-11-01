@@ -1,6 +1,10 @@
 /** @vitest-environment jsdom */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { applyControlsElement, createControlsElement } from './controls';
+import {
+  applyControlsElement,
+  createControlsElement,
+  type ControlsElement,
+} from './controls';
 import { createPlayerClock, type PlayerClock } from './clock';
 import { DEFAULT_PLAYER_LABELS } from './labels';
 import type { Timeline } from '../engine/timeline';
@@ -23,6 +27,34 @@ function make(over: { stops?: number[]; durationMs?: number } = {}) {
   document.body.appendChild(ctl.el);
   return { ctl, clock, onToggleFullscreen };
 }
+
+/**
+ * jsdom implements neither `PointerEvent` nor pointer capture, so a pointer
+ * event is a `MouseEvent` carrying the type, plus a `pointerId`.
+ */
+const pointer = (
+  target: Element,
+  type: string,
+  clientX = 0,
+  pointerId = 1
+): void => {
+  const event = new MouseEvent(type, { clientX, button: 0, bubbles: true });
+  Object.defineProperty(event, 'pointerId', { value: pointerId });
+  target.dispatchEvent(event);
+};
+
+/** The scrub bar, laid out 200px wide from x=0 and able to capture a pointer. */
+const scrubOf = (ctl: ControlsElement): HTMLButtonElement => {
+  vi.spyOn(ctl.scrub, 'getBoundingClientRect').mockReturnValue({
+    left: 0,
+    width: 200,
+  } as DOMRect);
+  ctl.scrub.setPointerCapture = vi.fn();
+  return ctl.scrub;
+};
+
+const progress = (ctl: ControlsElement): string =>
+  ctl.scrub.style.getPropertyValue('--rdfa-progress');
 
 const buttons = (root: Element): HTMLButtonElement[] =>
   [...root.querySelectorAll('button')] as HTMLButtonElement[];
@@ -166,20 +198,21 @@ describe('applyControlsElement — the clock-driven state', () => {
     expect(ctl.el.querySelector('.rdfa-time')!.textContent).toBe('3s / 12s');
   });
 
-  it('tracks the cursor with the fill and the thumb', () => {
+  // The fill and the thumb are both derived from this one ratio by the
+  // stylesheet — the thumb through a transform, which jsdom cannot lay out.
+  it('tracks the cursor with the progress ratio', () => {
     const { ctl, clock } = make();
     clock.seek(250);
     applyControlsElement(ctl, clock, false);
 
-    expect(ctl.fill.style.width).toBe('25%');
-    expect(ctl.thumb.style.left).toBe('25%');
+    expect(progress(ctl)).toBe('0.25');
   });
 
   it('leaves the ratio at 0 for a zero-length timeline', () => {
     const { ctl, clock } = make({ durationMs: 0 });
     applyControlsElement(ctl, clock, false);
 
-    expect(ctl.fill.style.width).toBe('0%');
+    expect(progress(ctl)).toBe('0');
   });
 
   it('swaps the play button label and icon with the clock state', () => {
@@ -256,44 +289,139 @@ describe('createControlsElement — wiring', () => {
     expect(playTo).toHaveBeenCalledWith(750);
   });
 
-  it('seeks from the pointer position along the scrub bar', () => {
+  it('seeks from the pointer position as soon as the bar is pressed', () => {
     const { ctl, clock } = make();
-    const scrub = ctl.el.querySelector('.rdfa-timeline')!;
-    vi.spyOn(scrub, 'getBoundingClientRect').mockReturnValue({
-      left: 0,
-      width: 200,
-    } as DOMRect);
+    const scrub = scrubOf(ctl);
     const seek = vi.spyOn(clock, 'seek');
 
-    // `detail: 1` is what a real pointer click carries; 0 means keyboard.
-    scrub.dispatchEvent(new MouseEvent('click', { clientX: 50, detail: 1 }));
+    pointer(scrub, 'pointerdown', 50);
 
     expect(seek).toHaveBeenCalledWith(250);
+    expect(scrub.setPointerCapture).toHaveBeenCalledWith(1);
   });
 
-  it('clamps a pointer landing outside the bar', () => {
+  it('drags the playhead while the pointer is held, and only then', () => {
     const { ctl, clock } = make();
-    const scrub = ctl.el.querySelector('.rdfa-timeline')!;
-    vi.spyOn(scrub, 'getBoundingClientRect').mockReturnValue({
-      left: 0,
-      width: 200,
-    } as DOMRect);
+    const scrub = scrubOf(ctl);
+
+    pointer(scrub, 'pointerdown', 50);
+    pointer(scrub, 'pointermove', 120);
+    expect(clock.t).toBe(600);
+
+    // Clamped: a captured drag keeps reporting once it leaves the bar.
+    pointer(scrub, 'pointermove', 400);
+    expect(clock.t).toBe(1000);
+
+    pointer(scrub, 'pointerup', 400);
+    pointer(scrub, 'pointermove', 20);
+    expect(clock.t).toBe(1000);
+  });
+
+  it('ignores the moves of another pointer during a drag', () => {
+    const { ctl, clock } = make();
+    const scrub = scrubOf(ctl);
+
+    pointer(scrub, 'pointerdown', 50, 1);
+    pointer(scrub, 'pointermove', 150, 2);
+
+    expect(clock.t).toBe(250);
+  });
+
+  it('suspends playback during a drag and resumes it on release', () => {
+    const { ctl, clock } = make();
+    const scrub = scrubOf(ctl);
+    clock.play();
+
+    pointer(scrub, 'pointerdown', 50);
+    expect(clock.playing).toBe(false);
+
+    pointer(scrub, 'pointermove', 100);
+    pointer(scrub, 'pointerup', 100);
+    expect(clock.playing).toBe(true);
+    expect(clock.t).toBe(500);
+  });
+
+  it('leaves a paused clock paused after a drag', () => {
+    const { ctl, clock } = make();
+    const scrub = scrubOf(ctl);
+
+    pointer(scrub, 'pointerdown', 50);
+    pointer(scrub, 'pointerup', 50);
+
+    expect(clock.playing).toBe(false);
+  });
+
+  // `play()` from the end rewinds to 0, which would undo the drag.
+  it('does not resume a drag dropped at the very end', () => {
+    const { ctl, clock } = make();
+    const scrub = scrubOf(ctl);
+    clock.play();
+
+    pointer(scrub, 'pointerdown', 400);
+    pointer(scrub, 'pointercancel', 400);
+
+    expect(clock.playing).toBe(false);
+    expect(clock.t).toBe(1000);
+  });
+
+  it('ends a drag whose capture is taken away', () => {
+    const { ctl, clock } = make();
+    const scrub = scrubOf(ctl);
+
+    pointer(scrub, 'pointerdown', 50);
+    pointer(scrub, 'lostpointercapture', 50);
+    pointer(scrub, 'pointermove', 150);
+    expect(clock.t).toBe(250);
+
+    // …and a fresh press starts a new one, rather than meeting a stale guard.
+    pointer(scrub, 'pointerdown', 150);
+    expect(clock.t).toBe(750);
+  });
+
+  it('starts no drag from a secondary button', () => {
+    const { ctl, clock } = make();
+    const scrub = scrubOf(ctl);
     const seek = vi.spyOn(clock, 'seek');
 
-    scrub.dispatchEvent(new MouseEvent('click', { clientX: 400, detail: 1 }));
+    scrub.dispatchEvent(
+      new MouseEvent('pointerdown', { clientX: 50, button: 2 })
+    );
 
-    expect(seek).toHaveBeenCalledWith(1000);
+    expect(seek).not.toHaveBeenCalled();
+  });
+
+  it('hands the focus to its host instead of keeping it', () => {
+    const clock = createPlayerClock({ durationMs: 1000 });
+    const host = document.createElement('div');
+    host.tabIndex = 0;
+    const ctl = createControlsElement({
+      clock,
+      timeline: timeline([]),
+      labels: DEFAULT_PLAYER_LABELS,
+      onToggleFullscreen: () => {},
+      focusHost: host,
+    });
+    host.appendChild(ctl.el);
+    document.body.appendChild(host);
+    const scrub = scrubOf(ctl);
+    const mousedown = new MouseEvent('mousedown', { cancelable: true });
+
+    pointer(scrub, 'pointerdown', 50);
+    scrub.dispatchEvent(mousedown);
+
+    expect(document.activeElement).toBe(host);
+    // The default action of `mousedown` is what would focus the bar.
+    expect(mousedown.defaultPrevented).toBe(true);
   });
 
   // The bar is a <button>, so Enter and Space on it synthesise a click that
-  // carries no pointer: clientX is 0, which used to read as "seek to the very
-  // start".
+  // carries no pointer: clientX is 0, which would read as "seek to the very
+  // start" — seeking listens to pointer events only.
   it('does NOT seek from a keyboard activation of the scrub bar', () => {
     const { ctl, clock } = make();
     clock.seek(600);
     const seek = vi.spyOn(clock, 'seek');
 
-    // `detail: 0` is what distinguishes a synthesised click from a pointer one.
     ctl.scrub.dispatchEvent(new MouseEvent('click', { detail: 0 }));
 
     expect(seek).not.toHaveBeenCalled();
@@ -318,6 +446,6 @@ describe('controls — the clock is the single source of truth', () => {
     advance(clock);
     applyControlsElement(ctl, clock, false);
 
-    expect(ctl.thumb.style.left).toBe('75%');
+    expect(progress(ctl)).toBe('0.75');
   });
 });

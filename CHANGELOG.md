@@ -121,7 +121,24 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - **The `git` and `azure` badges follow react-icons 5.7.0's redrawn glyphs**,
   picked up by the bump that brings the new LLM logos.
 
+- **The playhead is draggable.** Pressing the progress bar seeks at once and
+  dragging keeps seeking, the pointer captured so it may leave the bar; playback
+  is suspended for the drag and resumed on release. Touch drags scrub instead of
+  scrolling the page.
+
 ### Fixed
+
+- **The playhead no longer stutters on a small player.** The thumb was placed
+  with `left`, which paints snapped to the device pixel — and on a bar a few
+  hundred pixels wide the playhead moves a fraction of one per frame, so it
+  stalled, then jumped. It now moves by `transform`, driven with the fill by a
+  single `--rdfa-progress` ratio. Full screen hid it: its bar is wide enough to
+  move about a pixel per frame.
+
+- **`Space` pauses after a click on the progress bar.** The click left the focus
+  on the bar, a `<button>`, where `Space` was left to the button to activate —
+  and activating the bar does nothing. A press on the bar now hands the focus to
+  the player, and `Space` on the bar (reached with `Tab`) toggles playback too.
 
 - **A bipolar transistor's collector and emitter are where its leads are
   drawn.** The symbol is drawn vertically — collector out of the top, emitter out

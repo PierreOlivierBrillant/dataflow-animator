@@ -1678,6 +1678,8 @@
   border: none;
   background: transparent;
   padding: 0;
+  /* The playhead is dragged: a touch on the bar is a scrub, not a page scroll. */
+  touch-action: none;
 }
 
 .rdfa-timeline-track {
@@ -1686,11 +1688,17 @@
   height: 5px;
   border-radius: 999px;
   background: var(--rdfa-border);
+  /* A container so the thumb can translate by a share of the track's width
+     (`cqw`): a transform's own percentages refer to the thumb, not the track. */
+  container-type: inline-size;
 }
 
+/* `--rdfa-progress` (0..1) is the one value the player writes per frame, on
+   `.rdfa-timeline`; the fill and the thumb both derive from it. */
 .rdfa-timeline-fill {
   position: absolute;
   inset: 0 auto 0 0;
+  width: calc(var(--rdfa-progress, 0) * 100%);
   border-radius: 999px;
   background: var(--rdfa-accent);
 }
@@ -1709,9 +1717,13 @@
 .rdfa-timeline-thumb {
   position: absolute;
   top: 50%;
+  left: 0;
   width: 12px;
   height: 12px;
-  transform: translate(-50%, -50%);
+  /* A transform, not `left`: a laid-out offset is snapped to the device pixel
+     when painted, and on a bar of a few hundred pixels the playhead moves a
+     fraction of one per frame — a `left` thumb stalls, then jumps. */
+  transform: translate(calc(var(--rdfa-progress, 0) * 100cqw - 50%), -50%);
   border-radius: 50%;
   background: var(--rdfa-accent);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);

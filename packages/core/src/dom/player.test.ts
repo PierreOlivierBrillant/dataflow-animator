@@ -208,9 +208,10 @@ describe('mountPlayer — the clock drives the stage', () => {
       `${seconds(TOTAL_MS / 2)} / ${seconds(TOTAL_MS)}`
     );
     expect(
-      (player.el.querySelector('.rdfa-timeline-thumb') as HTMLElement).style
-        .left
-    ).toBe('50%');
+      (
+        player.el.querySelector('.rdfa-timeline') as HTMLElement
+      ).style.getPropertyValue('--rdfa-progress')
+    ).toBe('0.5');
   });
 });
 
@@ -287,6 +288,37 @@ describe('mountPlayer — keyboard', () => {
 
     expect(toggle).not.toHaveBeenCalled();
     expect(event.defaultPrevented).toBe(false);
+  });
+
+  // The scrub bar is a `<button>` for its markup only: it is a slider, and
+  // activating it does nothing — so Space there is the play/pause shortcut.
+  it('keeps Space a shortcut on the scrub bar', () => {
+    const { player } = mount();
+    const toggle = vi.spyOn(player.clock, 'toggle');
+
+    const event = press(
+      player.el.querySelector<HTMLElement>('.rdfa-timeline')!,
+      ' ',
+      true
+    );
+
+    expect(toggle).toHaveBeenCalled();
+    expect(event.defaultPrevented).toBe(true);
+  });
+
+  // A pointer on the bar must not leave the focus on it, nor outside the player
+  // where the shortcuts do not listen.
+  it('sends the focus to the player when the scrub bar is pressed', () => {
+    const { player } = mount();
+    const scrub = player.el.querySelector<HTMLElement>('.rdfa-timeline')!;
+    // jsdom implements neither pointer capture nor `PointerEvent`.
+    scrub.setPointerCapture = () => {};
+
+    scrub.dispatchEvent(
+      new MouseEvent('pointerdown', { button: 0, bubbles: true })
+    );
+
+    expect(document.activeElement).toBe(player.el);
   });
 
   // The arrows stay global: they compete with no activation, and they mirror
@@ -544,9 +576,10 @@ describe('mountPlayer — initialT', () => {
       `${seconds(TOTAL_MS / 2)} / ${seconds(TOTAL_MS)}`
     );
     expect(
-      (player.el.querySelector('.rdfa-timeline-thumb') as HTMLElement).style
-        .left
-    ).toBe('50%');
+      (
+        player.el.querySelector('.rdfa-timeline') as HTMLElement
+      ).style.getPropertyValue('--rdfa-progress')
+    ).toBe('0.5');
   });
 
   // The regression this option exists for: mounting at 0 and seeking to `t`

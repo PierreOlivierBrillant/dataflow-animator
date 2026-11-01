@@ -54,18 +54,24 @@ key by key through `labels`, with English defaults resolved in the core. See
 
 **The player is keyboard-operable** whenever `controls` is on:
 
-| Key     | What it does                                             |
-| ------- | -------------------------------------------------------- |
-| `Space` | play / pause — over the stage, not over a focused button |
-| `→`     | plays to the next stop, like the "next step" button      |
-| `←`     | pauses and jumps back to the previous stop               |
-| `Esc`   | closes the JSON dialog                                   |
+| Key     | What it does                                                                 |
+| ------- | ---------------------------------------------------------------------------- |
+| `Space` | play / pause — over the stage or the progress bar, not over a focused button |
+| `→`     | plays to the next stop, like the "next step" button                          |
+| `←`     | pauses and jumps back to the previous stop                                   |
+| `Esc`   | closes the JSON dialog                                                       |
 
 Two exclusions follow from the shortcuts living on the player's root. `Space`
 already **activates** a focused button, so it stays a shortcut only when the
 focus is on nothing activatable — otherwise pressing "next step" would toggle
-playback instead. And no shortcut fires from inside the JSON dialog, which is
+playback instead. The progress bar is a slider, not something to press, so
+`Space` there toggles playback too. And no shortcut fires from inside the JSON dialog, which is
 modal and whose content scrolls with the arrows.
+
+**The playhead is draggable.** Pressing the progress bar seeks at once, and
+dragging keeps seeking for as long as the button is held — the pointer may leave
+the bar. Playback is suspended for the drag and resumes on release. The press
+moves the focus to the player, not to the bar, so `Space` pauses right after.
 
 **The registries are global.** `registerNodeIcon` and `registerSubIcon` mutate
 a module-level registry shared by every player on the page. Call them once at

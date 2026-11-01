@@ -33,6 +33,12 @@ export interface ControlsOptions {
   labels: PlayerLabels;
   onToggleFullscreen(): void;
   /**
+   * Where a pointer on the scrub bar sends the focus — the player root. The bar
+   * itself must not keep it: a pointer user then reaches for Space to pause, and
+   * Space on a focused `<button>` activates it instead of reaching the shortcut.
+   */
+  focusHost?: HTMLElement;
+  /**
    * Secondary actions, rendered in order between the time readout and the
    * fullscreen toggle — the JSON spec button, the video export button.
    *
@@ -48,10 +54,11 @@ export interface ControlsElement {
   readonly el: HTMLElement;
   readonly playBtn: HTMLButtonElement;
   readonly fullscreenBtn: HTMLButtonElement;
-  /** The scrub bar, carried for the `aria-valuenow` `apply` keeps current. */
+  /**
+   * The scrub bar, carried for what `apply` keeps current: `aria-valuenow`, and
+   * the `--rdfa-progress` ratio the fill and the thumb are both drawn from.
+   */
   readonly scrub: HTMLButtonElement;
-  readonly fill: HTMLElement;
-  readonly thumb: HTMLElement;
   readonly timeCurrent: Text;
   readonly timeTotal: Text;
   /** Carried on the handle so `apply` swaps labels without a new parameter. */
@@ -129,7 +136,14 @@ function fmt(ms: number): string {
 export function createControlsElement(
   options: ControlsOptions
 ): ControlsElement {
-  const { clock, timeline, labels, onToggleFullscreen, actionSlots } = options;
+  const {
+    clock,
+    timeline,
+    labels,
+    onToggleFullscreen,
+    focusHost,
+    actionSlots,
+  } = options;
 
   const restartBtn = button(labels.restart, [restartIcon()]);
   restartBtn.addEventListener('click', () => clock.restart());
@@ -184,17 +198,53 @@ export function createControlsElement(
     },
     [track]
   );
-  scrub.addEventListener('click', (event) => {
-    // A KEYBOARD activation (Enter, or Space on the focused bar) synthesises a
-    // click with no pointer behind it: `detail` is 0 and `clientX` is 0, which
-    // read as a click on the far left and would jump to t=0. Only a real
-    // pointer carries a position worth seeking to; the keyboard moves the
-    // cursor through the player's own Arrow shortcuts instead.
-    if (event.detail === 0) return;
+  const seekToPointer = (clientX: number): void => {
     const rect = scrub.getBoundingClientRect();
-    const r = clamp((event.clientX - rect.left) / rect.width, 0, 1);
+    const r = clamp((clientX - rect.left) / rect.width, 0, 1);
     clock.seek(r * clock.durationMs);
+  };
+
+  // Seeking is driven by POINTER events, not `click`: a press seeks at once and
+  // every move while it is held seeks again, which is what makes the playhead
+  // draggable. It also keeps the keyboard out by construction — Enter on the
+  // focused bar synthesises a click with `clientX` 0, which a click handler
+  // would read as "jump to t=0". The keyboard moves through the Arrow shortcuts.
+  //
+  // Playback is suspended for the length of the drag and resumed on release:
+  // left running, the clock would pull the playhead away from the pointer
+  // between two moves.
+  let drag: { pointerId: number; resume: boolean } | null = null;
+  scrub.addEventListener('pointerdown', (event) => {
+    if (event.button !== 0 || drag) return;
+    drag = { pointerId: event.pointerId, resume: clock.playing };
+    clock.pause();
+    // Captured, so the drag keeps tracking once the pointer leaves the bar's
+    // 16px of height — a horizontal gesture never stays inside it.
+    scrub.setPointerCapture(event.pointerId);
+    focusHost?.focus({ preventScroll: true });
+    seekToPointer(event.clientX);
   });
+  scrub.addEventListener('pointermove', (event) => {
+    if (drag?.pointerId === event.pointerId) seekToPointer(event.clientX);
+  });
+  const endDrag = (event: PointerEvent): void => {
+    if (drag?.pointerId !== event.pointerId) return;
+    const { resume } = drag;
+    drag = null;
+    // Dropped at the very end, there is nothing left to resume — and `play()`
+    // would rewind to 0, undoing the drag.
+    if (resume && clock.t < clock.durationMs) clock.play();
+  };
+  scrub.addEventListener('pointerup', endDrag);
+  scrub.addEventListener('pointercancel', endDrag);
+  // The capture can also be taken away without either (the bar leaving the
+  // document, another `setPointerCapture`): a drag left armed would swallow
+  // every later press through the `drag` guard above.
+  scrub.addEventListener('lostpointercapture', endDrag);
+  // `mousedown`'s default action is what focuses a button; `pointerdown` cannot
+  // cancel it. Cancelling it here leaves the focus where `focusHost` put it, and
+  // stops the drag from selecting the page's text on the way.
+  scrub.addEventListener('mousedown', (event) => event.preventDefault());
 
   // Three text nodes, as JSX produces: the separator is its own node.
   const timeCurrent = document.createTextNode('');
@@ -223,8 +273,6 @@ export function createControlsElement(
     playBtn,
     fullscreenBtn,
     scrub,
-    fill,
-    thumb,
     timeCurrent,
     timeTotal,
     labels,
@@ -260,8 +308,9 @@ export function applyControlsElement(
     ctl.fullscreen = isFullscreen;
   }
 
-  setStyle(ctl.fill, { width: `${ratio * 100}%` });
-  setStyle(ctl.thumb, { left: `${ratio * 100}%` });
+  // ONE number, from which the stylesheet derives both the fill's width and the
+  // thumb's position — by `transform`, for the reason given on the thumb's rule.
+  setStyle(ctl.scrub, { '--rdfa-progress': String(ratio) });
 
   // Whole milliseconds, so the value the assistive layer reads matches the
   // clock rather than a float that never repeats. `setAttrIfChanged` is what

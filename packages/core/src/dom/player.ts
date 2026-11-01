@@ -375,6 +375,7 @@ export function mountPlayer(
       timeline,
       labels: chrome,
       onToggleFullscreen: toggleFullscreen,
+      focusHost: root,
       actionSlots: slots,
     });
     applyControlsElement(bar, clock, isFullscreen);
@@ -431,8 +432,9 @@ export function mountPlayer(
    *
    *  - **Space is not a shortcut on an activatable control.** Space ACTIVATES a
    *    focused button; claiming it here would toggle playback instead of
-   *    pressing "Next step". It stays the play/pause shortcut only when the
-   *    focus is on the root or the stage, i.e. on nothing activatable.
+   *    pressing "Next step". It stays the play/pause shortcut when the focus is
+   *    on the root, the stage or the scrub bar — the bar is a `<button>` only
+   *    for its markup: it is a SLIDER, and activating it does nothing.
    *  - **No shortcut fires from inside the dialog.** It is modal, and its
    *    `<pre>` is focusable and scrollable, so the arrows there belong to the
    *    scroll. Everywhere else the arrows stay global — unlike Space they
@@ -443,8 +445,10 @@ export function mountPlayer(
     dialog !== undefined &&
     target instanceof Node &&
     dialog.el.contains(target);
-  const fromActivatable = (target: EventTarget | null): boolean =>
-    target instanceof Element && target.closest('button') !== null;
+  const fromActivatable = (target: EventTarget | null): boolean => {
+    const button = target instanceof Element ? target.closest('button') : null;
+    return button !== null && button.getAttribute('role') !== 'slider';
+  };
 
   const onKeyDown = (event: KeyboardEvent): void => {
     if (fromDialog(event.target)) return;
