@@ -1125,7 +1125,9 @@
   /* La boîte s'ajuste à son contenu, plafonnée aux rebords du lecteur (px,
      calculés par computeScale). Au-delà, le CodeBlock réduit la police : rien
      n'est tronqué. */
-  max-width: var(--rdfa-content-maxw, var(--rdfa-maxw, 320px));
+  /* No `--rdfa-maxw` fallback: it is a DESIGN length that every other rule
+     multiplies by a scale, while this cap is already in render px. */
+  max-width: var(--rdfa-content-maxw, 320px);
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);

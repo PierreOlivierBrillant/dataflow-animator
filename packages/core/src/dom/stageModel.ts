@@ -28,6 +28,11 @@ export interface StageModel {
   /** Aspect the ROUTER reasons in: the frame's for a circuit, the stage's else. */
   routeAspect: number;
   scale: number;
+  /**
+   * Width cap of labels, panels, packets and bubbles, in DESIGN px — NOT
+   * multiplied by `k`. The stylesheet multiplies it by `--rdfa-scale`, which
+   * already carries `k`, exactly as it does every literal length.
+   */
   maxW: number;
   contentMaxW: number;
   contentMaxH: number;
@@ -102,7 +107,10 @@ export function buildStageModel(input: StageModelInput): StageModel {
     isCircuit ? 0.68 : 1
   );
   const scale = design.scale * k;
-  const maxW = design.maxW * k;
+  // Left in design px: every rule that reads `--rdfa-maxw` multiplies it by a
+  // scale that already holds k, so a k here made those widths grow as k² and
+  // a small player wrap its labels and bubbles far more than a large one.
+  const maxW = design.maxW;
   const contentMaxW = design.contentMaxW * k;
   const contentMaxH = design.contentMaxH * k;
 

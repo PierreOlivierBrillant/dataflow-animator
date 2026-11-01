@@ -27,6 +27,21 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   longer readable on the way. Small packets travel as before; across the
   gallery, 7 of 271 trips fold.
 
+### Fixed
+
+- **Labels, panels, packets and comment bubbles keep their proportions at
+  every player size.** Their maximum width was scaled by the player's size
+  TWICE — once in `--rdfa-maxw`, once more by the scale the stylesheet
+  multiplies it by — so it grew with the square of the player's height while
+  every other length on the stage grew linearly. A small player, such as a
+  320 px example in the docs, wrapped its bubbles and packets into narrow
+  columns (a comment took 29 % of the stage width there, 87 % on a 990 px
+  player), and a line of code could break in the middle of a token.
+  `--rdfa-maxw` is now a design length like every literal one in the
+  stylesheet, so the same diagram wraps the same way at any size. A player
+  whose stage is 495 px tall renders exactly as before; a smaller one shows
+  wider bubbles and packets, a larger one narrower ones.
+
 ## 2.1.0 — 2026-11-01
 
 ### Added

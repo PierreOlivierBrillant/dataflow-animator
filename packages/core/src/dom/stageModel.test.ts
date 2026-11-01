@@ -74,7 +74,14 @@ describe('scale', () => {
 
     // A small player is a homogeneous reduction of a large one.
     expect(large.scale / small.scale).toBeCloseTo(2, 6);
-    expect(large.maxW / small.maxW).toBeCloseTo(2, 6);
+    // The stylesheet multiplies `--rdfa-maxw` by `--rdfa-scale`, which already
+    // carries k: what scales with the player is that product, never maxW alone
+    // — otherwise labels, packets and bubbles would grow as k².
+    expect(large.maxW).toBe(small.maxW);
+    expect((large.maxW * large.scale) / (small.maxW * small.scale)).toBeCloseTo(
+      2,
+      6
+    );
   });
 
   it('ties the content scale to the icon scale', () => {
