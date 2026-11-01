@@ -27,7 +27,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const packageRoot = join(__dirname, '..');
 
 /** The react-icons packs the catalogue draws from. */
-const SETS = ['si', 'fa', 'di', 'vsc', 'md', 'tb'];
+const SETS = ['si', 'fa', 'di', 'vsc', 'md', 'tb', 'ri'];
 
 /**
  * react-icons stores React PROP names in its data (`strokeWidth`), which React

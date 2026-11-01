@@ -105,7 +105,10 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   tells an animated panel apart from a still image. An `html` panel is
   transcribed as its WORDS, with the markup stripped.
 
-- **A `flutter` sub-icon badge**, drawn with the Flutter logo.
+- **Sub-icon badges for Flutter and for LLM providers**: `flutter`, `claude`,
+  `anthropic`, `openai` / `chatgpt`, `deepseek`, `mistral`, `gemini`, `meta`,
+  `ollama`, `huggingface`, `perplexity`, `copilot`, `qwen`, `kimi` / `moonshot`,
+  `minimax`, `openrouter`, `grok` and `zhipu` / `glm`.
 
 ### Changed
 
@@ -114,6 +117,9 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   two-word panel the ceiling of a paragraph. An `image` carrying `frames` is
   given the time its sequence needs to play through once, instead of the flat
   beat a still gets.
+
+- **The `git` and `azure` badges follow react-icons 5.7.0's redrawn glyphs**,
+  picked up by the bump that brings the new LLM logos.
 
 ### Fixed
 
